@@ -1,0 +1,47 @@
+{
+  "name": "asana-mcp-server",
+  "version": "2.0.0",
+  "description": "Complete Asana API integration for Claude Desktop via MCP - 220 tools in 8 categories",
+  "main": "src/index.js",
+  "bin": {
+    "asana-mcp-server": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/server.js",
+    "test": "jest --config=config/jest.config.js",
+    "test:watch": "jest --watch --config=config/jest.config.js",
+    "test:coverage": "jest --coverage --config=config/jest.config.js",
+    "test:integration": "jest tests/integration.test.js --config=config/jest.config.js",
+    "test:unit": "jest --testPathIgnorePatterns=integration.test.js --config=config/jest.config.js"
+  },
+  "keywords": [
+    "mcp",
+    "asana",
+    "model-context-protocol",
+    "claude-desktop",
+    "automation",
+    "workflow",
+    "api-integration",
+    "enterprise"
+  ],
+  "author": "Deploy-A Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.9",
+    "axios-retry": "^4.5.0",
+    "bottleneck": "^2.19.5",
+    "joi": "^18.0.1",
+    "node-cache": "^5.1.2",
+    "opossum": "^9.0.0",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

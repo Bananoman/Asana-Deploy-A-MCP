@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "asana": {
+      "command": "node",
+      "args": [
+        "/Users/rubenmendoza/Documents/Repositorios RMT/Asana-Deploy-A-MCP/src/index.js"
+      ],
+      "env": {
+        "ASANA_TOKEN": "REEMPLAZA_CON_TU_TOKEN_DE_ASANA",
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
