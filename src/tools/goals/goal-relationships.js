@@ -11,8 +11,14 @@
  * Key constraints:
  * - Relationship types: subgoal (another goal), project, portfolio
  * - Contribution weights should ideally sum to 1 across all supporting resources
- * - contribution_weight may not be settable via API in all cases
+ * - contribution_weight requires BOTH parent and child to have compatible metrics,
+ *   AND parent must use subgoal-based progress (progress_source="subgoal_progress")
  * - Removing a relationship does NOT delete the supporting resource
+ *
+ * SALS (Goal Access Levels, enforced Feb 2026):
+ * - Creating/modifying relationships requires Editor or Admin access on the goal
+ * - remove_goal_followers(self) strips membership → 403 on all relationship ops
+ * - Always perform relationship operations BEFORE removing yourself as follower
  *
  * NOT possible via API (use Asana UI instead):
  * - Automatic roll-up metric formulas from sub-goals
@@ -40,7 +46,7 @@ module.exports = (client) => [
   },
   {
     name: 'update_goal_relationship',
-    description: 'Update a goal relationship (Business+ plan required). Currently the main updatable field is contribution_weight, which controls how much the supporting resource contributes to the parent goal progress (0 = no contribution, 1 = full contribution). Weights across all supporting resources for a goal should ideally sum to 1.0. NOTE: contribution_weight may not be settable via API in all cases — if it fails, adjust weights in the Asana UI. Related: get_goal_relationship to see current weight, list_goal_relationships.',
+    description: 'Update a goal relationship (Business+ plan required). Currently the main updatable field is contribution_weight, which controls how much the supporting resource contributes to the parent goal progress (0 = no contribution, 1 = full contribution). Weights across all supporting resources for a goal should ideally sum to 1.0. IMPORTANT: contribution_weight requires BOTH the parent and child goals to have compatible metrics, AND the parent goal must use subgoal-based progress tracking (progress_source="subgoal_progress", set via create_goal_metric without manual values). If the parent has a manual metric (with initial/current/target values), contribution_weight returns 400 "child_goal_cannot_contribute_progress_to_parent_goal". Related: get_goal_relationship to see current weight, list_goal_relationships.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -82,7 +88,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_goal_relationship',
-    description: 'Create a goal relationship linking a supporting resource to a goal (Business+ plan required). The supporting resource can be another goal (subgoal), a project (supporting_work), or a portfolio (supporting_work). Optionally set contribution_weight (0-1) to control how much this resource affects parent goal progress. Use insertion_before/insertion_after to control ordering among sibling relationships. NOTE: contribution_weight may not be settable via API in all cases. Related: list_goal_relationships, update_goal_relationship to change weight, add_supporting_goal_relationship for a simpler alternative.',
+    description: 'Create a goal relationship linking a supporting resource to a goal (Business+ plan required). The supporting resource can be another goal (subgoal), a project (supporting_work), or a portfolio (supporting_work). Optionally set contribution_weight (0-1) to control how much this resource affects parent goal progress. Use insertion_before/insertion_after to control ordering among sibling relationships. IMPORTANT (SALS): Requires Editor or Admin access on the goal. If you previously called remove_goal_followers on yourself, you will get 403. NOTE: contribution_weight requires parent goal to have subgoal-based progress tracking (progress_source="subgoal_progress") and compatible metrics on both goals. Related: list_goal_relationships, update_goal_relationship to change weight, add_supporting_goal_relationship for a simpler alternative.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

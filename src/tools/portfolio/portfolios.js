@@ -15,6 +15,16 @@
  * - Color uses standard Asana palette (dark-xx/light-xx variants + "none")
  * - A project can belong to multiple portfolios simultaneously
  *
+ * CRITICAL - Portfolio Access Levels (SALS, enforced Feb 2026):
+ * - DANGER: add_members_to_portfolio(self) when you are already a member/owner
+ *   DOWNGRADES your access from admin to editor, causing 403 on delete and
+ *   other admin-only operations. This is IRREVERSIBLE via API.
+ * - Similarly, remove_members_from_portfolio(self) strips your membership entirely.
+ * - Order of operations matters: perform delete_portfolio BEFORE any
+ *   add_members_to_portfolio calls that include the authenticated user.
+ * - To safely test member operations, use a DIFFERENT user GID (not the
+ *   authenticated user/owner).
+ *
  * NOT possible via API (use Asana UI instead):
  * - Portfolio dashboards and chart views
  * - Portfolio workload visualization
@@ -115,7 +125,7 @@ module.exports = (client) => [
   },
   {
     name: 'delete_portfolio',
-    description: 'Permanently delete a portfolio (Business+ plan required). DESTRUCTIVE: This action cannot be undone. The projects within the portfolio are NOT deleted — they simply lose the portfolio grouping and continue to exist independently. All portfolio memberships, custom field settings, and status updates associated with this portfolio are also removed. Related: update_portfolio to modify instead of deleting.',
+    description: 'Permanently delete a portfolio (Business+ plan required). DESTRUCTIVE: This action cannot be undone. The projects within the portfolio are NOT deleted — they simply lose the portfolio grouping and continue to exist independently. All portfolio memberships, custom field settings, and status updates associated with this portfolio are also removed. IMPORTANT (SALS): Requires Admin access. If you previously called add_members_to_portfolio with the authenticated user (self-add when already owner), your access is downgraded and delete will return 403. Always delete BEFORE modifying members. Related: update_portfolio to modify instead of deleting.',
     annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',
@@ -182,7 +192,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_members_to_portfolio',
-    description: 'Add members to a portfolio (Business+ plan required). Members can view and edit the portfolio contents and settings. Members are distinct from the owner — the owner has full control including deletion. Pass an array of user GIDs. Adding a user who is already a member is a no-op (safe to retry). Related: remove_members_from_portfolio, get_portfolio to see current members, list_users to find user GIDs.',
+    description: 'Add members to a portfolio (Business+ plan required). Members can view and edit the portfolio contents and settings. Members are distinct from the owner — the owner has full control including deletion. Pass an array of user GIDs. CRITICAL WARNING (SALS): Adding the authenticated user (yourself) when you are already the owner DOWNGRADES your access from admin to editor. This causes 403 on delete and other admin operations, and is IRREVERSIBLE via API. Only add OTHER users, not yourself. Related: remove_members_from_portfolio, get_portfolio to see current members, list_users to find user GIDs.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -203,7 +213,7 @@ module.exports = (client) => [
   },
   {
     name: 'remove_members_from_portfolio',
-    description: 'Remove members from a portfolio (Business+ plan required). Removed members lose direct portfolio access unless they have workspace-level visibility (public portfolios). The portfolio owner cannot be removed via this endpoint. Pass an array of user GIDs. Related: add_members_to_portfolio, get_portfolio to see current members.',
+    description: 'Remove members from a portfolio (Business+ plan required). Removed members lose direct portfolio access unless they have workspace-level visibility (public portfolios). Pass an array of user GIDs. CRITICAL WARNING (SALS): Removing yourself strips your portfolio membership entirely, causing 403 on ALL subsequent operations (including delete). This is IRREVERSIBLE via API — even workspace super admins cannot regain access. Always perform all portfolio operations BEFORE removing yourself. Related: add_members_to_portfolio, get_portfolio to see current members.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

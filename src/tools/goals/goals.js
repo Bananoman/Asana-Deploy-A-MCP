@@ -15,6 +15,18 @@
  * - Goals can be workspace-level or team-level (set team for team-level)
  * - Metrics use current_number_value and target_number_value for progress
  *
+ * CRITICAL - Goal Access Levels (SALS, enforced Feb 2026):
+ * - Goals have per-goal membership with access levels: admin, editor, commenter, viewer
+ * - Workspace super admin does NOT automatically get admin access on individual goals
+ * - DANGER: remove_goal_followers(self) strips your goal membership entirely,
+ *   causing 403 on ALL subsequent write operations (including delete)
+ * - Order of operations matters: do ALL write operations (metrics, relationships,
+ *   delete) BEFORE calling remove_goal_followers
+ * - Setting a metric (setMetric) switches progress to manual mode, which prevents
+ *   sub-goals from contributing progress via contribution_weight
+ * - For sub-goal progress: set progress_source="subgoal_progress" on parent metric
+ *   (without initial/current/target values)
+ *
  * NOT possible via API (use Asana UI instead):
  * - Creating goal metric formulas (roll-up calculations)
  * - Configuring time period cadences (fiscal year setup)
@@ -129,7 +141,7 @@ module.exports = (client) => [
   },
   {
     name: 'delete_goal',
-    description: 'Permanently delete a goal (Business+ plan required). DESTRUCTIVE: This action cannot be undone. All goal relationships, metrics, and status updates associated with this goal are also removed. Sub-goals and supporting resources are NOT deleted — only the links are broken. Consider updating the goal status to "dropped" or "missed" instead of deleting to preserve history. Related: update_goal to modify instead of deleting.',
+    description: 'Permanently delete a goal (Business+ plan required). DESTRUCTIVE: This action cannot be undone. All goal relationships, metrics, and status updates associated with this goal are also removed. Sub-goals and supporting resources are NOT deleted — only the links are broken. Consider updating the goal status to "dropped" or "missed" instead of deleting to preserve history. IMPORTANT (SALS): You must have Admin access on the goal to delete it. If you previously called remove_goal_followers on yourself, you will get 403 — delete the goal BEFORE removing yourself as follower. Related: update_goal to modify instead of deleting.',
     annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',
@@ -163,7 +175,7 @@ module.exports = (client) => [
   },
   {
     name: 'remove_goal_followers',
-    description: 'Remove followers from a goal (Business+ plan required). Removed followers stop receiving notifications about this goal. Pass an array of user GIDs. Removing a user who is not a follower is a no-op. Related: add_goal_followers, get_goal to see current followers.',
+    description: 'Remove followers from a goal (Business+ plan required). Removed followers stop receiving notifications about this goal. Pass an array of user GIDs. Removing a user who is not a follower is a no-op. CRITICAL WARNING (SALS): Removing yourself as follower strips your goal membership entirely, causing 403 "goal_write_access_failure" on ALL subsequent write operations (addSupportingRelationship, delete, update, setMetric). This is IRREVERSIBLE via API — even workspace super admins cannot regain access. Always perform all write operations BEFORE removing yourself as follower. Related: add_goal_followers, get_goal to see current followers.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -184,7 +196,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_goal_metric',
-    description: 'Set a metric on a goal for measurable progress tracking (Business+ plan required). Metrics define how goal completion is measured — as a number, percentage, or currency value with initial, current, and target values. Unit types: "none" (plain number), "percentage" (0-100%), "currency" (requires currency_code like "USD"). This calls POST /goals/{goal_gid}/setMetric. Once set, use update_goal_metric to report progress. NOTE: Metric formulas (roll-up calculations) cannot be created via API — use Asana UI. Related: update_goal_metric to change current value, get_goal to see current metric.',
+    description: 'Set a metric on a goal for measurable progress tracking (Business+ plan required). Metrics define how goal completion is measured — as a number, percentage, or currency value with initial, current, and target values. Unit types: "none" (plain number), "percentage" (0-100%), "currency" (requires currency_code like "USD"). This calls POST /goals/{goal_gid}/setMetric. Once set, use update_goal_metric to report progress. IMPORTANT: Setting a metric switches the goal to manual progress tracking — sub-goals can no longer contribute progress via contribution_weight. For sub-goal-based progress, set progress_source="subgoal_progress" without initial/current/target values. NOTE: Metric formulas (roll-up calculations) cannot be created via API — use Asana UI. Related: update_goal_metric to change current value, get_goal to see current metric.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -241,7 +253,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_supporting_goal_relationship',
-    description: 'Add a supporting resource to a goal (Business+ plan required). Links a sub-goal, project, or portfolio as a contributor to the parent goal. This creates a hierarchical relationship showing what drives progress toward achieving the goal. Relationship types: subgoal (another goal), supporting_work (project or portfolio). Optionally set contribution_weight (0-1) to control how much this resource affects parent goal progress. NOTE: Contribution weight may not be settable via API in all cases. Related: remove_supporting_goal_relationship, list_goal_relationships, create_goal_relationship for more options.',
+    description: 'Add a supporting resource to a goal (Business+ plan required). Links a sub-goal, project, or portfolio as a contributor to the parent goal. This creates a hierarchical relationship showing what drives progress toward achieving the goal. Relationship types: subgoal (another goal), supporting_work (project or portfolio). Optionally set contribution_weight (0-1) to control how much this resource affects parent goal progress. IMPORTANT (SALS): Requires Editor or Admin access on the goal. If you previously called remove_goal_followers on yourself, you will get 403 — add relationships BEFORE removing yourself as follower. NOTE: contribution_weight requires both parent and child goals to have compatible metrics with subgoal-based progress tracking. Related: remove_supporting_goal_relationship, list_goal_relationships, create_goal_relationship for more options.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
