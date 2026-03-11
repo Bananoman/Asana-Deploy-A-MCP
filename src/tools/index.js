@@ -1,17 +1,30 @@
 /**
- * Tool Registry
- * Central registry for all MCP tools organized by category
+ * Tool Registry - Central registry for all 236 MCP tools organized by 9 categories
+ *
+ * Categories and plan requirements:
+ * - WORKSPACE (4 modules): Free+ (workspaces, users, teams, memberships)
+ * - PROJECTS (6 modules): Free+ (Premium for custom fields, templates)
+ * - TASKS (6 modules): Free+ (Premium for templates, task dependencies)
+ * - PORTFOLIO (2 modules): Business+ (portfolios, allocations)
+ * - GOALS (3 modules): Business+ (goals, relationships, time periods)
+ * - AUTOMATION (5 modules): Free+ (rules, webhooks, jobs, bulk/workflow ops)
+ * - REPORTING (2 modules): Enterprise only + Service Account (audit log, org exports)
+ * - COLLABORATION (3 modules): Free+ (status updates, reactions, tags)
+ * - ADVANCED (12 modules): Mixed (Premium for custom fields, Business for time tracking, Enterprise for custom objects)
+ *
+ * All tools include comprehensive descriptions with API limitations, constraints,
+ * plan requirements, and MCP annotations (readOnlyHint, destructiveHint, idempotentHint).
  *
  * @module tools
  */
 
-// WORKSPACE - User, team, and organization management
+// WORKSPACE - User, team, and organization management (Free+)
 const workspaceTools = require('./workspace/workspaces');
 const userTools = require('./workspace/users');
 const teamTools = require('./workspace/teams');
 const membershipTools = require('./workspace/memberships');
 
-// PROJECTS - Project management and configuration
+// PROJECTS - Project management and configuration (Free+, Premium for templates/custom fields)
 const projectTools = require('./projects/projects');
 const projectOperationTools = require('./projects/project-operations');
 const projectStatusTools = require('./projects/project-statuses');
@@ -19,7 +32,7 @@ const projectBriefTools = require('./projects/project-briefs');
 const projectTemplateTools = require('./projects/project-templates');
 const sectionTools = require('./projects/sections');
 
-// TASKS - Task management and operations
+// TASKS - Task management and operations (Free+, Premium for templates)
 const taskTools = require('./tasks/tasks');
 const taskOperationTools = require('./tasks/task-operations');
 const taskTemplateTools = require('./tasks/task-templates');
@@ -27,30 +40,32 @@ const userTaskListTools = require('./tasks/user-task-lists');
 const storyTools = require('./tasks/stories');
 const attachmentTools = require('./tasks/attachments');
 
-// PORTFOLIO - Portfolio and resource management
+// PORTFOLIO - Portfolio and resource management (Business+)
 const portfolioTools = require('./portfolio/portfolios');
 const allocationTools = require('./portfolio/allocations');
 
-// GOALS - Goals and OKR management
+// GOALS - Goals and OKR management (Business+)
 const goalTools = require('./goals/goals');
 const goalRelationshipTools = require('./goals/goal-relationships');
 const timePeriodTools = require('./goals/time-periods');
 
-// AUTOMATION - Rules, webhooks, and automation
+// AUTOMATION - Rules, webhooks, and automation (Free+, rules have API limitations)
 const ruleTools = require('./automation/rules');
+const ruleBulkTools = require('./automation/rules-bulk');
+const ruleWorkflowTools = require('./automation/rules-workflows');
 const webhookTools = require('./automation/webhooks');
 const jobTools = require('./automation/jobs');
 
-// REPORTING - Exports and audit logs
+// REPORTING - Exports and audit logs (Enterprise only, Service Account required)
 const organizationExportTools = require('./reporting/organization-exports');
 const auditLogTools = require('./reporting/audit-log');
 
-// COLLABORATION - Communication and collaboration
+// COLLABORATION - Communication and collaboration (Free+)
 const statusUpdateTools = require('./collaboration/status-updates');
 const reactionTools = require('./collaboration/reactions');
 const tagTools = require('./collaboration/tags');
 
-// ADVANCED - Advanced features and integrations
+// ADVANCED - Advanced features and integrations (Mixed: Premium/Business/Enterprise)
 const batchTools = require('./advanced/batch');
 const bulkOperationTools = require('./advanced/bulk-operations');
 const compositeOperationTools = require('./advanced/composite-operations');
@@ -102,8 +117,10 @@ function getAllTools(client) {
     ...goalRelationshipTools(client),
     ...timePeriodTools(client),
 
-    // AUTOMATION (3 modules)
+    // AUTOMATION (5 modules)
     ...ruleTools(client),
+    ...ruleBulkTools(client),
+    ...ruleWorkflowTools(client),
     ...webhookTools(client),
     ...jobTools(client),
 

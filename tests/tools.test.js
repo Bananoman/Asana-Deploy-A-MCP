@@ -22,14 +22,14 @@ describe('Tool Modules - 100% Asana API Coverage + Rules Automation', () => {
   });
 
   describe('Tool Count and Structure', () => {
-    test('should have exactly 220 tools (207 base + 13 rules automation)', () => {
-      expect(tools).toHaveLength(220);
+    test('should have exactly 236 tools (207 base + 13 rules + 16 rules bulk/workflow)', () => {
+      expect(tools).toHaveLength(236);
     });
 
     test('all tools should have unique names', () => {
       const names = tools.map(t => t.name);
       const uniqueNames = new Set(names);
-      expect(uniqueNames.size).toBe(220);
+      expect(uniqueNames.size).toBe(236);
     });
 
     test('all tools should have required properties', () => {

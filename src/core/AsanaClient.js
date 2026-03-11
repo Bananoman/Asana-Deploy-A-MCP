@@ -248,6 +248,42 @@ class AsanaClient {
   }
 
   /**
+   * Fetch all pages of a paginated GET endpoint
+   * Automatically follows next_page.offset tokens until all results are collected.
+   * Useful for composite operations that need complete result sets.
+   * @param {string} endpoint - API endpoint
+   * @param {Object} params - Query parameters (limit will be set to 100 for efficiency)
+   * @param {Object} options - Request options
+   * @param {number} [options.maxPages=50] - Safety limit on pages to prevent runaway pagination
+   * @returns {Promise<Object>} Combined response with all data items
+   */
+  async getAll(endpoint, params = {}, options = {}) {
+    const allData = [];
+    let offset = null;
+    let pageCount = 0;
+    const maxPages = options.maxPages || 50;
+
+    do {
+      const pageParams = { ...params, limit: 100 };
+      if (offset) pageParams.offset = offset;
+
+      const response = await this.get(endpoint, pageParams, { skipCache: true });
+      const items = response.data || [];
+      allData.push(...items);
+
+      offset = response.next_page?.offset || null;
+      pageCount++;
+
+      if (pageCount >= maxPages) {
+        logger.warn('getAll reached max pages limit', { endpoint, maxPages, totalItems: allData.length });
+        break;
+      }
+    } while (offset);
+
+    return { data: allData };
+  }
+
+  /**
    * Make POST request with rate limiting and cache invalidation
    * @param {string} endpoint - API endpoint
    * @param {Object} data - Request body
@@ -418,12 +454,30 @@ class AsanaClient {
       const { status, data } = error.response;
       const message = data?.errors?.[0]?.message || data?.message || 'Unknown error';
 
-      const apiError = new Error(`Asana API Error (${status}): ${message}`);
+      // Asana-specific error context for better debugging
+      const errorContextMap = {
+        400: 'Bad request - check parameter names and values match the Asana API specification',
+        401: 'Unauthorized - verify that ASANA_TOKEN is valid and not expired',
+        402: 'Payment required - this feature requires a paid Asana plan (Premium/Business/Enterprise)',
+        403: 'Forbidden - insufficient permissions for this workspace, project, or task',
+        404: 'Not found - check that the GID exists and you have access to the resource',
+        409: 'Conflict - resource was modified by another request, try again',
+        412: 'Precondition failed - for Events API, get a new sync token by calling without sync parameter',
+        429: 'Rate limited - too many requests, wait before retrying',
+        451: 'Unavailable for legal reasons - content blocked in your region',
+        500: 'Asana server error - retry in a few seconds',
+        502: 'Bad gateway - Asana may be experiencing issues, retry shortly',
+        503: 'Service unavailable - Asana may be down for maintenance'
+      };
+
+      const context = errorContextMap[status] || 'Unexpected error';
+      const apiError = new Error(`Asana API Error (${status}): ${message}. ${context}`);
       apiError.code = `HTTP_${status}`;
       apiError.status = status;
       apiError.endpoint = endpoint;
       apiError.method = method;
       apiError.details = data;
+      apiError.context = context;
 
       // Rate limit specific handling
       if (status === 429) {

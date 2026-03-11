@@ -1,16 +1,18 @@
 /**
- * Bulk Operations Tools - Enterprise Grade
- * Production-ready bulk operations with comprehensive error handling,
- * transaction support, and detailed reporting
+ * Bulk Operations Tools - Batch task operations with error tracking
  *
- * Features:
- * - Detailed success/failure tracking
- * - Partial success handling
- * - Transaction rollback support
- * - Progress reporting
- * - Error aggregation
+ * Production-ready bulk operations that process items sequentially with
+ * comprehensive error handling, partial success tracking, and detailed reporting.
  *
- * @module BulkOperations
+ * Key constraints:
+ * - Each sub-operation counts individually toward rate limits (1500 req/min paid, 150 free)
+ * - Operations are sequential (not parallel) — large batches may be slow
+ * - Partial failures: some items may succeed while others fail
+ * - Results include per-item success/failure details with error messages
+ * - Use stopOnError=true to abort on first failure (available on some tools)
+ * - NOT atomic: successful operations are NOT rolled back if later ones fail
+ *
+ * @module bulk-operations
  */
 
 /**
@@ -23,6 +25,19 @@
  * @returns {Promise<Object>} Execution results with detailed statistics
  */
 async function executeBulkOperation(items, operation, options = {}) {
+  if (!items || !Array.isArray(items)) {
+    return {
+      total: 0,
+      successful: 0,
+      failed: 0,
+      items: [],
+      summary: {
+        successRate: 'N/A',
+        failureRate: 'N/A',
+        errors: [{ message: 'No items provided or items is not an array', code: 'INVALID_INPUT' }]
+      }
+    };
+  }
   const results = {
     total: items.length,
     successful: 0,
@@ -106,7 +121,8 @@ async function executeBulkOperation(items, operation, options = {}) {
 module.exports = (client) => [
   {
     name: 'bulk_create_tasks',
-    description: 'Create multiple tasks at once with comprehensive error handling',
+    description: 'Create multiple tasks in batch with per-item error tracking. Tasks are created sequentially (not in parallel). Each creation counts toward rate limits. Returns aggregated success/failure counts and per-item details. Use stopOnError=true to abort on first failure. Related: create_task for single tasks, batch_api for parallel API calls.',
+    annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
       properties: {
@@ -144,7 +160,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_update_tasks',
-    description: 'Update multiple tasks at once with detailed progress tracking',
+    description: 'Update multiple tasks in batch. Each update specifies a task_gid and data object with fields to change. Sequential execution with per-item error tracking. Related: update_task for single updates, bulk_assign_tasks, bulk_complete_tasks for specific update patterns.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -179,7 +196,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_add_task_followers',
-    description: 'Add followers to multiple tasks with error tracking',
+    description: 'Add the same set of followers to multiple tasks. Followers receive notifications about task changes. Sequential processing with per-task results. Related: add_task_followers for single task, bulk_add_task_tags.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -208,7 +226,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_add_task_tags',
-    description: 'Add a tag to multiple tasks with comprehensive reporting',
+    description: 'Add the same tag to multiple tasks. Useful for batch categorization or sprint labeling. The tag must already exist. Sequential processing with per-task results. Related: add_task_tag for single task, create_tag to create tags first, bulk_add_task_followers.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -231,7 +250,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_move_tasks_to_section',
-    description: 'Move multiple tasks to a section with detailed results',
+    description: 'Move multiple tasks to the same section. Useful for batch board column changes (e.g., moving sprint tasks to "Done"). Tasks must already be in the project containing the section. Sequential processing. Related: add_task_to_section for single task, bulk_assign_tasks.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -256,7 +276,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_assign_tasks',
-    description: 'Assign multiple tasks to a user with success tracking',
+    description: 'Assign multiple tasks to the same user. Useful for workload redistribution or sprint planning. Overwrites existing assignees. Sequential processing with per-task results. Related: update_task for single assignment, bulk_update_tasks for arbitrary updates.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -279,7 +300,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_set_task_due_dates',
-    description: 'Set due dates for multiple tasks with error aggregation',
+    description: 'Set the same due date on multiple tasks. Useful for sprint deadline alignment or milestone coordination. Date format: YYYY-MM-DD. Overwrites existing due dates. Sequential processing. Related: update_task for single date change, bulk_update_tasks.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -302,7 +324,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_complete_tasks',
-    description: 'Mark multiple tasks as complete with comprehensive results',
+    description: 'Mark multiple tasks as completed. Useful for closing out sprints, archiving done work, or batch status updates. Completion triggers notifications to task followers. Sequential processing with per-task results. Related: update_task for single completion, archive_completed_tasks to remove completed tasks from projects.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -324,7 +347,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_delete_tasks',
-    description: 'Delete multiple tasks with detailed failure tracking',
+    description: 'Permanently delete multiple tasks. DESTRUCTIVE: Cannot be undone. Deleted tasks are removed from all projects; subtasks become top-level tasks. Use stopOnError=true for safety. Consider bulk_complete_tasks instead if tasks should be preserved. Sequential processing. Related: delete_task for single deletion, archive_completed_tasks for non-destructive cleanup.',
+    annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',
       properties: {
@@ -352,7 +376,8 @@ module.exports = (client) => [
 
   {
     name: 'bulk_add_project_members',
-    description: 'Add members to multiple projects with success/failure reporting',
+    description: 'Add the same set of members to multiple projects. Members get edit access to each project. Useful for onboarding users to multiple projects at once. Sequential processing with per-project results. Related: add_project_members for single project, bulk_add_task_followers.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {

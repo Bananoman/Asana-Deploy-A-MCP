@@ -1,56 +1,80 @@
 /**
- * Asana Rules Tools - Complete Automation & Workflow Management
+ * Automation Tools - Rules CRUD & Manual Trigger
  *
- * Features:
- * - CRUD operations for rules
- * - Bulk rule operations
- * - Rule cloning between projects
- * - Workflow templates (Kanban, Sprint, etc.)
- * - Rule auditing and reporting
+ * Rules automate actions in projects when specific trigger conditions are met.
+ * Each rule has ONE trigger and ONE action via the API (the Asana UI allows multiple
+ * actions per rule, but the API is limited to one trigger + one action).
+ *
+ * Plan requirements: Business+ (rules are a premium feature)
+ * Rate limits: Standard (1500 req/min paid, 150 req/min free)
+ *
+ * Key constraints:
+ * - Rules do NOT fire on changes made via the API — only UI-initiated changes trigger them
+ * - Cannot change trigger or action type on an existing rule — must delete and recreate
+ * - Rules are NOT included when duplicating projects or instantiating templates via API
+ * - Limited trigger/action types compared to the Asana UI
+ *
+ * NOT possible via API (use Asana UI instead):
+ * - Creating AI-powered or AI Studio rules
+ * - Creating conditional/branching logic in rules
+ * - Creating rules with multiple actions
  *
  * @module rules
  */
 
 module.exports = (client) => [
-  // ==================== BASIC CRUD ====================
-
   {
     name: 'get_rule',
-    description: 'Get a rule by GID',
+    description: 'Get a rule by GID. Returns the rule definition including trigger configuration, action configuration, enabled status, and metadata. Use this to inspect what a rule does before updating or cloning it. Each rule has exactly one trigger and one action (API limitation). Rules do NOT fire on API-initiated changes, only UI changes. Related: list_project_rules to find rule GIDs, update_rule to modify, trigger_rule to run manually.',
+    annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
       properties: {
-        rule_gid: { type: 'string', description: 'Rule GID' }
+        rule_gid: { type: 'string', description: 'The globally unique identifier for the rule' },
+        opt_fields: { type: 'string', description: 'Comma-separated fields to include. Example: "name,enabled,trigger,action,created_at,modified_at"' }
       },
       required: ['rule_gid']
     },
-    handler: async (args) => await client.get(`/rules/${args.rule_gid}`)
+    handler: async (args) => {
+      const params = {};
+      if (args.opt_fields) params.opt_fields = args.opt_fields;
+      return await client.get(`/rules/${args.rule_gid}`, params);
+    }
   },
 
   {
     name: 'list_project_rules',
-    description: 'List all rules in a project',
+    description: 'List all automation rules configured in a project. Returns each rule with its trigger type, action type, and enabled status. Use this to audit existing automation, find rules to clone, or check for conflicts before adding new rules. Note: rules do NOT fire on API-initiated changes and are NOT copied when duplicating projects via API. Related: get_rule for full details, create_rule to add new automation, audit_project_rules for a summary report.',
+    annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
       properties: {
-        project_gid: { type: 'string', description: 'Project GID' }
+        project_gid: { type: 'string', description: 'The project GID whose rules to list' },
+        limit: { type: 'number', description: 'Results per page (1-100, default 20)' },
+        offset: { type: 'string', description: 'Pagination token from a previous response next_page.offset' },
+        opt_fields: { type: 'string', description: 'Comma-separated fields to include. Example: "name,enabled,trigger,action,created_at"' }
       },
       required: ['project_gid']
     },
-    handler: async (args) => await client.get(`/projects/${args.project_gid}/rules`)
+    handler: async (args) => {
+      const { project_gid, ...params } = args;
+      if (!params.limit) params.limit = 20;
+      return await client.get(`/projects/${project_gid}/rules`, params);
+    }
   },
 
   {
     name: 'create_rule',
-    description: 'Create a new automation rule in a project',
+    description: 'Create a new automation rule in a project. Each rule has ONE trigger + ONE action (API limitation). Rules only fire on UI-initiated changes, not API changes. Cannot create AI-powered rules or conditional/branching logic via API. Trigger types: task_added_to_project, task_moved_to_section (requires section GID), task_completed, task_uncompleted, custom_field_changed (requires field GID), due_date_approaching, assignee_changed, attachment_added. Action types: assign_task (user GID), add_follower (user GID), set_custom_field (field GID + value), add_tag (tag GID), move_to_section (section GID), add_comment (text), complete_task, uncomplete_task, set_due_date, clear_due_date. Related: list_project_rules to see existing rules, setup_kanban_workflow or setup_sprint_workflow for pre-built templates.',
+    annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
       properties: {
-        project_gid: { type: 'string', description: 'Project GID' },
-        name: { type: 'string', description: 'Rule name' },
+        project_gid: { type: 'string', description: 'The project GID to add the rule to' },
+        name: { type: 'string', description: 'Human-readable rule name (e.g., "Auto-assign new tasks to PM")' },
         trigger_type: {
           type: 'string',
-          description: 'Trigger type',
+          description: 'The event that fires this rule. task_moved_to_section requires trigger_section_gid. custom_field_changed requires trigger_custom_field_gid.',
           enum: [
             'task_added_to_project',
             'task_moved_to_section',
@@ -62,11 +86,11 @@ module.exports = (client) => [
             'attachment_added'
           ]
         },
-        trigger_section_gid: { type: 'string', description: 'Section GID for section triggers' },
-        trigger_custom_field_gid: { type: 'string', description: 'Custom field GID for field triggers' },
+        trigger_section_gid: { type: 'string', description: 'Section GID - required when trigger_type is task_moved_to_section' },
+        trigger_custom_field_gid: { type: 'string', description: 'Custom field GID - required when trigger_type is custom_field_changed' },
         action_type: {
           type: 'string',
-          description: 'Action type',
+          description: 'The action to perform when trigger fires. Each action type requires specific action_* parameters (see parameter descriptions).',
           enum: [
             'assign_task',
             'add_follower',
@@ -80,13 +104,13 @@ module.exports = (client) => [
             'clear_due_date'
           ]
         },
-        action_assignee_gid: { type: 'string', description: 'User GID to assign' },
-        action_follower_gid: { type: 'string', description: 'User GID to add as follower' },
-        action_section_gid: { type: 'string', description: 'Section GID to move to' },
-        action_comment_text: { type: 'string', description: 'Comment text to add' },
-        action_tag_gid: { type: 'string', description: 'Tag GID to add' },
-        action_custom_field_gid: { type: 'string', description: 'Custom field GID' },
-        action_custom_field_value: { type: 'string', description: 'Value for custom field' }
+        action_assignee_gid: { type: 'string', description: 'User GID to assign - required for assign_task action' },
+        action_follower_gid: { type: 'string', description: 'User GID to add as follower - required for add_follower action' },
+        action_section_gid: { type: 'string', description: 'Section GID to move task to - required for move_to_section action' },
+        action_comment_text: { type: 'string', description: 'Comment text to add to task - required for add_comment action' },
+        action_tag_gid: { type: 'string', description: 'Tag GID to add to task - required for add_tag action' },
+        action_custom_field_gid: { type: 'string', description: 'Custom field GID - required for set_custom_field action (also requires action_custom_field_value)' },
+        action_custom_field_value: { type: 'string', description: 'Value to set on custom field - required for set_custom_field action (also requires action_custom_field_gid)' }
       },
       required: ['project_gid', 'name', 'trigger_type', 'action_type']
     },
@@ -116,13 +140,14 @@ module.exports = (client) => [
 
   {
     name: 'update_rule',
-    description: 'Update an existing rule',
+    description: 'Update an existing rule name or enabled status. Disabling a rule keeps its configuration but stops it from firing. IMPORTANT: you cannot change trigger or action types on an existing rule — you must delete and recreate the rule instead. Only name and enabled fields can be modified. Related: get_rule to see current config, delete_rule to remove, bulk_enable_rules or bulk_disable_rules for batch changes.',
+    annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
-        rule_gid: { type: 'string', description: 'Rule GID' },
-        name: { type: 'string', description: 'New name' },
-        enabled: { type: 'boolean', description: 'Enable/disable rule' }
+        rule_gid: { type: 'string', description: 'The globally unique identifier for the rule to update' },
+        name: { type: 'string', description: 'New human-readable name for the rule' },
+        enabled: { type: 'boolean', description: 'Set true to enable or false to disable the rule without deleting it' }
       },
       required: ['rule_gid']
     },
@@ -134,11 +159,12 @@ module.exports = (client) => [
 
   {
     name: 'delete_rule',
-    description: 'Delete a rule',
+    description: 'Permanently delete a rule from a project. This action cannot be undone. The rule stops firing immediately. Consider using update_rule with enabled=false to disable without deleting if you may need the rule again. Related: update_rule with enabled=false to disable without deleting, bulk_delete_rules for batch deletion.',
+    annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',
       properties: {
-        rule_gid: { type: 'string', description: 'Rule GID' }
+        rule_gid: { type: 'string', description: 'The globally unique identifier for the rule to delete' }
       },
       required: ['rule_gid']
     },
@@ -147,516 +173,19 @@ module.exports = (client) => [
 
   {
     name: 'trigger_rule',
-    description: 'Manually trigger a rule',
+    description: 'Manually trigger a rule against a specific resource (typically a task). Executes the rule action immediately, regardless of whether the trigger condition is met. Useful for testing rules, applying rules retroactively to existing tasks, or one-off automation. The resource must be in the same project as the rule. This is the only way to make a rule fire from the API, since rules do not fire on API-initiated changes automatically. Related: get_rule to inspect what the rule does before triggering.',
+    annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
       properties: {
-        rule_gid: { type: 'string', description: 'Rule GID' },
-        resource: { type: 'string', description: 'Resource GID' }
+        rule_gid: { type: 'string', description: 'The rule GID to trigger' },
+        resource: { type: 'string', description: 'The resource GID (usually a task GID) to run the rule action against' }
       },
       required: ['rule_gid', 'resource']
     },
     handler: async (args) => {
       const { rule_gid, resource } = args;
       return await client.post(`/rules/${rule_gid}/trigger`, { resource });
-    }
-  },
-
-  // ==================== BULK OPERATIONS ====================
-
-  {
-    name: 'bulk_create_rules',
-    description: 'Create multiple rules at once',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        project_gid: { type: 'string', description: 'Project GID' },
-        rules: {
-          type: 'array',
-          description: 'Array of rule definitions',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              trigger: { type: 'object' },
-              action: { type: 'object' }
-            }
-          }
-        },
-        stop_on_error: { type: 'boolean', description: 'Stop if error occurs (default: false)' }
-      },
-      required: ['project_gid', 'rules']
-    },
-    handler: async (args) => {
-      const results = { created: [], errors: [], total: args.rules.length };
-
-      for (const rule of args.rules) {
-        try {
-          const created = await client.post(`/projects/${args.project_gid}/rules`, rule);
-          results.created.push(created);
-        } catch (error) {
-          results.errors.push({ rule_name: rule.name, error: error.message });
-          if (args.stop_on_error) break;
-        }
-      }
-
-      results.summary = `${results.created.length}/${results.total} rules created successfully`;
-      if (results.errors.length > 0) {
-        results.summary += `, ${results.errors.length} failed`;
-      }
-
-      return results;
-    }
-  },
-
-  {
-    name: 'bulk_enable_rules',
-    description: 'Enable multiple rules at once',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        rule_gids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of rule GIDs'
-        }
-      },
-      required: ['rule_gids']
-    },
-    handler: async (args) => {
-      const results = { enabled: [], errors: [] };
-
-      for (const rule_gid of args.rule_gids) {
-        try {
-          await client.put(`/rules/${rule_gid}`, { enabled: true });
-          results.enabled.push(rule_gid);
-        } catch (error) {
-          results.errors.push({ rule_gid, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `${results.enabled.length}/${args.rule_gids.length} rules enabled`
-      };
-    }
-  },
-
-  {
-    name: 'bulk_disable_rules',
-    description: 'Disable multiple rules at once',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        rule_gids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of rule GIDs'
-        }
-      },
-      required: ['rule_gids']
-    },
-    handler: async (args) => {
-      const results = { disabled: [], errors: [] };
-
-      for (const rule_gid of args.rule_gids) {
-        try {
-          await client.put(`/rules/${rule_gid}`, { enabled: false });
-          results.disabled.push(rule_gid);
-        } catch (error) {
-          results.errors.push({ rule_gid, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `${results.disabled.length}/${args.rule_gids.length} rules disabled`
-      };
-    }
-  },
-
-  {
-    name: 'bulk_delete_rules',
-    description: 'Delete multiple rules at once',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        rule_gids: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'Array of rule GIDs'
-        },
-        confirm: {
-          type: 'boolean',
-          description: 'Must be true to confirm deletion',
-          const: true
-        }
-      },
-      required: ['rule_gids', 'confirm']
-    },
-    handler: async (args) => {
-      const results = { deleted: [], errors: [] };
-
-      for (const rule_gid of args.rule_gids) {
-        try {
-          await client.delete(`/rules/${rule_gid}`);
-          results.deleted.push(rule_gid);
-        } catch (error) {
-          results.errors.push({ rule_gid, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `${results.deleted.length}/${args.rule_gids.length} rules deleted`
-      };
-    }
-  },
-
-  // ==================== RULE CLONING ====================
-
-  {
-    name: 'clone_project_rules',
-    description: 'Clone all rules from one project to another',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        source_project_gid: { type: 'string', description: 'Source project GID' },
-        target_project_gid: { type: 'string', description: 'Target project GID' },
-        section_mapping: {
-          type: 'object',
-          description: 'Map old section GIDs to new: {"old_gid": "new_gid"}'
-        },
-        user_mapping: {
-          type: 'object',
-          description: 'Map old user GIDs to new: {"old_gid": "new_gid"}'
-        },
-        custom_field_mapping: {
-          type: 'object',
-          description: 'Map old custom field GIDs to new'
-        },
-        tag_mapping: {
-          type: 'object',
-          description: 'Map old tag GIDs to new'
-        },
-        add_prefix: {
-          type: 'string',
-          description: 'Prefix to add to rule names (e.g., "[Cloned] ")'
-        }
-      },
-      required: ['source_project_gid', 'target_project_gid']
-    },
-    handler: async (args) => {
-      const sourceRules = await client.get(`/projects/${args.source_project_gid}/rules`);
-
-      const clonedRules = [];
-      const errors = [];
-
-      for (const rule of sourceRules.data || []) {
-        try {
-          const trigger = { ...rule.trigger };
-          if (args.section_mapping && trigger.section) {
-            trigger.section = args.section_mapping[trigger.section] || trigger.section;
-          }
-          if (args.custom_field_mapping && trigger.custom_field) {
-            trigger.custom_field = args.custom_field_mapping[trigger.custom_field] || trigger.custom_field;
-          }
-
-          const action = { ...rule.action };
-          if (args.user_mapping && action.assignee) {
-            action.assignee = args.user_mapping[action.assignee] || action.assignee;
-          }
-          if (args.user_mapping && action.follower) {
-            action.follower = args.user_mapping[action.follower] || action.follower;
-          }
-          if (args.section_mapping && action.section) {
-            action.section = args.section_mapping[action.section] || action.section;
-          }
-          if (args.tag_mapping && action.tag) {
-            action.tag = args.tag_mapping[action.tag] || action.tag;
-          }
-          if (args.custom_field_mapping && action.custom_field) {
-            action.custom_field = args.custom_field_mapping[action.custom_field] || action.custom_field;
-          }
-
-          const ruleName = args.add_prefix ? `${args.add_prefix}${rule.name}` : rule.name;
-
-          const cloned = await client.post(`/projects/${args.target_project_gid}/rules`, {
-            name: ruleName,
-            trigger,
-            action
-          });
-
-          clonedRules.push(cloned);
-        } catch (error) {
-          errors.push({ rule_name: rule.name, error: error.message });
-        }
-      }
-
-      return {
-        cloned: clonedRules,
-        errors,
-        summary: `${clonedRules.length}/${(sourceRules.data || []).length} rules cloned successfully`
-      };
-    }
-  },
-
-  // ==================== WORKFLOW TEMPLATES ====================
-
-  {
-    name: 'setup_kanban_workflow',
-    description: 'Create a complete Kanban workflow with predefined rules',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        project_gid: { type: 'string', description: 'Project GID' },
-        todo_section_gid: { type: 'string', description: 'To Do section GID' },
-        doing_section_gid: { type: 'string', description: 'In Progress section GID' },
-        done_section_gid: { type: 'string', description: 'Done section GID' },
-        developer_gid: { type: 'string', description: 'Developer user GID (optional)' },
-        qa_gid: { type: 'string', description: 'QA user GID (optional)' }
-      },
-      required: ['project_gid', 'todo_section_gid', 'doing_section_gid', 'done_section_gid']
-    },
-    handler: async (args) => {
-      const rules = [
-        {
-          name: '🆕 New tasks → To Do',
-          trigger: { type: 'task_added_to_project' },
-          action: { type: 'move_to_section', section: args.todo_section_gid }
-        },
-        {
-          name: '🔄 In Progress → Assign Developer',
-          trigger: { type: 'task_moved_to_section', section: args.doing_section_gid },
-          action: args.developer_gid
-            ? { type: 'assign_task', assignee: args.developer_gid }
-            : { type: 'add_comment', text: '⚠️ Task moved to In Progress - please assign' }
-        },
-        {
-          name: '✅ Done → Complete Task',
-          trigger: { type: 'task_moved_to_section', section: args.done_section_gid },
-          action: { type: 'complete_task' }
-        },
-        {
-          name: '🎉 Completed → Celebration',
-          trigger: { type: 'task_completed' },
-          action: { type: 'add_comment', text: '🎉 Great job! Task completed!' }
-        }
-      ];
-
-      if (args.qa_gid) {
-        rules.push({
-          name: '👀 Done → Add QA Follower',
-          trigger: { type: 'task_moved_to_section', section: args.done_section_gid },
-          action: { type: 'add_follower', follower: args.qa_gid }
-        });
-      }
-
-      const results = { created: [], errors: [] };
-
-      for (const rule of rules) {
-        try {
-          const created = await client.post(`/projects/${args.project_gid}/rules`, rule);
-          results.created.push(created);
-        } catch (error) {
-          results.errors.push({ rule_name: rule.name, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `Kanban workflow created: ${results.created.length}/${rules.length} rules`
-      };
-    }
-  },
-
-  {
-    name: 'setup_sprint_workflow',
-    description: 'Create a complete Sprint/Agile workflow with predefined rules',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        project_gid: { type: 'string', description: 'Project GID' },
-        backlog_section_gid: { type: 'string', description: 'Backlog section GID' },
-        sprint_section_gid: { type: 'string', description: 'Sprint section GID' },
-        in_progress_section_gid: { type: 'string', description: 'In Progress section GID' },
-        review_section_gid: { type: 'string', description: 'Review section GID' },
-        done_section_gid: { type: 'string', description: 'Done section GID' },
-        sprint_tag_gid: { type: 'string', description: 'Sprint tag GID (optional)' },
-        dev_lead_gid: { type: 'string', description: 'Dev lead user GID (optional)' },
-        qa_lead_gid: { type: 'string', description: 'QA lead user GID (optional)' }
-      },
-      required: ['project_gid', 'backlog_section_gid', 'sprint_section_gid', 'in_progress_section_gid', 'review_section_gid', 'done_section_gid']
-    },
-    handler: async (args) => {
-      const rules = [
-        {
-          name: '📋 New tasks → Backlog',
-          trigger: { type: 'task_added_to_project' },
-          action: { type: 'move_to_section', section: args.backlog_section_gid }
-        },
-        {
-          name: '🏃 Sprint → In Progress',
-          trigger: { type: 'task_moved_to_section', section: args.in_progress_section_gid },
-          action: { type: 'add_comment', text: '🏃 Sprint started - let\'s do this!' }
-        },
-        {
-          name: '👀 Review → Add QA',
-          trigger: { type: 'task_moved_to_section', section: args.review_section_gid },
-          action: args.qa_lead_gid
-            ? { type: 'add_follower', follower: args.qa_lead_gid }
-            : { type: 'add_comment', text: '👀 Ready for QA review' }
-        },
-        {
-          name: '✅ Done → Complete',
-          trigger: { type: 'task_moved_to_section', section: args.done_section_gid },
-          action: { type: 'complete_task' }
-        }
-      ];
-
-      if (args.sprint_tag_gid) {
-        rules.push({
-          name: '🏷️ Sprint → Add Tag',
-          trigger: { type: 'task_moved_to_section', section: args.sprint_section_gid },
-          action: { type: 'add_tag', tag: args.sprint_tag_gid }
-        });
-      }
-
-      if (args.dev_lead_gid) {
-        rules.push({
-          name: '🔔 In Progress → Notify Dev Lead',
-          trigger: { type: 'task_moved_to_section', section: args.in_progress_section_gid },
-          action: { type: 'add_follower', follower: args.dev_lead_gid }
-        });
-      }
-
-      const results = { created: [], errors: [] };
-
-      for (const rule of rules) {
-        try {
-          const created = await client.post(`/projects/${args.project_gid}/rules`, rule);
-          results.created.push(created);
-        } catch (error) {
-          results.errors.push({ rule_name: rule.name, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `Sprint workflow created: ${results.created.length}/${rules.length} rules`
-      };
-    }
-  },
-
-  // ==================== AUDIT & MANAGEMENT ====================
-
-  {
-    name: 'audit_project_rules',
-    description: 'Generate comprehensive audit report of project rules',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        project_gid: { type: 'string', description: 'Project GID to audit' }
-      },
-      required: ['project_gid']
-    },
-    handler: async (args) => {
-      const rules = await client.get(`/projects/${args.project_gid}/rules`);
-      const rulesList = rules.data || [];
-
-      const audit = {
-        total_rules: rulesList.length,
-        enabled_rules: rulesList.filter(r => r.enabled !== false).length,
-        disabled_rules: rulesList.filter(r => r.enabled === false).length,
-        triggers_by_type: {},
-        actions_by_type: {},
-        rules_detail: []
-      };
-
-      for (const rule of rulesList) {
-        const triggerType = rule.trigger?.type || 'unknown';
-        const actionType = rule.action?.type || 'unknown';
-
-        audit.triggers_by_type[triggerType] = (audit.triggers_by_type[triggerType] || 0) + 1;
-        audit.actions_by_type[actionType] = (audit.actions_by_type[actionType] || 0) + 1;
-
-        audit.rules_detail.push({
-          gid: rule.gid,
-          name: rule.name,
-          enabled: rule.enabled !== false,
-          trigger_type: triggerType,
-          action_type: actionType,
-          created_at: rule.created_at
-        });
-      }
-
-      return audit;
-    }
-  },
-
-  {
-    name: 'disable_all_project_rules',
-    description: 'Disable all rules in a project',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        project_gid: { type: 'string', description: 'Project GID' },
-        confirm: { type: 'boolean', description: 'Must be true to confirm', const: true }
-      },
-      required: ['project_gid', 'confirm']
-    },
-    handler: async (args) => {
-      const rules = await client.get(`/projects/${args.project_gid}/rules`);
-      const rulesList = rules.data || [];
-
-      const results = { disabled: [], errors: [] };
-
-      for (const rule of rulesList) {
-        try {
-          await client.put(`/rules/${rule.gid}`, { enabled: false });
-          results.disabled.push(rule.gid);
-        } catch (error) {
-          results.errors.push({ rule_gid: rule.gid, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `${results.disabled.length}/${rulesList.length} rules disabled`
-      };
-    }
-  },
-
-  {
-    name: 'enable_all_project_rules',
-    description: 'Enable all rules in a project',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        project_gid: { type: 'string', description: 'Project GID' },
-        confirm: { type: 'boolean', description: 'Must be true to confirm', const: true }
-      },
-      required: ['project_gid', 'confirm']
-    },
-    handler: async (args) => {
-      const rules = await client.get(`/projects/${args.project_gid}/rules`);
-      const rulesList = rules.data || [];
-
-      const results = { enabled: [], errors: [] };
-
-      for (const rule of rulesList) {
-        try {
-          await client.put(`/rules/${rule.gid}`, { enabled: true });
-          results.enabled.push(rule.gid);
-        } catch (error) {
-          results.errors.push({ rule_gid: rule.gid, error: error.message });
-        }
-      }
-
-      return {
-        ...results,
-        summary: `${results.enabled.length}/${rulesList.length} rules enabled`
-      };
     }
   }
 ];
