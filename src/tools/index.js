@@ -78,6 +78,7 @@ const externalDataTools = require('./advanced/external-data');
 const timeTrackingTools = require('./advanced/time-tracking');
 const accessRequestTools = require('./advanced/access-requests');
 const genericMembershipTools = require('./advanced/generic-memberships');
+const workspaceAdvisorTools = require('./advanced/workspace-advisor');
 
 /**
  * Get all tools organized by category
@@ -145,7 +146,10 @@ function getAllTools(client) {
     ...externalDataTools(client),
     ...timeTrackingTools(client),
     ...accessRequestTools(client),
-    ...genericMembershipTools(client)
+    ...genericMembershipTools(client),
+
+    // ADVISOR (1 module)
+    ...workspaceAdvisorTools(client)
   ];
 }
 
