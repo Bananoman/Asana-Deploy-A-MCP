@@ -80,6 +80,7 @@ const CATEGORY_MODULES = {
   advisor: [
     { id: 'workspace-advisor', load: () => require('./advanced/workspace-advisor') },
     { id: 'asana-guide', load: () => require('./advanced/asana-guide') },
+    { id: 'methodology-tools', load: () => require('./advanced/methodology-tools') },
   ],
 };
 
@@ -99,6 +100,8 @@ const CORE_TOOL_NAMES = new Set([
   // Guide & advisor
   'get_asana_guide',
   'analyze_workspace_overview', 'analyze_project_ai_readiness',
+  // Methodology
+  'assess_asana_maturity',
 ]);
 
 /**
