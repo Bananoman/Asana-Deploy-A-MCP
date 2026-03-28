@@ -175,14 +175,235 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-// ─── Prompts (stubs — implementations added in Phase 3) ───
+// ─── Prompts (5 consulting workflow prompts) ───
+
+const PROMPTS = [
+  {
+    name: 'asana_discovery_session',
+    description: 'Guide a complete Asana discovery session: maturity scoring, discovery questions, and industry detection. Use this as the first step in a client engagement.',
+    arguments: [
+      { name: 'workspace_gid', description: 'Client workspace GID', required: true },
+      { name: 'client_name', description: 'Client organization name', required: false },
+      { name: 'known_industry', description: 'If known, skip industry detection (e.g., marketing, product, operations)', required: false }
+    ]
+  },
+  {
+    name: 'asana_fitgap_analysis',
+    description: 'Classify client requirements against Asana capabilities. Produces a fit-gap matrix with N (native), C (configurable), D (development), CP (process change) classifications.',
+    arguments: [
+      { name: 'workspace_gid', description: 'Client workspace GID', required: true },
+      { name: 'requirements', description: 'Comma-separated list of client requirements from discovery', required: false }
+    ]
+  },
+  {
+    name: 'asana_implementation_plan',
+    description: 'Generate a complete DVA (Documento de Visión y Alcance) for the client. Includes scope, phases, training plan, risk register, and investment estimate.',
+    arguments: [
+      { name: 'workspace_gid', description: 'Client workspace GID', required: true },
+      { name: 'client_name', description: 'Client organization name', required: true },
+      { name: 'industry', description: 'Client industry', required: true },
+      { name: 'methodology', description: 'quick_start, hybrid, or enterprise (from maturity assessment)', required: true }
+    ]
+  },
+  {
+    name: 'asana_health_check',
+    description: 'Run a comprehensive workspace health audit: orphan projects, overdue tasks, unused custom fields, disabled rules, and sprint planning opportunities.',
+    arguments: [
+      { name: 'workspace_gid', description: 'Workspace GID to audit', required: true },
+      { name: 'focus', description: 'Focus area: all, tasks, projects, rules, or fields (default: all)', required: false }
+    ]
+  },
+  {
+    name: 'asana_automation_planner',
+    description: 'Analyze a workspace and produce an automation plan: what to automate with Rules, AI Teammates, Claude Code agents, and what NOT to automate yet. Includes savings estimates.',
+    arguments: [
+      { name: 'workspace_gid', description: 'Workspace GID to analyze', required: true },
+      { name: 'project_gid', description: 'Optional: specific project to focus on', required: false },
+      { name: 'budget_context', description: 'Client Asana plan: free, premium, business, or enterprise', required: false }
+    ]
+  }
+];
 
 server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  return { prompts: [] };
+  return { prompts: PROMPTS };
 });
 
 server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  throw new Error(`Prompt not found: ${request.params.name}. Prompts will be added in a future update.`);
+  const { name, arguments: promptArgs } = request.params;
+  const prompt = PROMPTS.find(p => p.name === name);
+
+  if (!prompt) {
+    throw new Error(`Prompt not found: ${name}. Available: ${PROMPTS.map(p => p.name).join(', ')}`);
+  }
+
+  const workspace = promptArgs?.workspace_gid || '{workspace_gid}';
+
+  const messages = {
+    asana_discovery_session: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Run a complete Asana discovery session for ${promptArgs?.client_name || 'the client'} (workspace: ${workspace}).
+
+Step 1: Call assess_asana_maturity with workspace_gid="${workspace}" to get the maturity score and recommended methodology.
+
+Step 2: Based on the maturity score, call analyze_workspace_overview with workspace_gid="${workspace}" to understand the workspace structure.
+
+Step 3: Pick the 2-3 most active projects and call analyze_project_ai_readiness on each to assess AI automation potential.
+
+Step 4: ${promptArgs?.known_industry ? `The industry is "${promptArgs.known_industry}". Use this for playbook matching.` : 'Call detect_team_industry on the most representative project to identify the industry playbook.'}
+
+Step 5: Synthesize everything into a Discovery Report with sections:
+- Executive Summary (2-3 sentences)
+- Maturity Score (table with 5 dimensions)
+- Workspace Overview (teams, projects, activity)
+- AI Readiness Assessment (per project)
+- Industry Match and Recommended Playbook
+- Recommended Methodology and Next Steps
+
+Be specific and actionable. This report will be shown to the client.`
+        }
+      }
+    ],
+
+    asana_fitgap_analysis: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Generate a fit-gap analysis for workspace ${workspace}.
+
+${promptArgs?.requirements
+  ? `Client requirements:\n${promptArgs.requirements.split(',').map((r, i) => `${i + 1}. ${r.trim()}`).join('\n')}\n\nCall generate_fitgap_analysis with workspace_gid="${workspace}" and these requirements as client_requirements array.`
+  : `No requirements provided yet. Call generate_fitgap_analysis with workspace_gid="${workspace}" to auto-infer requirements from workspace patterns.`}
+
+After getting results, present them as a professional Fit-Gap Matrix:
+
+| # | Requirement | Priority | Classification | How | Effort | Hours |
+|---|------------|----------|---------------|-----|--------|-------|
+
+Then add:
+- Summary counts (N/C/D/CP)
+- Total hours estimate (PERT: optimistic / expected / pessimistic)
+- Top 3 risks from the D and CP items
+- Recommended next step: generate_implementation_plan`
+        }
+      }
+    ],
+
+    asana_implementation_plan: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Generate a complete implementation plan (DVA) for ${promptArgs?.client_name || 'the client'}.
+
+Call generate_implementation_plan with:
+- workspace_gid: "${workspace}"
+- client_name: "${promptArgs?.client_name || 'Client'}"
+- industry: "${promptArgs?.industry || 'general'}"
+- methodology: "${promptArgs?.methodology || 'hybrid'}"
+
+Then format the output as a client-ready Documento de Visión y Alcance:
+
+# Documento de Visión y Alcance
+## ${promptArgs?.client_name || 'Client'} — Asana Implementation
+
+### 1. Executive Summary
+### 2. Scope
+#### In Scope / Out of Scope / Assumptions
+### 3. Implementation Phases (timeline table)
+### 4. Training Plan (role × hours × topics)
+### 5. Risk Register (risk × probability × impact × mitigation)
+### 6. Investment
+### 7. Next Steps
+
+Make it professional, specific, and ready for client signature.`
+        }
+      }
+    ],
+
+    asana_health_check: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Run a comprehensive health check on workspace ${workspace}.${promptArgs?.focus && promptArgs.focus !== 'all' ? ` Focus on: ${promptArgs.focus}.` : ''}
+
+Step 1: Call analyze_workspace_overview with workspace_gid="${workspace}" to get the workspace structure.
+
+Step 2: Pick the 5 most active projects and call analyze_project_ai_readiness on each.
+
+Step 3: For each project, check:
+- Tasks overdue (due_on < today and not completed)
+- Tasks without assignees
+- Tasks without due dates
+- Empty sections (sections with 0 tasks)
+- Disabled rules
+
+Step 4: Call get_asana_guide with topic="api_limitations" to note what can't be fixed via API.
+
+Step 5: Present a Health Check Report:
+- Overall Health Score (0-100)
+- Critical Issues (fix now)
+- Warnings (fix soon)
+- Quick Wins (easy improvements)
+- Recommendations table: Issue | Severity | Fix | MCP Tool
+
+Be direct and prioritize by impact.`
+        }
+      }
+    ],
+
+    asana_automation_planner: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Create an automation plan for workspace ${workspace}.${promptArgs?.project_gid ? ` Focus on project ${promptArgs.project_gid}.` : ''}${promptArgs?.budget_context ? ` Client is on the ${promptArgs.budget_context} plan.` : ''}
+
+Step 1: ${promptArgs?.project_gid
+  ? `Call analyze_project_ai_readiness with project_gid="${promptArgs.project_gid}".`
+  : `Call analyze_workspace_overview with workspace_gid="${workspace}", then call analyze_project_ai_readiness on the top 3 projects.`}
+
+Step 2: For each AI opportunity detected, call validate_ai_capability to verify feasibility.
+
+Step 3: Call estimate_automation_savings with workspace_gid="${workspace}" to calculate time savings.
+
+Step 4: Call get_asana_guide with topic="prebuilt_teammates" to check if any prebuilt Teammates match before recommending custom builds.
+
+Step 5: Present an Automation Plan:
+
+### Tier 1 — Build First (highest impact, ready now)
+For each: Name | Type (Rule/AI Teammate/Agent) | Savings | Confidence
+
+### Tier 2 — Build Next
+### Tier 3 — Build Later
+
+### AI Studio Rules (quick wins)
+### Do Not Build Yet (and why)
+
+### Savings Summary
+| Recommendation | Type | Hours/Year (range) | Confidence |
+Total: X-Y hours/year (~Z FTE)
+
+### Build Order Rationale
+1-2 paragraphs explaining why this order.
+
+### Disclaimer
+"Directional estimates for planning purposes..."
+
+Be specific. Use actual project and task names from the workspace.`
+        }
+      }
+    ]
+  };
+
+  return {
+    description: prompt.description,
+    messages: messages[name] || []
+  };
 });
 
 // ─── Resources (stubs — implementations added in Phase 4) ───
