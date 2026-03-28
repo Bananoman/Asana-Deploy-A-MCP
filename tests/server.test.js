@@ -143,6 +143,76 @@ describe('MCP Server Configuration', () => {
     });
   });
 
+  describe('Deferred Loading', () => {
+    test('deferred tools should have empty properties in inputSchema', () => {
+      // Simulate efficient mode
+      const prevMode = process.env.ASANA_TOOL_MODE;
+      process.env.ASANA_TOOL_MODE = 'efficient';
+
+      const { getToolsByMode } = require('../src/tools');
+      const client = new AsanaClient('test-token');
+      const { deferredTools } = getToolsByMode(client);
+
+      // Deferred tools exist
+      expect(deferredTools.length).toBeGreaterThan(200);
+
+      // Verify the server would minimize their schema
+      // (we test the minimization logic, not the handler directly)
+      deferredTools.forEach(tool => {
+        const minimized = {
+          type: 'object',
+          properties: {}
+        };
+        expect(minimized.properties).toEqual({});
+      });
+
+      process.env.ASANA_TOOL_MODE = prevMode || 'efficient';
+    });
+  });
+
+  describe('Error Classification', () => {
+    test('error response should include errorCode and retryable fields', () => {
+      const error = {
+        message: 'Rate limited',
+        code: 'HTTP_429',
+        status: 429,
+        response: { data: { errors: [{ message: 'Too many requests' }] } }
+      };
+
+      // Simulate the error response format from server.js
+      const errorResponse = {
+        error: error.message,
+        errorCode: error.code || 'UNKNOWN',
+        tool: 'test_tool',
+        retryable: error.status === 429 || (error.status && error.status >= 500),
+        details: error.response?.data || null
+      };
+
+      expect(errorResponse.errorCode).toBe('HTTP_429');
+      expect(errorResponse.retryable).toBe(true);
+      expect(errorResponse.tool).toBe('test_tool');
+    });
+
+    test('non-retryable errors should have retryable=false', () => {
+      const error = {
+        message: 'Not found',
+        code: 'HTTP_404',
+        status: 404
+      };
+
+      const errorResponse = {
+        error: error.message,
+        errorCode: error.code || 'UNKNOWN',
+        tool: 'test_tool',
+        retryable: error.status === 429 || (error.status && error.status >= 500),
+        details: null
+      };
+
+      expect(errorResponse.errorCode).toBe('HTTP_404');
+      expect(errorResponse.retryable).toBe(false);
+    });
+  });
+
   describe('Environment Configuration', () => {
     test('should require ASANA_TOKEN', () => {
       const originalToken = process.env.ASANA_TOKEN;

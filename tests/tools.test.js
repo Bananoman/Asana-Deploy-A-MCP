@@ -246,6 +246,28 @@ describe('Tool Modules - 100% Asana API Coverage + Rules Automation', () => {
     });
   });
 
+  describe('Read-Only Mode', () => {
+    test('read-only mode should only return tools with readOnlyHint', () => {
+      const prevMode = process.env.ASANA_READ_ONLY;
+      process.env.ASANA_READ_ONLY = 'true';
+
+      // Re-require to pick up env change
+      const { getToolsByMode } = require('../src/tools');
+      const client = new AsanaClient('test-token');
+      const { allTools } = getToolsByMode(client);
+
+      allTools.forEach(tool => {
+        expect(tool.annotations?.readOnlyHint).toBe(true);
+      });
+
+      // Should have fewer tools than full mode
+      expect(allTools.length).toBeLessThan(242);
+      expect(allTools.length).toBeGreaterThan(20);
+
+      process.env.ASANA_READ_ONLY = prevMode;
+    });
+  });
+
   describe('Coverage of All 38 Asana Resources', () => {
     const expectedResources = [
       'workspace', 'project', 'task', 'user', 'team', 'section',

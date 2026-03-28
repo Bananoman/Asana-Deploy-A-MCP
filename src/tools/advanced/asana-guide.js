@@ -18,7 +18,7 @@ module.exports = function asanaGuideTools(client) {
         properties: {
           topic: {
             type: 'string',
-            enum: ['all', 'data_model', 'formats', 'rate_limits', 'plan_requirements', 'api_limitations', 'opt_fields', 'ai_teammates'],
+            enum: ['all', 'data_model', 'formats', 'rate_limits', 'plan_requirements', 'api_limitations', 'opt_fields', 'ai_teammates', 'prebuilt_teammates'],
             description: 'Specific topic to retrieve. Default: all'
           }
         }
@@ -110,6 +110,45 @@ module.exports = function asanaGuideTools(client) {
           advisor_tools: 'Use analyze_workspace_overview, analyze_project_ai_readiness, detect_team_industry, validate_ai_capability, and generate_teammate_blueprint for AI automation planning.'
         };
 
+        // ─── Prebuilt AI Teammates ───
+        sections.prebuilt_teammates = {
+          status: 'Asana offers 21 prebuilt AI Teammates as of March 2026. Available on AI Studio Pro plan.',
+          recommendation: 'Always check prebuilt teammates first. Only generate a custom Teammate spec when no prebuilt option fits.',
+          categories: {
+            marketing: [
+              'Content Reviewer — Reviews drafts for clarity, messaging, and CTA alignment',
+              'Campaign Brief Writer — Turns intake notes into structured campaign briefs',
+              'Social Media Planner — Creates social media calendars from campaign goals',
+              'Brand Voice Checker — Ensures copy matches brand guidelines',
+              'Performance Reporter — Summarizes campaign metrics into executive updates'
+            ],
+            it_operations: [
+              'Incident Summarizer — Creates incident summaries from ticket threads',
+              'Change Request Reviewer — Reviews change requests for completeness and risk',
+              'SLA Monitor — Tracks SLA compliance and flags at-risk tickets',
+              'Onboarding Planner — Creates IT onboarding checklists for new hires',
+              'Security Review Drafter — Drafts security review docs from requirements'
+            ],
+            operations: [
+              'SOP Drafter — Converts process notes into structured SOPs',
+              'Weekly Digest Writer — Synthesizes cross-project updates into weekly briefs',
+              'Risk Reviewer — Analyzes projects for operational risks and mitigations',
+              'Vendor Comparison Builder — Structures vendor evaluation criteria and scoring',
+              'Compliance Checker — Reviews tasks against policy requirements'
+            ],
+            general: [
+              'Status Update Writer — Generates project status updates from task activity',
+              'Meeting Prep Packager — Creates prep packs with agenda, context, and questions',
+              'Intake Processor — Routes and structures incoming requests',
+              'Debrief Analyst — Captures lessons learned and reusable patterns',
+              'Task Prioritizer — Recommends priority ordering based on due dates, dependencies, and impact',
+              'Spec Reviewer — Reviews PRDs and specs for gaps, dependencies, and questions'
+            ]
+          },
+          how_to_use: 'To set up a prebuilt Teammate: Go to AI Studio > Teammates > Browse Prebuilt > Select > Customize scope, access, and key resources > Test with a starter task.',
+          when_to_build_custom: 'Build a custom Teammate when: (1) no prebuilt matches your industry workflow, (2) you need highly specific behavior instructions, (3) you need custom key resources attached. Use generate_teammate_blueprint for custom specs.'
+        };
+
         // Return requested topic or all
         if (topic !== 'all' && sections[topic]) {
           return { topic, guide: sections[topic] };
@@ -117,7 +156,7 @@ module.exports = function asanaGuideTools(client) {
 
         return {
           guide: sections,
-          tip: 'Use topic parameter to get a specific section: data_model, formats, rate_limits, plan_requirements, api_limitations, opt_fields, ai_teammates'
+          tip: 'Use topic parameter to get a specific section: data_model, formats, rate_limits, plan_requirements, api_limitations, opt_fields, ai_teammates, prebuilt_teammates'
         };
       }
     }

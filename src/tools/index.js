@@ -109,12 +109,13 @@ const CORE_TOOL_NAMES = new Set([
 function getToolsByMode(client) {
   const mode = (process.env.ASANA_TOOL_MODE || 'efficient').toLowerCase();
   const domainsRaw = (process.env.ASANA_DOMAINS || 'all').toLowerCase();
+  const readOnly = process.env.ASANA_READ_ONLY === 'true';
   const activeDomains = domainsRaw === 'all'
     ? Object.keys(CATEGORY_MODULES)
     : domainsRaw.split(',').map(d => d.trim());
 
   // Load tools from active domains only
-  const allTools = [];
+  let allTools = [];
   for (const domain of activeDomains) {
     const modules = CATEGORY_MODULES[domain];
     if (!modules) continue;
@@ -122,6 +123,11 @@ function getToolsByMode(client) {
       const toolFn = mod.load();
       allTools.push(...toolFn(client));
     }
+  }
+
+  // Apply read-only filter
+  if (readOnly) {
+    allTools = allTools.filter(t => t.annotations?.readOnlyHint === true);
   }
 
   if (mode === 'full') {

@@ -154,6 +154,7 @@ const INDUSTRY_PLAYBOOKS = {
 const TRIGGER_TYPES = {
   intake: { label: 'Intake / New Work', asana_trigger: 'Task created or assigned in intake section', example: 'New task in "Intake" project' },
   recurring: { label: 'Recurring / Periodic', asana_trigger: 'Recurring task due date arrives', example: 'Weekly "Status Update" task auto-created every Friday' },
+  scheduled: { label: 'Scheduled / Cron', asana_trigger: 'Scheduled rule fires on daily/weekly/monthly/custom cadence', example: 'Every Monday at 9am, create "Weekly Review" task and assign to Teammate' },
   stage_change: { label: 'Stage / Section Change', asana_trigger: 'Task moved to a specific section', example: 'Task moved to "Review" section' },
   closeout: { label: 'Closeout / Completion', asana_trigger: 'Task completed or moved to "Done"', example: 'Task marked complete in project' },
   review: { label: 'Review / Audit', asana_trigger: 'Task assigned for review or @mention', example: 'Teammate @mentioned in spec task comment' },

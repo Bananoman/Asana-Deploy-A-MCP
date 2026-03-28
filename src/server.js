@@ -20,6 +20,11 @@ const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio
 const {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+  ListResourceTemplatesRequestSchema,
 } = require('@modelcontextprotocol/sdk/types.js');
 
 const AsanaClient = require('./core/AsanaClient');
@@ -37,12 +42,14 @@ if (!ASANA_TOKEN) {
 
 const TOOL_MODE = (process.env.ASANA_TOOL_MODE || 'efficient').toLowerCase();
 const RESPONSE_MODE = (process.env.ASANA_RESPONSE_MODE || 'full').toLowerCase();
+const READ_ONLY = process.env.ASANA_READ_ONLY === 'true';
 const logDir = process.env.MCP_LOG_DIR || path.join(os.tmpdir(), 'deploy-a-mcp-logs');
 
 console.error(`Deploy-A MCP Server starting...`);
 console.error(`  Tool mode: ${TOOL_MODE}`);
 console.error(`  Response mode: ${RESPONSE_MODE}`);
 console.error(`  Domains: ${process.env.ASANA_DOMAINS || 'all'}`);
+console.error(`  Read-only: ${READ_ONLY}`);
 console.error(`  Logs: ${logDir}`);
 
 // ─── Initialize ───
@@ -91,8 +98,14 @@ function compactify(obj) {
 // ─── MCP Server ───
 
 const server = new Server(
-  { name: 'deploy-a-mcp', version: '2.1.0' },
-  { capabilities: { tools: {} } }
+  { name: 'deploy-a-mcp', version: '3.0.0' },
+  {
+    capabilities: {
+      tools: {},
+      resources: { listChanged: true },
+      prompts: { listChanged: true }
+    }
+  }
 );
 
 // List tools: in efficient mode, deferred tools get minimal schema
@@ -109,12 +122,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     });
   }
 
-  // Deferred tools: minimal description, empty schema (still callable)
+  // Deferred tools: minimal description + empty schema (still callable via toolMap)
   for (const tool of deferredTools) {
     listed.push({
       name: tool.name,
-      description: tool.description.split('.')[0] + '. Use get_asana_guide for details.',
-      inputSchema: tool.inputSchema,
+      description: tool.description.split('.')[0] + '.',
+      inputSchema: { type: 'object', properties: {} },
       ...(tool.annotations && { annotations: tool.annotations })
     });
   }
@@ -151,13 +164,39 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         type: 'text',
         text: JSON.stringify({
           error: error.message,
+          errorCode: error.code || 'UNKNOWN',
           tool: name,
+          retryable: error.status === 429 || (error.status && error.status >= 500),
           details: error.response?.data || null
         }, null, 2)
       }],
       isError: true
     };
   }
+});
+
+// ─── Prompts (stubs — implementations added in Phase 3) ───
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return { prompts: [] };
+});
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  throw new Error(`Prompt not found: ${request.params.name}. Prompts will be added in a future update.`);
+});
+
+// ─── Resources (stubs — implementations added in Phase 4) ───
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return { resources: [] };
+});
+
+server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
+  return { resourceTemplates: [] };
+});
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  throw new Error(`Resource not found: ${request.params.uri}. Resources will be added in a future update.`);
 });
 
 // ─── Start ───
