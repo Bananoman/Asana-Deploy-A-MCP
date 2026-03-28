@@ -22,14 +22,14 @@ describe('Tool Modules - 100% Asana API Coverage + Rules Automation', () => {
   });
 
   describe('Tool Count and Structure', () => {
-    test('should have exactly 236 tools (207 base + 13 rules + 16 rules bulk/workflow)', () => {
-      expect(tools).toHaveLength(236);
+    test('should have exactly 242 tools (207 base + 13 rules + 16 rules bulk/workflow + 6 advisor/guide)', () => {
+      expect(tools).toHaveLength(242);
     });
 
     test('all tools should have unique names', () => {
       const names = tools.map(t => t.name);
       const uniqueNames = new Set(names);
-      expect(uniqueNames.size).toBe(236);
+      expect(uniqueNames.size).toBe(242);
     });
 
     test('all tools should have required properties', () => {
@@ -160,7 +160,8 @@ describe('Tool Modules - 100% Asana API Coverage + Rules Automation', () => {
     test('get tools should require resource ID', () => {
       const getTools = tools.filter(t =>
         t.name.startsWith('get_') &&
-        t.name !== 'get_current_user'
+        t.name !== 'get_current_user' &&
+        t.name !== 'get_asana_guide'
       );
 
       getTools.forEach(tool => {

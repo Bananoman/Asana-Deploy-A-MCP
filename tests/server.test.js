@@ -19,8 +19,8 @@ describe('MCP Server Configuration', () => {
       tools = getAllTools(client);
     });
 
-    test('should register all 236 tools (207 base + 13 rules + 16 rules bulk/workflow)', () => {
-      expect(tools).toHaveLength(236);
+    test('should register all 242 tools (207 base + 13 rules + 16 rules bulk/workflow + 6 advisor/guide)', () => {
+      expect(tools).toHaveLength(242);
     });
 
     test('should have unique tool names', () => {
@@ -135,7 +135,7 @@ describe('MCP Server Configuration', () => {
     });
 
     test('get operations should require resource ID', () => {
-      const getTools = tools.filter(t => t.name.startsWith('get_') && t.name !== 'get_current_user');
+      const getTools = tools.filter(t => t.name.startsWith('get_') && t.name !== 'get_current_user' && t.name !== 'get_asana_guide');
 
       getTools.forEach(tool => {
         expect(tool.inputSchema.required.length).toBeGreaterThan(0);

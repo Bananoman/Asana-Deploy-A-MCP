@@ -195,29 +195,28 @@ module.exports = (client) => [
       const includeTasks = args.include_task_sample !== false;
       const sampleSize = Math.min(args.sample_size || 20, 50);
 
-      // 1. Get project details
-      const project = await client.get(`/projects/${args.project_gid}`, {
-        opt_fields: 'name,color,notes,public,archived,created_at,modified_at,owner,owner.name,team,team.name,custom_field_settings,custom_field_settings.custom_field,custom_field_settings.custom_field.name,custom_field_settings.custom_field.type,custom_field_settings.custom_field.enum_options'
-      });
+      // Parallel fetch: project, sections, rules, and tasks all at once
+      const [project, sections, rules, tasksResult] = await Promise.all([
+        client.get(`/projects/${args.project_gid}`, {
+          opt_fields: 'name,color,notes,public,archived,created_at,modified_at,owner,owner.name,team,team.name,custom_field_settings,custom_field_settings.custom_field,custom_field_settings.custom_field.name,custom_field_settings.custom_field.type,custom_field_settings.custom_field.enum_options'
+        }),
+        client.get(`/projects/${args.project_gid}/sections`, { opt_fields: 'name' }),
+        client.get(`/projects/${args.project_gid}/rules`).catch(() => ({ data: [] })),
+        includeTasks
+          ? client.get('/tasks', {
+              project: args.project_gid, limit: sampleSize,
+              opt_fields: 'name,assignee,assignee.name,due_on,completed,completed_at,created_at,custom_fields,custom_fields.name,custom_fields.display_value,resource_subtype,num_subtasks,tags,tags.name'
+            }).catch(e => ({ data: [], error: e.message }))
+          : Promise.resolve(null)
+      ]);
 
-      // 2. Get sections
-      const sections = await client.get(`/projects/${args.project_gid}/sections`, { opt_fields: 'name' });
-
-      // 3. Get existing rules
-      let rules = { data: [] };
-      try { rules = await client.get(`/projects/${args.project_gid}/rules`); } catch (e) { /* free plan */ }
-
-      // 4. Sample tasks
       let taskSample = [];
       let taskStats = {};
-      if (includeTasks) {
-        try {
-          const tasks = await client.get('/tasks', {
-            project: args.project_gid,
-            limit: sampleSize,
-            opt_fields: 'name,assignee,assignee.name,due_on,completed,completed_at,created_at,custom_fields,custom_fields.name,custom_fields.display_value,resource_subtype,num_subtasks,tags,tags.name'
-          });
-          taskSample = tasks.data || [];
+      if (includeTasks && tasksResult) {
+        if (tasksResult.error) {
+          taskStats = { error: 'Could not sample tasks: ' + tasksResult.error };
+        } else {
+          taskSample = tasksResult.data || [];
 
           const completed = taskSample.filter(t => t.completed);
           const withAssignee = taskSample.filter(t => t.assignee);
@@ -252,8 +251,6 @@ module.exports = (client) => [
               .slice(0, 10)
               .map(([pattern, count]) => ({ pattern, count }))
           };
-        } catch (e) {
-          taskStats = { error: 'Could not sample tasks: ' + e.message };
         }
       }
 
@@ -420,15 +417,15 @@ module.exports = (client) => [
       required: ['workspace_gid']
     },
     handler: async (args) => {
-      let teams = { data: [] };
-      try {
-        teams = await client.get(`/organizations/${args.workspace_gid}/teams`, { limit: 100, opt_fields: 'name' });
-      } catch (e) { /* personal workspace */ }
-
-      const projects = await client.get('/projects', {
-        workspace: args.workspace_gid, limit: 100, archived: args.include_archived || false,
-        opt_fields: 'name,team,team.name,public,modified_at,owner,owner.name,custom_field_settings'
-      });
+      // Parallel fetch: teams + projects
+      const [teams, projects] = await Promise.all([
+        client.get(`/organizations/${args.workspace_gid}/teams`, { limit: 100, opt_fields: 'name' })
+          .catch(() => ({ data: [] })),
+        client.get('/projects', {
+          workspace: args.workspace_gid, limit: 100, archived: args.include_archived || false,
+          opt_fields: 'name,team,team.name,public,modified_at,owner,owner.name,custom_field_settings'
+        })
+      ]);
       const projectList = projects.data || [];
 
       const byTeam = {};
@@ -479,14 +476,17 @@ module.exports = (client) => [
       required: ['project_gid']
     },
     handler: async (args) => {
-      const project = await client.get(`/projects/${args.project_gid}`, {
-        opt_fields: 'name,notes,team,team.name,custom_field_settings,custom_field_settings.custom_field,custom_field_settings.custom_field.name'
-      });
-      const sections = await client.get(`/projects/${args.project_gid}/sections`, { opt_fields: 'name' });
-      const tasks = await client.get('/tasks', {
-        project: args.project_gid, limit: 15,
-        opt_fields: 'name,tags,tags.name'
-      });
+      // Parallel fetch: project, sections, tasks
+      const [project, sections, tasks] = await Promise.all([
+        client.get(`/projects/${args.project_gid}`, {
+          opt_fields: 'name,notes,team,team.name,custom_field_settings,custom_field_settings.custom_field,custom_field_settings.custom_field.name'
+        }),
+        client.get(`/projects/${args.project_gid}/sections`, { opt_fields: 'name' }),
+        client.get('/tasks', {
+          project: args.project_gid, limit: 15,
+          opt_fields: 'name,tags,tags.name'
+        })
+      ]);
 
       const sectionNames = (sections.data || []).map(s => s.name);
       const customFieldNames = (project.data?.custom_field_settings || []).map(cfs => cfs.custom_field?.name || '');
