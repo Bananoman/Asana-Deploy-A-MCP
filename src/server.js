@@ -406,18 +406,114 @@ Be specific. Use actual project and task names from the workspace.`
   };
 });
 
-// ─── Resources (stubs — implementations added in Phase 4) ───
+// ─── Resources (2 dynamic workspace resources) ───
 
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return { resources: [] };
 });
 
 server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
-  return { resourceTemplates: [] };
+  return {
+    resourceTemplates: [
+      {
+        uriTemplate: 'asana://workspace/{gid}/overview',
+        name: 'Workspace Overview',
+        description: 'Teams, project counts, most active projects, custom field and rule counts, public/private breakdown.',
+        mimeType: 'application/json'
+      },
+      {
+        uriTemplate: 'asana://workspace/{gid}/projects',
+        name: 'Workspace Projects',
+        description: 'List of projects with owner, team, modified date, section count, custom fields, and rule count.',
+        mimeType: 'application/json'
+      }
+    ]
+  };
 });
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  throw new Error(`Resource not found: ${request.params.uri}. Resources will be added in a future update.`);
+  const { uri } = request.params;
+
+  // Parse URI: asana://workspace/{gid}/overview or asana://workspace/{gid}/projects
+  const match = uri.match(/^asana:\/\/workspace\/(\d+)\/(overview|projects)$/);
+  if (!match) {
+    throw new Error(`Invalid resource URI: ${uri}. Expected: asana://workspace/{gid}/overview or asana://workspace/{gid}/projects`);
+  }
+
+  const [, workspaceGid, resourceType] = match;
+
+  if (resourceType === 'overview') {
+    const [teams, projects] = await Promise.all([
+      asanaClient.get(`/organizations/${workspaceGid}/teams`, { limit: 100, opt_fields: 'name' })
+        .catch(() => ({ data: [] })),
+      asanaClient.get('/projects', {
+        workspace: workspaceGid, limit: 100, archived: false,
+        opt_fields: 'name,team,team.name,public,modified_at,owner,owner.name,custom_field_settings'
+      })
+    ]);
+
+    const projectList = projects.data || [];
+    const teamList = teams.data || [];
+
+    // Aggregate by team
+    const byTeam = {};
+    projectList.forEach(p => {
+      const teamName = p.team?.name || '(No team)';
+      if (!byTeam[teamName]) byTeam[teamName] = 0;
+      byTeam[teamName]++;
+    });
+
+    const recentProjects = [...projectList]
+      .sort((a, b) => new Date(b.modified_at) - new Date(a.modified_at))
+      .slice(0, 5)
+      .map(p => ({ gid: p.gid, name: p.name, team: p.team?.name, modified_at: p.modified_at }));
+
+    const overview = {
+      workspace_gid: workspaceGid,
+      total_teams: teamList.length,
+      total_projects: projectList.length,
+      projects_with_custom_fields: projectList.filter(p => (p.custom_field_settings || []).length > 0).length,
+      public_projects: projectList.filter(p => p.public).length,
+      private_projects: projectList.filter(p => !p.public).length,
+      projects_by_team: byTeam,
+      most_active_projects: recentProjects
+    };
+
+    return {
+      contents: [{
+        uri,
+        mimeType: 'application/json',
+        text: JSON.stringify(overview, null, 2)
+      }]
+    };
+  }
+
+  if (resourceType === 'projects') {
+    const projects = await asanaClient.get('/projects', {
+      workspace: workspaceGid, limit: 100, archived: false,
+      opt_fields: 'name,team,team.name,public,modified_at,owner,owner.name,custom_field_settings'
+    });
+
+    const projectList = (projects.data || []).map(p => ({
+      gid: p.gid,
+      name: p.name,
+      owner: p.owner?.name || null,
+      team: p.team?.name || null,
+      is_public: p.public,
+      modified_at: p.modified_at,
+      has_custom_fields: (p.custom_field_settings || []).length > 0
+    }));
+
+    return {
+      contents: [{
+        uri,
+        mimeType: 'application/json',
+        text: JSON.stringify({ workspace_gid: workspaceGid, projects: projectList }, null, 2)
+      }]
+    };
+  }
+
+  throw new Error(`Unknown resource type: ${resourceType}`);
 });
 
 // ─── Start ───
