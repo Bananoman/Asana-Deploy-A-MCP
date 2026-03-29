@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asana MCP Server - Guia de Uso para el Asana Wizard</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --purple: #bc8cff;
+      --orange: #f0883e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent); }
+    h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    h3 { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; color: var(--purple); }
+    h4 { font-size: 1rem; margin: 1rem 0 0.5rem; color: var(--text-muted); }
+    p { margin-bottom: 1rem; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-a { background: rgba(63,185,80,0.15); color: var(--green); }
+    .badge-pa { background: rgba(210,153,34,0.15); color: var(--yellow); }
+    .badge-m { background: rgba(248,81,73,0.15); color: var(--red); }
+    .badge-info { background: rgba(88,166,255,0.15); color: var(--accent); }
+    code {
+      background: var(--surface);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    tr:hover { background: rgba(88,166,255,0.04); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin: 1rem 0;
+    }
+    .card-header { font-weight: 600; margin-bottom: 0.5rem; color: var(--accent); }
+    .flow {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+    .flow-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      min-width: 120px;
+    }
+    .flow-step strong { display: block; color: var(--accent); font-size: 0.85rem; }
+    .flow-step span { font-size: 0.75rem; color: var(--text-muted); }
+    .flow-arrow { color: var(--text-muted); font-size: 1.2rem; }
+    .prompt-box {
+      background: rgba(88,166,255,0.08);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-style: italic;
+    }
+    .prompt-box::before { content: '> '; color: var(--accent); font-weight: bold; font-style: normal; }
+    .section-nav {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+    }
+    .section-nav ul { list-style: none; columns: 2; }
+    .section-nav li { margin-bottom: 0.4rem; }
+    .section-nav li::before { content: '#'; color: var(--accent); margin-right: 0.3rem; font-weight: bold; }
+    .tip {
+      background: rgba(63,185,80,0.08);
+      border-left: 3px solid var(--green);
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .tip::before { content: 'TIP: '; font-weight: 700; color: var(--green); }
+    .warning {
+      background: rgba(210,153,34,0.08);
+      border-left: 3px solid var(--yellow);
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+    .warning::before { content: 'NOTA: '; font-weight: 700; color: var(--yellow); }
+    @media (max-width: 600px) {
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .section-nav ul { columns: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Asana MCP Server</h1>
+<p class="subtitle">Guia de Uso para el Asana Wizard &mdash; v3.0.0 | 247 tools | 6 prompts | 2 resources</p>
+
+<nav class="section-nav">
+  <ul>
+    <li><a href="#config">Configuracion</a></li>
+    <li><a href="#flujo">Flujo de Consultoria</a></li>
+    <li><a href="#scoring">Fase 1: Scoring</a></li>
+    <li><a href="#discovery">Fase 2: Discovery</a></li>
+    <li><a href="#fitgap">Fase 3: Fit-Gap</a></li>
+    <li><a href="#proposal">Fase 4: Propuesta</a></li>
+    <li><a href="#execution">Fase 5: Ejecucion</a></li>
+    <li><a href="#prompts">Referencia de Prompts</a></li>
+    <li><a href="#tools">Referencia de Tools</a></li>
+    <li><a href="#tips">Tips para Consultores</a></li>
+  </ul>
+</nav>
+
+<!-- ─── CONFIGURACION ─── -->
+<h2 id="config">Configuracion</h2>
+
+<h3>Claude Code (.mcp.json)</h3>
+<pre><code>{
+  "mcpServers": {
+    "asana": {
+      "command": "node",
+      "args": ["/ruta/a/Asana-Deploy-A-MCP/src/server.js"],
+      "env": {
+        "ASANA_TOKEN": "TOKEN_DEL_CLIENTE",
+        "ASANA_TOOL_MODE": "efficient",
+        "ASANA_RESPONSE_MODE": "compact"
+      }
+    }
+  }
+}</code></pre>
+
+<h3>Variables de entorno</h3>
+<table>
+  <thead><tr><th>Variable</th><th>Valores</th><th>Default</th><th>Que hace</th></tr></thead>
+  <tbody>
+    <tr><td><code>ASANA_TOOL_MODE</code></td><td>full / efficient / minimal</td><td>efficient</td><td>efficient: 19 eager, 228 deferred (~5K tokens)</td></tr>
+    <tr><td><code>ASANA_DOMAINS</code></td><td>all / workspace,tasks,...</td><td>all</td><td>Filtra por categoria de tools</td></tr>
+    <tr><td><code>ASANA_RESPONSE_MODE</code></td><td>full / compact</td><td>full</td><td>compact: elimina nulos, trunca notas</td></tr>
+    <tr><td><code>ASANA_READ_ONLY</code></td><td>true / false</td><td>false</td><td>Solo tools de lectura (104 tools)</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── FLUJO ─── -->
+<h2 id="flujo">Flujo de Consultoria</h2>
+
+<div class="flow">
+  <div class="flow-step"><strong>SCORING</strong><span>Madurez 0-100</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step"><strong>DISCOVERY</strong><span>Levantamiento</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step"><strong>FIT-GAP</strong><span>Clasificacion</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step"><strong>PROPOSAL</strong><span>DVA + ROI</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step"><strong>EXECUTION</strong><span>Configuracion</span></div>
+</div>
+
+<!-- ─── FASE 1 ─── -->
+<h2 id="scoring">Fase 1: Scoring (Madurez)</h2>
+
+<h3>Opcion A: Prompt completo (recomendado)</h3>
+<div class="prompt-box">Usa el prompt <code>asana_discovery_session</code> con workspace_gid="TU_WORKSPACE_GID"</div>
+
+<h3>Opcion B: Tool directo</h3>
+<div class="prompt-box">Ejecuta <code>assess_asana_maturity</code> con workspace_gid="TU_WORKSPACE_GID"</div>
+
+<div class="card">
+  <div class="card-header">Output</div>
+  <pre><code>Scores:
+  Structure:    14/20    Adoption:     11/20
+  Automation:    6/20    Integrations:  8/20
+  Governance:   12/20
+  Overall:      51/100
+
+Methodology:  Hybrid (1-3 months, 3-5 consultants)
+
+Blockers:  42% of tasks have no assignee
+Quick Wins: Add due dates to 156 tasks</code></pre>
+</div>
+
+<h4>Que hacer con el resultado:</h4>
+<ol>
+  <li>Presenta los scores al cliente</li>
+  <li>Acuerda la metodologia (Quick Start / Hybrid / Enterprise)</li>
+  <li>Documenta blockers que deben resolverse antes de implementar</li>
+</ol>
+
+<!-- ─── FASE 2 ─── -->
+<h2 id="discovery">Fase 2: Discovery</h2>
+
+<div class="prompt-box">Usa el prompt <code>asana_discovery_session</code> con workspace_gid="TU_GID" y client_name="Cafe Oaxaca"</div>
+
+<p>O usa tools individuales:</p>
+<table>
+  <thead><tr><th>Paso</th><th>Tool</th><th>Que obtiene</th></tr></thead>
+  <tbody>
+    <tr><td>Estructura</td><td><code>analyze_workspace_overview</code></td><td>Teams, projects, actividad</td></tr>
+    <tr><td>AI readiness</td><td><code>analyze_project_ai_readiness</code></td><td>Scores por proyecto</td></tr>
+    <tr><td>Industria</td><td><code>detect_team_industry</code></td><td>Playbook match + teammates</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── FASE 3 ─── -->
+<h2 id="fitgap">Fase 3: Fit-Gap Analysis</h2>
+
+<div class="prompt-box">Ejecuta <code>generate_fitgap_analysis</code> con workspace_gid y client_requirements</div>
+
+<h3>Clasificaciones</h3>
+<table>
+  <thead><tr><th>Codigo</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge badge-a">N</span> Native</td><td>Asana lo hace out-of-the-box</td><td>Crear tareas, asignar, due dates</td></tr>
+    <tr><td><span class="badge badge-a">C</span> Configurable</td><td>Lograble con rules o AI Studio</td><td>Auto-assign, workflows, AI Teammates</td></tr>
+    <tr><td><span class="badge badge-pa">D</span> Development</td><td>Requiere MCP tools o agente externo</td><td>API sync, web research</td></tr>
+    <tr><td><span class="badge badge-m">CP</span> Process Change</td><td>El cliente debe cambiar su proceso</td><td>Dejar Excel, adoptar Asana</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── FASE 4 ─── -->
+<h2 id="proposal">Fase 4: Propuesta (DVA + ROI)</h2>
+
+<h3>Generar ambos entregables a la vez</h3>
+<div class="prompt-box">Usa el prompt <code>asana_generate_deliverables</code> con workspace_gid, client_name e industry</div>
+
+<p>Esto genera:</p>
+<div class="card">
+  <div class="card-header">Entregable 1: Implementation Template (para el consultor)</div>
+  <p>Checklist con subtasks clasificados:</p>
+  <ul>
+    <li><span class="badge badge-a">[A] Automated</span> &mdash; MCP tool con args pre-llenados</li>
+    <li><span class="badge badge-pa">[PA] Partial</span> &mdash; MCP tool + pasos manuales</li>
+    <li><span class="badge badge-m">[M] Manual</span> &mdash; Guia paso a paso</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">Entregable 2: DVA (para el cliente)</div>
+  <p>Documento de Vision y Alcance con: scope, fases, training, riesgos, inversion.</p>
+</div>
+
+<h3>Cobertura de automatizacion</h3>
+<table>
+  <thead><tr><th>Metodologia</th><th>Subtasks</th><th>Auto</th><th>Parcial</th><th>Manual</th></tr></thead>
+  <tbody>
+    <tr><td>Quick Start</td><td>17</td><td>5 (29%)</td><td>5 (29%)</td><td>7 (41%)</td></tr>
+    <tr><td>Hybrid</td><td>27</td><td>5 (19%)</td><td>13 (48%)</td><td>9 (33%)</td></tr>
+    <tr><td>Enterprise</td><td>36</td><td>7 (19%)</td><td>14 (39%)</td><td>15 (42%)</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── FASE 5 ─── -->
+<h2 id="execution">Fase 5: Ejecucion</h2>
+
+<h3>Validar AI Teammates antes de construir</h3>
+<div class="prompt-box">Ejecuta <code>validate_ai_capability</code> con proposed_behavior="descripcion de lo que quieres que haga"</div>
+
+<h3>Generar spec de AI Teammate</h3>
+<div class="prompt-box">Ejecuta <code>generate_teammate_blueprint</code> con industry, trigger_type y output_type</div>
+
+<h3>Configurar con MCP tools</h3>
+<pre><code>// Crear proyecto con estructura
+create_project_with_structure({
+  workspace_gid: "TU_GID",
+  name: "Marketing Campaigns",
+  sections: ["Intake", "Planning", "In Progress", "Review", "Published"]
+})
+
+// Montar workflow kanban
+setup_kanban_workflow({
+  project_gid: "PROJECT_GID",
+  todo_section_gid: "...",
+  doing_section_gid: "...",
+  done_section_gid: "..."
+})
+
+// Crear reglas en bulk
+bulk_create_rules({
+  project_gid: "PROJECT_GID",
+  rules: [...]
+})</code></pre>
+
+<h3>Health check post-go-live</h3>
+<div class="prompt-box">Usa el prompt <code>asana_health_check</code> con workspace_gid="TU_GID"</div>
+
+<!-- ─── PROMPTS ─── -->
+<h2 id="prompts">Referencia de Prompts</h2>
+<table>
+  <thead><tr><th>Prompt</th><th>Cuando usarlo</th><th>Que produce</th></tr></thead>
+  <tbody>
+    <tr><td><code>asana_discovery_session</code></td><td>Inicio del engagement</td><td>Reporte de discovery completo</td></tr>
+    <tr><td><code>asana_fitgap_analysis</code></td><td>Despues del discovery</td><td>Matriz fit-gap con horas</td></tr>
+    <tr><td><code>asana_implementation_plan</code></td><td>Para generar la propuesta</td><td>DVA formateado para el cliente</td></tr>
+    <tr><td><code>asana_health_check</code></td><td>Post-go-live o auditoria</td><td>Health score + recomendaciones</td></tr>
+    <tr><td><code>asana_automation_planner</code></td><td>Para planear automatizacion</td><td>Plan con tiers + ROI</td></tr>
+    <tr><td><code>asana_generate_deliverables</code></td><td>Para generar todo de una</td><td>Template + DVA + ROI</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── TOOLS ─── -->
+<h2 id="tools">Referencia de Tools Clave</h2>
+<table>
+  <thead><tr><th>Tool</th><th>Fase</th><th>Que hace</th></tr></thead>
+  <tbody>
+    <tr><td><code>assess_asana_maturity</code></td><td>Scoring</td><td>Score 0-100, recomienda metodologia</td></tr>
+    <tr><td><code>analyze_workspace_overview</code></td><td>Discovery</td><td>Snapshot del workspace</td></tr>
+    <tr><td><code>analyze_project_ai_readiness</code></td><td>Discovery</td><td>Readiness de un proyecto para AI</td></tr>
+    <tr><td><code>detect_team_industry</code></td><td>Discovery</td><td>Detecta industria y playbook</td></tr>
+    <tr><td><code>generate_fitgap_analysis</code></td><td>Fit-Gap</td><td>Clasifica requerimientos N/C/D/CP</td></tr>
+    <tr><td><code>validate_ai_capability</code></td><td>Fit-Gap</td><td>Valida factibilidad de AI Teammate</td></tr>
+    <tr><td><code>generate_implementation_template</code></td><td>Proposal</td><td>Checklist del consultor (A/PA/M)</td></tr>
+    <tr><td><code>generate_implementation_plan</code></td><td>Proposal</td><td>DVA para el cliente</td></tr>
+    <tr><td><code>estimate_automation_savings</code></td><td>Proposal</td><td>ROI en horas/anio</td></tr>
+    <tr><td><code>generate_teammate_blueprint</code></td><td>Ejecucion</td><td>Spec copy-paste para AI Studio</td></tr>
+    <tr><td><code>get_asana_guide</code></td><td>Cualquiera</td><td>Referencia de API, formatos, limites</td></tr>
+  </tbody>
+</table>
+
+<!-- ─── TIPS ─── -->
+<h2 id="tips">Tips para Consultores</h2>
+
+<div class="tip">Siempre empieza con <code>assess_asana_maturity</code> &mdash; te da el contexto que necesitas para todo lo demas.</div>
+<div class="tip">Usa <code>ASANA_RESPONSE_MODE=compact</code> para reducir tokens 50-70% en respuestas.</div>
+<div class="tip">Usa <code>ASANA_READ_ONLY=true</code> para explorar workspaces sin riesgo de modificar nada.</div>
+<div class="tip">Valida con <code>validate_ai_capability</code> antes de <code>generate_teammate_blueprint</code> para no perder tiempo en Teammates inviables.</div>
+<div class="tip">Un solo prompt para todo: <code>asana_generate_deliverables</code> genera template + DVA + ROI en un flujo.</div>
+<div class="warning">Revisa <code>get_asana_guide</code> con topic="prebuilt_teammates" antes de crear Teammates custom &mdash; puede que ya exista uno prebuilt que sirve.</div>
+
+<hr style="border-color: var(--border); margin: 3rem 0 1rem;">
+<p style="color: var(--text-muted); text-align: center; font-size: 0.8rem;">
+  Asana MCP Server v3.0.0 &mdash; Xmarts Group LLC &mdash; 2026
+</p>
+
+</body>
+</html>
