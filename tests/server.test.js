@@ -19,8 +19,8 @@ describe('MCP Server Configuration', () => {
       tools = getAllTools(client);
     });
 
-    test('should register all 246 tools (207 base + 13 rules + 16 rules bulk/workflow + 6 advisor/guide + 4 methodology)', () => {
-      expect(tools).toHaveLength(246);
+    test('should register all 247 tools (207 base + 13 rules + 16 rules bulk/workflow + 6 advisor/guide + 5 methodology)', () => {
+      expect(tools).toHaveLength(247);
     });
 
     test('should have unique tool names', () => {

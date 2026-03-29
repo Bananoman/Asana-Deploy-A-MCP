@@ -221,6 +221,15 @@ const PROMPTS = [
       { name: 'project_gid', description: 'Optional: specific project to focus on', required: false },
       { name: 'budget_context', description: 'Client Asana plan: free, premium, business, or enterprise', required: false }
     ]
+  },
+  {
+    name: 'asana_generate_deliverables',
+    description: 'Generate both implementation deliverables in one flow: (1) Implementation Template with classified subtasks (A/PA/M) and MCP tool mappings, and (2) DVA (Documento de Visión y Alcance) for the client. Orchestrates: maturity → fitgap → template → DVA → ROI.',
+    arguments: [
+      { name: 'workspace_gid', description: 'Client workspace GID', required: true },
+      { name: 'client_name', description: 'Client organization name', required: true },
+      { name: 'industry', description: 'Client industry (e.g., marketing, operations, product)', required: true }
+    ]
   }
 ];
 
@@ -395,6 +404,75 @@ Total: X-Y hours/year (~Z FTE)
 "Directional estimates for planning purposes..."
 
 Be specific. Use actual project and task names from the workspace.`
+        }
+      }
+    ],
+
+    asana_generate_deliverables: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `Generate both implementation deliverables for ${promptArgs?.client_name || 'the client'} (workspace: ${workspace}, industry: ${promptArgs?.industry || 'general'}).
+
+## DELIVERABLE 1: Implementation Template
+
+Step 1: Call assess_asana_maturity with workspace_gid="${workspace}" to determine the methodology (quick_start/hybrid/enterprise).
+
+Step 2: Call generate_implementation_template with:
+- workspace_gid: "${workspace}"
+- methodology: [result from step 1]
+- client_name: "${promptArgs?.client_name || 'Client'}"
+- industry: "${promptArgs?.industry || 'general'}"
+
+Step 3: Present the Implementation Template as a checklist organized by phase:
+
+### Implementation Tracking Template
+**Methodology:** [from step 1]
+**Client:** ${promptArgs?.client_name || 'Client'}
+
+For each phase (Scoring → Discovery → Fit-Gap → Proposal → Execution):
+- List each subtask with its classification badge: [A] Automated, [PA] Partial, [M] Manual
+- For [A] items: show the MCP tool and pre-filled command
+- For [PA] items: show the MCP tool AND the manual steps the consultant must do
+- For [M] items: show the complete step-by-step guide
+- Show hours estimate and dependencies
+
+## DELIVERABLE 2: DVA (Client-Facing Document)
+
+Step 4: Call generate_fitgap_analysis with workspace_gid="${workspace}" to get requirement classifications.
+
+Step 5: Call generate_implementation_plan with:
+- workspace_gid: "${workspace}"
+- client_name: "${promptArgs?.client_name || 'Client'}"
+- industry: "${promptArgs?.industry || 'general'}"
+- methodology: [from step 1]
+- fitgap_summary: [summary from step 4]
+
+Step 6: Call estimate_automation_savings with workspace_gid="${workspace}".
+
+Step 7: Format the DVA as a professional client-ready document:
+
+# Documento de Visión y Alcance
+## ${promptArgs?.client_name || 'Client'} — Asana Implementation
+
+### 1. Executive Summary
+### 2. Scope (In/Out/Assumptions)
+### 3. Implementation Phases (timeline table)
+### 4. Training Plan
+### 5. Risk Register
+### 6. Investment
+### 7. Automation ROI (from savings estimate)
+### 8. Next Steps
+
+## SUMMARY
+
+End with a summary table:
+| Deliverable | Status |
+|-------------|--------|
+| Implementation Template | Generated ([A]: X, [PA]: Y, [M]: Z subtasks) |
+| DVA | Generated (X pages, Y phases, Z weeks) |
+| Automation ROI | X-Y hours/year saved |`
         }
       }
     ]

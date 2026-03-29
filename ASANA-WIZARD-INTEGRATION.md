@@ -286,9 +286,9 @@ Para cada cliente, el consultor cambia `ASANA_TOKEN` al PAT del workspace del cl
 | Collaboration | 16 | create_status_update, add_reaction, create_tag |
 | Advanced | 51 | batch_api, bulk_create_tasks, custom_fields |
 | **Advisor** | **5** | analyze_workspace_overview, validate_ai_capability |
-| **Methodology** | **4** | assess_asana_maturity, generate_fitgap_analysis |
+| **Methodology** | **5** | assess_asana_maturity, generate_fitgap_analysis, generate_implementation_template |
 | **Guide** | **1** | get_asana_guide (9 topics incl. prebuilt_teammates) |
-| **Prompts** | **5** | asana_discovery_session, asana_health_check |
+| **Prompts** | **6** | asana_discovery_session, asana_health_check, asana_generate_deliverables |
 | **Resources** | **2** | workspace overview, workspace projects |
 
 ---
@@ -305,6 +305,45 @@ Cuando estés construyendo el Asana Wizard en OdooWizard:
 6. **Health check page:** Usa `asana_health_check` prompt para auditorías post-go-live
 
 Cada tool retorna JSON estructurado que puedes mapear directamente a los componentes React del wizard.
+
+### Generación de entregables (nuevo)
+
+Usa el prompt `asana_generate_deliverables` o el tool `generate_implementation_template`
+para generar ambos entregables de implementación:
+
+**Entregable 1: Implementation Template (para el consultor)**
+```
+generate_implementation_template({
+  workspace_gid: "123456",
+  methodology: "hybrid",     // de assess_asana_maturity
+  client_name: "Café Oaxaca",
+  industry: "operations"
+})
+```
+Retorna 27 subtasks (hybrid) clasificados como:
+- **[A] Automated** (5): MCP tool con args pre-llenados → ejecutar directo
+- **[PA] Partial** (13): MCP tool + pasos manuales → tool primero, consultor refina
+- **[M] Manual** (9): Guía paso a paso → consultor ejecuta sin MCP
+
+**Entregable 2: DVA (para el cliente)**
+```
+generate_implementation_plan({
+  workspace_gid: "123456",
+  client_name: "Café Oaxaca",
+  industry: "operations",
+  methodology: "hybrid",
+  fitgap_summary: { native: 12, configurable: 5, development: 2, process_change: 1 }
+})
+```
+Retorna: executive summary, scope, fases, training plan, risk register, inversión.
+
+**Cobertura de automatización por metodología:**
+
+| Metodología | Subtasks | Auto | Parcial | Manual |
+|-------------|:--------:|:----:|:-------:|:------:|
+| Quick Start | 17 | 5 (29%) | 5 (29%) | 7 (41%) |
+| Hybrid | 27 | 5 (19%) | 13 (48%) | 9 (33%) |
+| Enterprise | 36 | 7 (19%) | 14 (39%) | 15 (42%) |
 
 ---
 

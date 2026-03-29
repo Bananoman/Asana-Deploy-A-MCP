@@ -77,7 +77,170 @@ const SAVINGS_BASELINES = {
   }
 };
 
+// ─── Implementation subtasks by methodology (77 total) ───
+// Classification: A = fully automated, PA = partially automated, M = manual
+
+const IMPLEMENTATION_SUBTASKS = {
+  scoring: [
+    { id: 'S1', name: 'Run maturity assessment', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'A', tool: 'assess_asana_maturity', args: { workspace_gid: '{workspace_gid}' }, hours: 0.25, dependencies: [] },
+    { id: 'S2', name: 'Review 5-dimension scores', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'PA', tool: 'assess_asana_maturity', manual_steps: ['Present scores to client', 'Discuss each dimension', 'Identify areas of agreement/disagreement'], hours: 1, dependencies: ['S1'] },
+    { id: 'S3', name: 'Confirm methodology', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'M', manual_steps: ['Present score and recommended methodology to sponsor', 'Discuss budget and timeline constraints', 'Agree on Quick Start / Hybrid / Enterprise', 'Document decision and rationale'], hours: 0.5, dependencies: ['S2'] },
+    { id: 'S4', name: 'Document quick wins', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'PA', tool: 'assess_asana_maturity', manual_steps: ['Review quick_wins[] from tool output', 'Prioritize with client by effort vs impact', 'Assign owners for each quick win'], hours: 0.5, dependencies: ['S1'] },
+    { id: 'S5', name: 'Stakeholder interviews', methodologies: ['enterprise'], type: 'M', manual_steps: ['Identify 4-8 key stakeholders across departments', 'Schedule 30min interviews with each', 'Questions: pain points, priorities, expectations, current tools, resistance areas', 'Document findings per stakeholder', 'Synthesize into common themes and conflicts'], hours: 8, dependencies: ['S3'] },
+    { id: 'S6', name: 'Document blockers & risks', methodologies: ['hybrid', 'enterprise'], type: 'PA', tool: 'assess_asana_maturity', manual_steps: ['Review blockers[] from tool output', 'Add business-specific risks (budget, timeline, change resistance, dependencies)', 'Classify each as: must-resolve-before-start vs monitor-during'], hours: 1, dependencies: ['S1'] },
+  ],
+  discovery: [
+    { id: 'D1', name: 'Core module questionnaire (5Q)', methodologies: ['quick_start'], type: 'PA', prompt: 'asana_discovery_session', manual_steps: ['Run prompt to generate questions', 'Conduct interview with client (30-45min)', 'Document answers in wizard'], hours: 1.5, dependencies: ['S3'] },
+    { id: 'D2', name: 'Standard questionnaire (7Q)', methodologies: ['hybrid'], type: 'PA', prompt: 'asana_discovery_session', manual_steps: ['Run prompt to generate questions adapted to maturity score', 'Conduct 2-3 interview sessions (45min each)', 'Document answers and follow-up items'], hours: 3, dependencies: ['S3'] },
+    { id: 'D3', name: 'Deep questionnaire (12Q)', methodologies: ['enterprise'], type: 'PA', prompt: 'asana_discovery_session', manual_steps: ['Run prompt with depth=deep', 'Conduct 4-6 interview sessions across departments', 'Cross-reference answers for consistency', 'Flag contradictions for resolution'], hours: 8, dependencies: ['S3', 'S5'] },
+    { id: 'D4', name: 'Client document upload + analysis', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'PA', manual_steps: ['Request SOPs, process docs, org charts from client', 'Upload to wizard for AI analysis', 'Review AI-extracted insights', 'Flag gaps in documentation'], hours: 2, dependencies: ['S3'] },
+    { id: 'D5', name: 'Process mapping workshops', methodologies: ['hybrid', 'enterprise'], type: 'M', manual_steps: ['Prepare Miro/whiteboard with swim lanes', 'For each key process: map trigger → steps → handoffs → output', 'Identify bottlenecks, manual steps, approval gates', 'Document as-is vs to-be state', 'Take photos/screenshots and attach to Asana tasks'], hours: 4, dependencies: ['D2'] },
+    { id: 'D6', name: 'Integration inventory', methodologies: ['enterprise'], type: 'PA', tool: 'analyze_workspace_overview', manual_steps: ['Review MCP output for existing webhooks and external data', 'Interview IT team about: CRM, email, calendar, file storage, analytics tools', 'Document each integration: direction (in/out/bidirectional), frequency, data volume, owner'], hours: 3, dependencies: ['D3'] },
+    { id: 'D7', name: 'Data quality assessment', methodologies: ['enterprise'], type: 'M', manual_steps: ['Export 100 representative tasks from top 3 projects', 'Audit: empty required fields, inconsistent naming, duplicates, orphaned tasks', 'Score data quality 0-100 using checklist', 'Document cleanup requirements before migration', 'Estimate hours for data cleanup'], hours: 3, dependencies: ['D3'] },
+    { id: 'D8', name: 'Validate requirements', methodologies: ['quick_start', 'hybrid'], type: 'PA', manual_steps: ['Compile discovery findings into requirements list', 'Schedule 30min validation session with stakeholders', 'Walk through each requirement: confirm, modify, or remove', 'Get verbal sign-off on final requirements list'], hours: 1, dependencies: ['D1'] },
+    { id: 'D9', name: 'Validate across departments', methodologies: ['enterprise'], type: 'M', manual_steps: ['Schedule cross-departmental session (60-90min)', 'Present consolidated requirements from all interviews', 'Identify conflicts in priorities between departments', 'Facilitate resolution with sponsor as tiebreaker', 'Document agreed priorities and deferred items'], hours: 3, dependencies: ['D3', 'D6'] },
+  ],
+  fitgap: [
+    { id: 'F1', name: 'Run fit-gap analysis', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'A', tool: 'generate_fitgap_analysis', args: { workspace_gid: '{workspace_gid}' }, hours: 0.25, dependencies: ['D8'] },
+    { id: 'F2', name: 'Review N/C/D/CP classifications', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'PA', tool: 'generate_fitgap_analysis', manual_steps: ['Review each classification with client', 'Adjust where client has domain expertise that changes classification', 'Document rationale for any changes'], hours: 1.5, dependencies: ['F1'] },
+    { id: 'F3', name: 'Prioritize with MoSCoW', methodologies: ['hybrid', 'enterprise'], type: 'M', manual_steps: ['For each requirement, ask sponsor: Must / Should / Could / Wont', 'Must: business cannot operate without it', 'Should: important but workaround exists', 'Could: nice to have, implement if time allows', 'Wont: agreed to defer to future phase', 'Document justification for each Must item'], hours: 2, dependencies: ['F2'] },
+    { id: 'F4', name: 'Technical feasibility review', methodologies: ['enterprise'], type: 'PA', tool: 'validate_ai_capability', manual_steps: ['Run validate_ai_capability for each C and D item', 'For D items: assess integration complexity (API docs, auth, data mapping)', 'For red flags: document alternative approaches', 'Estimate revised hours for complex D items'], hours: 3, dependencies: ['F2'] },
+    { id: 'F5', name: 'Client scope sign-off', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'M', manual_steps: ['Prepare fit-gap matrix document (from tool output)', 'Present to sponsor and key stakeholders', 'Walk through each D and CP item and confirm', 'Document what is IN and OUT of scope', 'Get written sign-off (email or digital signature)', 'Archive signed scope document'], hours: 1, dependencies: ['F2'] },
+    { id: 'F6', name: 'Business impact scoring', methodologies: ['enterprise'], type: 'M', manual_steps: ['For each D and CP item, estimate: revenue impact (H/M/L), risk if not done (H/M/L), urgency (H/M/L)', 'Create weighted score: revenue×3 + risk×2 + urgency×1', 'Rank items by weighted score', 'Present to sponsor for final prioritization'], hours: 2, dependencies: ['F3', 'F4'] },
+  ],
+  proposal: [
+    { id: 'P1', name: 'Generate DVA', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'A', tool: 'generate_implementation_plan', args: { workspace_gid: '{workspace_gid}', client_name: '{client_name}', industry: '{industry}', methodology: '{methodology}' }, hours: 0.25, dependencies: ['F5'] },
+    { id: 'P2', name: 'Estimate hours', methodologies: ['quick_start'], type: 'A', tool: 'generate_implementation_plan', hours: 0, dependencies: ['P1'] },
+    { id: 'P3', name: 'Run savings estimate', methodologies: ['hybrid', 'enterprise'], type: 'A', tool: 'estimate_automation_savings', args: { workspace_gid: '{workspace_gid}' }, hours: 0.25, dependencies: ['F1'] },
+    { id: 'P4', name: 'Risk register generation', methodologies: ['enterprise'], type: 'A', tool: 'generate_implementation_plan', hours: 0, dependencies: ['P1'] },
+    { id: 'P5', name: 'Training plan per role', methodologies: ['enterprise'], type: 'A', tool: 'generate_implementation_plan', hours: 0, dependencies: ['P1'] },
+    { id: 'P6', name: 'Review timeline', methodologies: ['hybrid', 'enterprise'], type: 'PA', tool: 'generate_implementation_plan', manual_steps: ['Review phases[] from DVA output', 'Check client team availability for each phase', 'Adjust durations for holidays, vacations, competing projects', 'Add buffer for identified risks'], hours: 1, dependencies: ['P1'] },
+    { id: 'P7', name: 'Present to sponsor', methodologies: ['hybrid'], type: 'M', manual_steps: ['Prepare 60min presentation', 'Deck: maturity score → top gaps → implementation plan → ROI → investment', 'Include comparison: cost of doing nothing vs cost of implementation', 'Address likely objections (timeline, disruption, adoption)', 'End with clear ask: approval + PO'], hours: 2, dependencies: ['P1', 'P3'] },
+    { id: 'P8', name: 'Executive presentation', methodologies: ['enterprise'], type: 'M', manual_steps: ['Prepare executive deck (15 slides max)', 'Cover: business vision, strategic alignment, implementation approach, risk mitigation, investment, ROI', 'Include industry benchmarks if available', 'Rehearse with internal team before presenting', 'Schedule 45min with C-suite sponsor'], hours: 4, dependencies: ['P1', 'P3'] },
+    { id: 'P9', name: 'Contract negotiation', methodologies: ['enterprise'], type: 'M', manual_steps: ['Draft SOW from DVA output', 'Include: scope freeze clause, change order process (rate + approval), SLAs for response time', 'Define payment milestones tied to phase completions', 'Review with legal (both sides)', 'Negotiate terms and finalize'], hours: 4, dependencies: ['P8'] },
+    { id: 'P10', name: 'Get sign-off + PO', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'M', manual_steps: ['Send final DVA + SOW to client', 'Follow up within 48h if no response', 'Obtain PO number or signed contract', 'Archive in project folder', 'Trigger implementation kickoff'], hours: 0.5, dependencies: ['P1'] },
+  ],
+  execution: [
+    { id: 'E1', name: 'Setup workspace/account', methodologies: ['quick_start'], type: 'A', tool: 'create_project_with_structure', args: { workspace_gid: '{workspace_gid}' }, hours: 1, dependencies: ['P10'] },
+    { id: 'E2', name: 'Quick Wins sprint', methodologies: ['hybrid', 'enterprise'], type: 'PA', tool: 'assess_asana_maturity', manual_steps: ['Execute quick_wins[] from maturity assessment', 'Use MCP tools: create_rule, bulk_update_tasks, create_custom_field', 'Verify each win with client within 48h', 'Document before/after for ROI reporting'], hours: 4, dependencies: ['P10'] },
+    { id: 'E3', name: 'Foundation phase (structure + governance)', methodologies: ['enterprise'], type: 'PA', tools: ['create_project_with_structure', 'add_project_members', 'create_custom_field'], manual_steps: ['Configure team permissions in Asana UI (admin console)', 'Set up naming conventions document', 'Configure project privacy settings', 'Create portfolio structure for leadership view'], hours: 8, dependencies: ['E2'] },
+    { id: 'E4', name: 'Configure core features', methodologies: ['quick_start'], type: 'PA', tools: ['create_custom_field', 'create_section', 'create_tag'], manual_steps: ['Configure views (board/list/timeline) in Asana UI', 'Set up dashboard widgets in UI', 'Configure notification preferences'], hours: 2, dependencies: ['E1'] },
+    { id: 'E5', name: 'Phase 1 Core setup', methodologies: ['hybrid'], type: 'PA', tools: ['create_project', 'create_section', 'create_custom_field', 'add_project_members'], manual_steps: ['Configure project views and layouts in Asana UI', 'Set up team-level settings', 'Import existing project templates if available'], hours: 4, dependencies: ['E2'] },
+    { id: 'E6', name: 'Phase 2 Advanced config', methodologies: ['hybrid'], type: 'PA', tools: ['setup_kanban_workflow', 'create_rule', 'bulk_create_rules'], manual_steps: ['Test each rule by triggering it manually', 'Refine rule conditions for edge cases in UI', 'Document all rules created for client admin guide'], hours: 4, dependencies: ['E5'] },
+    { id: 'E7', name: 'Configuration phase', methodologies: ['enterprise'], type: 'PA', tools: ['bulk_create_rules', 'setup_kanban_workflow', 'create_custom_field'], manual_steps: ['Test each rule and workflow end-to-end', 'Handle edge cases not covered by standard rules', 'Configure approval workflows in Asana UI', 'Set up custom field dependencies'], hours: 8, dependencies: ['E3'] },
+    { id: 'E8', name: 'Integration setup', methodologies: ['hybrid'], type: 'PA', tools: ['create_webhook', 'attach_external_data'], manual_steps: ['Configure receiving endpoint for webhooks', 'Set up OAuth for third-party apps', 'Test bidirectional data flow', 'Document integration architecture'], hours: 4, dependencies: ['E6'] },
+    { id: 'E9', name: 'Integration phase', methodologies: ['enterprise'], type: 'PA', tools: ['create_webhook', 'attach_external_data', 'batch_api'], manual_steps: ['Develop webhook receivers for each integration', 'Configure OAuth and API keys for third-party systems', 'Build data mapping between systems', 'Test sync in staging environment', 'Document error handling and retry logic'], hours: 16, dependencies: ['E7'] },
+    { id: 'E10', name: 'AI Teammates setup', methodologies: ['hybrid', 'enterprise'], type: 'A', tools: ['generate_teammate_blueprint', 'validate_ai_capability'], manual_steps: ['Copy-paste behavior instructions into AI Studio', 'Attach key resources (SOPs, templates, examples)', 'Test with a starter task', 'Iterate behavior instructions based on output quality'], hours: 4, dependencies: ['E6'] },
+    { id: 'E11', name: 'Data migration', methodologies: ['enterprise'], type: 'PA', tools: ['bulk_create_tasks', 'bulk_update_tasks'], manual_steps: ['Prepare data in CSV/JSON format', 'Run dry-run import on test project', 'Validate imported data (field mapping, assignees, dates)', 'Fix data quality issues', 'Run production import', 'Verify post-import counts and integrity'], hours: 8, dependencies: ['E7'] },
+    { id: 'E12', name: 'Training sessions', methodologies: ['quick_start', 'hybrid', 'enterprise'], type: 'M', manual_steps: ['Prepare training materials by role (End User: 2h, PM: 4-8h, Admin: 6-12h)', 'Schedule sessions: 1) Demo walkthrough 2) Hands-on exercises 3) Q&A', 'Record sessions for future reference', 'Create quick-reference guides (1-pager per role)', 'Set up internal wiki/docs page'], hours: { quick_start: 2, hybrid: 8, enterprise: 16 }, dependencies: ['E4'] },
+    { id: 'E13', name: 'UAT & validation', methodologies: ['hybrid'], type: 'M', manual_steps: ['Create test plan: 1 test case per N/C requirement', 'Client team executes test cases', 'Document results: pass/fail/blocked', 'Fix failed items', 'Re-test until all pass', 'Get UAT sign-off from project sponsor'], hours: 4, dependencies: ['E6'] },
+    { id: 'E14', name: 'UAT per department', methodologies: ['enterprise'], type: 'M', manual_steps: ['Create department-specific test plans', 'Each department tests their workflows independently', 'Consolidate feedback across departments', 'Prioritize fixes: P1 (blocks go-live) vs P2 (post-go-live)', 'Fix P1 items and re-test', 'Get department-level sign-offs'], hours: 12, dependencies: ['E7', 'E9'] },
+    { id: 'E15', name: 'Pilot rollout', methodologies: ['enterprise'], type: 'M', manual_steps: ['Select 1 champion team (most enthusiastic, best data quality)', 'Deploy to champion team only', 'Monitor for 1 week: daily check-ins, issue tracking', 'Document lessons learned', 'Adjust configuration based on feedback', 'Validate metrics: adoption rate, task completion, rule triggers'], hours: 8, dependencies: ['E14'] },
+    { id: 'E16', name: 'Full rollout', methodologies: ['enterprise'], type: 'M', manual_steps: ['Communicate go-live to all teams (email + Slack/Teams)', 'Provide access to training materials and quick-reference guides', 'Staff help desk for first week (dedicated Slack channel or office hours)', 'Monitor adoption metrics daily for first 2 weeks'], hours: 4, dependencies: ['E15'] },
+    { id: 'E17', name: 'Optimization & fine-tuning', methodologies: ['enterprise'], type: 'PA', prompt: 'asana_health_check', manual_steps: ['Run health check 2 weeks post-go-live', 'Review findings with client admin', 'Adjust rules and workflows based on actual usage patterns', 'Optimize custom fields based on what users actually fill in'], hours: 4, dependencies: ['E16'] },
+    { id: 'E18', name: 'Go-live & handoff', methodologies: ['quick_start', 'hybrid'], type: 'PA', prompt: 'asana_health_check', manual_steps: ['Run final health check to validate state', 'Prepare handoff document: what was configured, admin credentials, support contacts', 'Schedule 30min handoff call with client admin', 'Transfer ownership of all projects to client'], hours: 2, dependencies: ['E12'] },
+    { id: 'E19', name: 'Hypercare (2-4 weeks)', methodologies: ['hybrid', 'enterprise'], type: 'M', manual_steps: ['Define SLA: P1 critical (4h response), P2 important (8h), P3 minor (24h)', 'Set up support channel (email or Slack)', 'Weekly check-in with sponsor (15min)', 'Track issues and resolutions', 'Escalate recurring issues to implementation team'], hours: 4, dependencies: ['E18'] },
+    { id: 'E20', name: 'Formal handoff', methodologies: ['enterprise'], type: 'M', manual_steps: ['Prepare closure document: scope delivered, issues resolved, outstanding items', 'Knowledge transfer session with client admin team (60min)', 'Transition from implementation support to ongoing support (separate SOW if applicable)', 'Archive project in Completed Implementations', 'Get final sign-off from sponsor', 'Schedule 30/60/90 day check-in for adoption review'], hours: 2, dependencies: ['E19'] },
+  ]
+};
+
 module.exports = (client) => [
+
+  // ════════════════════════════════════════════════════════════
+  // TOOL 0: generate_implementation_template
+  // ════════════════════════════════════════════════════════════
+
+  {
+    name: 'generate_implementation_template',
+    description: 'Generate a complete implementation template with subtasks classified as Automated (A), Partially Automated (PA), or Manual (M). Each subtask includes: MCP tool or prompt to execute, pre-filled arguments, manual step-by-step instructions, estimated hours, and dependencies. The template is methodology-specific (quick_start/hybrid/enterprise) and can be consumed by the Asana Wizard UI or the ClickUp MCP to create tracking tasks. Use after assess_asana_maturity determines the methodology. Related: assess_asana_maturity for scoring, generate_implementation_plan for the client-facing DVA.',
+    annotations: { readOnlyHint: true },
+    inputSchema: {
+      type: 'object',
+      properties: {
+        workspace_gid: { type: 'string', description: 'Client workspace GID (used to pre-fill tool arguments)' },
+        methodology: { type: 'string', enum: ['quick_start', 'hybrid', 'enterprise'], description: 'Methodology from assess_asana_maturity results' },
+        client_name: { type: 'string', description: 'Client name (for DVA generation step)' },
+        industry: { type: 'string', description: 'Client industry (for playbook matching)' }
+      },
+      required: ['workspace_gid', 'methodology']
+    },
+    handler: async (args) => {
+      const { workspace_gid, methodology, client_name, industry } = args;
+
+      // Filter subtasks for the selected methodology
+      const phases = {};
+      for (const [phaseName, subtasks] of Object.entries(IMPLEMENTATION_SUBTASKS)) {
+        const filtered = subtasks
+          .filter(s => s.methodologies.includes(methodology))
+          .map(s => {
+            const entry = {
+              id: s.id,
+              name: s.name,
+              type: s.type,
+              type_label: s.type === 'A' ? 'Automated' : s.type === 'PA' ? 'Partially Automated' : 'Manual',
+              hours_estimate: typeof s.hours === 'object' ? s.hours[methodology] : s.hours,
+              dependencies: s.dependencies
+            };
+
+            // Add tool/prompt info
+            if (s.tool) {
+              entry.mcp_tool = s.tool;
+              entry.mcp_args = s.args
+                ? Object.fromEntries(Object.entries(s.args).map(([k, v]) => [k, v.replace('{workspace_gid}', workspace_gid).replace('{client_name}', client_name || 'Client').replace('{industry}', industry || 'general').replace('{methodology}', methodology)]))
+                : { workspace_gid };
+            }
+            if (s.tools) {
+              entry.mcp_tools = s.tools;
+            }
+            if (s.prompt) {
+              entry.mcp_prompt = s.prompt;
+              entry.mcp_prompt_args = { workspace_gid };
+            }
+            if (s.manual_steps) {
+              entry.manual_steps = s.manual_steps;
+            }
+
+            return entry;
+          });
+
+        if (filtered.length > 0) {
+          phases[phaseName] = filtered;
+        }
+      }
+
+      // Summary stats
+      const allSubtasks = Object.values(phases).flat();
+      const automated = allSubtasks.filter(s => s.type === 'A');
+      const partial = allSubtasks.filter(s => s.type === 'PA');
+      const manual = allSubtasks.filter(s => s.type === 'M');
+      const totalHours = allSubtasks.reduce((sum, s) => sum + (s.hours_estimate || 0), 0);
+
+      return {
+        methodology,
+        methodology_label: METHODOLOGY_THRESHOLDS[methodology]?.description || methodology,
+        client: client_name || null,
+        industry: industry || null,
+        workspace_gid,
+        phases,
+        summary: {
+          total_subtasks: allSubtasks.length,
+          automated: automated.length,
+          partially_automated: partial.length,
+          manual: manual.length,
+          automation_coverage: `${Math.round(((automated.length + partial.length * 0.5) / allSubtasks.length) * 100)}%`,
+          total_hours_estimate: Math.round(totalHours)
+        },
+        usage_note: 'Each subtask with type=A or type=PA includes mcp_tool or mcp_prompt with pre-filled arguments. Execute them in dependency order. Manual subtasks include step-by-step instructions for the consultant.',
+        next_steps: [
+          'Execute subtasks in dependency order (S1 → S2 → ... → E20)',
+          'For A items: call the MCP tool directly with provided args',
+          'For PA items: call the MCP tool, then follow manual_steps to refine',
+          'For M items: follow manual_steps guide',
+          'Use generate_implementation_plan to create the client-facing DVA'
+        ]
+      };
+    }
+  },
 
   // ════════════════════════════════════════════════════════════
   // TOOL 1: assess_asana_maturity

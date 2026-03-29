@@ -101,7 +101,7 @@ const CORE_TOOL_NAMES = new Set([
   'get_asana_guide',
   'analyze_workspace_overview', 'analyze_project_ai_readiness',
   // Methodology
-  'assess_asana_maturity',
+  'assess_asana_maturity', 'generate_implementation_template',
 ]);
 
 /**
