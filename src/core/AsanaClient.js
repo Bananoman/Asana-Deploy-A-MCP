@@ -295,7 +295,8 @@ class AsanaClient {
     return this.limiter.schedule(async () => {
       try {
         const response = await this.client.post(endpoint, { data }, {
-          signal: options.signal
+          signal: options.signal,
+          params: options.params
         });
 
         // Invalidate related caches after mutation
@@ -320,7 +321,8 @@ class AsanaClient {
     return this.limiter.schedule(async () => {
       try {
         const response = await this.client.put(endpoint, { data }, {
-          signal: options.signal
+          signal: options.signal,
+          params: options.params
         });
 
         // Invalidate related caches after mutation

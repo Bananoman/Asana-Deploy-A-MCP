@@ -123,8 +123,12 @@ function getToolsByMode(client) {
     const modules = CATEGORY_MODULES[domain];
     if (!modules) continue;
     for (const mod of modules) {
-      const toolFn = mod.load();
-      allTools.push(...toolFn(client));
+      try {
+        const toolFn = mod.load();
+        allTools.push(...toolFn(client));
+      } catch (error) {
+        console.error(`Failed to load tools from ${domain}/${mod.id || 'unknown'}:`, error.message);
+      }
     }
   }
 

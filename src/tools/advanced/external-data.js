@@ -87,8 +87,8 @@ module.exports = (client) => [
       required: ['task_gid']
     },
     handler: async (args) => {
-      // Clear external data by emptying the data field
-      return await client.put(`/tasks/${args.task_gid}`, { external: { data: '' } });
+      // Clear external data by setting external to null
+      return await client.put(`/tasks/${args.task_gid}`, { external: null });
     }
   },
   {

@@ -81,7 +81,50 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
-    const result = await tool.handler(request.params.arguments || {});
+    // Fix GID serialization: MCP framework may send numeric GIDs as JSON numbers
+    // Asana API requires all GIDs as strings.
+    const GID_PROPS = new Set([
+      'workspace', 'workspace_gid', 'team', 'team_gid',
+      'project', 'project_gid', 'source_project_gid', 'target_project_gid',
+      'task', 'task_gid', 'section', 'section_gid',
+      'portfolio', 'portfolio_gid', 'goal_gid', 'goal_relationship_gid',
+      'tag', 'tag_gid', 'user_gid', 'custom_field', 'custom_field_gid',
+      'custom_field_setting_gid', 'enum_option', 'enum_option_gid',
+      'item', 'parent', 'owner', 'assignee', 'member', 'resource', 'resource_gid',
+      'target', 'supporting_resource', 'organization',
+      'attachment_gid', 'story_gid', 'status_update_gid', 'reaction_gid',
+      'webhook_gid', 'membership_gid', 'allocation_gid', 'rule_gid',
+      'project_template_gid', 'task_template_gid', 'project_brief_gid',
+      'project_status_gid', 'job_gid', 'time_tracking_entry_gid',
+      'time_period', 'time_period_gid', 'organization_export_gid',
+      'access_request_gid', 'custom_object_gid', 'record_gid',
+      'user_task_list_gid',
+      'assignee_section', 'backlog_section_gid', 'doing_section_gid',
+      'done_section_gid', 'in_progress_section_gid', 'review_section_gid',
+      'todo_section_gid', 'sprint_section_gid', 'sprint_tag_gid',
+      'trigger_section_gid', 'trigger_custom_field_gid',
+      'action_assignee_gid', 'action_custom_field_gid', 'action_follower_gid',
+      'action_section_gid', 'action_tag_gid',
+      'before_section', 'after_section', 'before_enum_option', 'after_enum_option',
+      'insert_before', 'insert_after', 'insertion_before', 'insertion_after',
+      'developer_gid', 'dev_lead_gid', 'qa_gid', 'qa_lead_gid', 'actor_gid',
+    ]);
+    function coerceGids(obj) {
+      if (obj === null || obj === undefined) return obj;
+      if (Array.isArray(obj)) return obj.map(coerceGids);
+      if (typeof obj === 'object') {
+        const out = {};
+        for (const [k, v] of Object.entries(obj)) {
+          if (GID_PROPS.has(k) && typeof v === 'number') out[k] = String(v);
+          else if (typeof v === 'object') out[k] = coerceGids(v);
+          else out[k] = v;
+        }
+        return out;
+      }
+      return obj;
+    }
+    const fixedArgs = coerceGids(request.params.arguments || {});
+    const result = await tool.handler(fixedArgs);
 
     return {
       content: [
