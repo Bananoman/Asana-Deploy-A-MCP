@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff operativo — Product Recall Clase I</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #000000;
+  background: #ffffff;
+  line-height: 1.7;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 48px 56px 80px;
+}
+
+h1 {
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: #004232;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #004232;
+  margin-top: 44px;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #C9FCDB;
+}
+h3 {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #000;
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+p { margin-bottom: 14px; }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 24px;
+  font-size: 0.88rem;
+}
+thead th {
+  background: #004232;
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+}
+thead th:first-child { border-radius: 4px 0 0 0; }
+thead th:last-child { border-radius: 0 4px 0 0; }
+tbody tr:nth-child(odd) { background: #C9FCDB; }
+tbody tr:nth-child(even) { background: #ffffff; }
+tbody td {
+  padding: 9px 14px;
+  border-bottom: 1px solid #b5e8c8;
+  vertical-align: top;
+}
+
+/* Callout */
+.callout {
+  background: #C9FCDB;
+  border-left: 4px solid #004232;
+  padding: 14px 18px;
+  margin: 16px 0 24px;
+  font-size: 0.9rem;
+  border-radius: 0 4px 4px 0;
+}
+.callout strong { color: #004232; }
+
+/* Checklist */
+ol.implementation {
+  list-style: none;
+  counter-reset: step;
+  padding-left: 0;
+  margin: 16px 0 28px;
+}
+ol.implementation li {
+  counter-increment: step;
+  padding: 10px 0 10px 44px;
+  position: relative;
+  font-size: 0.92rem;
+  border-bottom: 1px solid #eee;
+}
+ol.implementation li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #004232;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 24px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #004232;
+}
+ol.implementation li strong { display: block; margin-bottom: 2px; }
+ol.implementation li .detail { color: #555; font-size: 0.86rem; }
+
+/* Printable checkbox version */
+.print-check {
+  display: none;
+}
+
+/* Timeline tiers */
+.tier-table td:first-child {
+  font-weight: 600;
+  color: #004232;
+  white-space: nowrap;
+}
+
+/* Section divider */
+hr {
+  border: none;
+  border-top: 1px solid #e5e5e5;
+  margin: 36px 0;
+}
+
+footer {
+  margin-top: 56px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.8rem;
+  color: #888;
+  text-align: center;
+}
+
+@media print {
+  body { padding: 24px 32px; max-width: 100%; }
+  ol.implementation li::before {
+    border-color: #000;
+    color: #000;
+  }
+  .print-check {
+    display: inline;
+    font-size: 1.1rem;
+    margin-right: 6px;
+  }
+  h2 { color: #000; border-bottom-color: #ccc; }
+}
+</style>
+</head>
+<body>
+
+<h1>Handoff operativo &mdash; Product Recall Clase I</h1>
+<p class="subtitle">Preparado por Ruben Mendoza, Sr. Channel Partner Manager &mdash; Asana &nbsp;|&nbsp; Cliente: Jorge Romero &nbsp;|&nbsp; Abril 2026</p>
+
+<!-- RESUMEN DEL CASO -->
+<h2>Resumen del caso</h2>
+<p>Demo solicitada por Jorge Romero para una empresa alimentaria multinacional (Ecuador). El proceso: Product Recall Clase I por contaminante microbiologico, con 9 departamentos, 6 fases, SLAs regulatorios de FDA/RASFF/FSA/CFIA/MHLW/FSANZ. El cliente envio un BPMN 2.0 completo y tiene expectativas de BPM enterprise.</p>
+<p>El roadmap tecnico ya esta listo. Este documento cubre lo que falta para llevar el entorno de demo a produccion.</p>
+
+<!-- DEMO VS PRODUCCION -->
+<h2>Diferencias entre demo y produccion</h2>
+<p>La demo muestra el concepto y la estructura. Produccion requiere ajustes que dependen del entorno real del cliente.</p>
+<table>
+<thead><tr><th>Aspecto</th><th>En la demo</th><th>En produccion</th></tr></thead>
+<tbody>
+<tr><td>Workspace</td><td>Demo space de Asana</td><td>Workspace del cliente (Enterprise/Enterprise+)</td></tr>
+<tr><td>Usuarios</td><td>1-2 cuentas de prueba</td><td>9+ coordinadores departamentales + miembros del Comite de Crisis</td></tr>
+<tr><td>Custom Fields</td><td>Configurados con valores genericos</td><td>Ajustados a la estructura real: nombres de departamentos, lista de plantas, jurisdicciones activas</td></tr>
+<tr><td>Reglas</td><td>15 reglas con datos mock</td><td>Mismas 15 reglas + ajustes de asignatarios reales por departamento</td></tr>
+<tr><td>AI Studio</td><td>3 flujos con prompts genericos</td><td>Prompts refinados con terminologia del cliente, tipos de contaminantes reales, clasificaciones internas</td></tr>
+<tr><td>AI Teammate</td><td>"Analista de Crisis" con instrucciones base</td><td>Instrucciones calibradas despues de 2-3 ciclos de prueba con datos reales</td></tr>
+<tr><td>Script Actions</td><td>No incluido (requiere Enterprise+)</td><td>Configurar sincronizacion de subprocesos si el plan lo permite</td></tr>
+<tr><td>Integracion SAP</td><td>No incluido</td><td>Middleware SAP &rarr; Asana como proyecto separado (2-4 semanas)</td></tr>
+<tr><td>Template</td><td>1 template replicable</td><td>Template validado por el equipo de Calidad del cliente + ajustes post-rehearsal</td></tr>
+<tr><td>Datos</td><td>Mock: Lote L-2026-0847, jurisdicciones simuladas</td><td>Lotes reales, plantas reales, costos reales, SLAs calibrados con Legal</td></tr>
+</tbody>
+</table>
+
+<!-- 10 PASOS DE IMPLEMENTACION -->
+<h2>10 pasos para ir a produccion</h2>
+<p>Esta lista esta pensada para imprimir y usar como checklist durante la implementacion. Cada paso tiene una dependencia clara y un entregable verificable.</p>
+
+<ol class="implementation">
+  <li>
+    <strong><span class="print-check">&#9744;</span>Confirmar plan de Asana del cliente</strong>
+    <span class="detail">Verificar si el cliente tiene Enterprise o Enterprise+ (necesario para Script Actions y AI Teammates con instrucciones avanzadas). Si tiene Business, hay funcionalidad limitada en reglas y AI. Esto determina el techo de lo que podemos configurar.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Crear workspace o acceder al del cliente</strong>
+    <span class="detail">Solicitar acceso como admin al workspace del cliente. Si prefieren un workspace nuevo para la fase piloto, crearlo con el dominio correcto. Necesitamos permisos para crear proyectos, custom fields globales y reglas.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Levantar la estructura base</strong>
+    <span class="detail">Crear el proyecto principal "Recall Clase I" con 6 secciones. Crear los 3 subproyectos (Logistica Inversa, Causa Raiz, Contact Center). Crear el proyecto War Room. Configurar los 10 Custom Fields globales. Esto es mecanico y toma medio dia.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Cargar tareas y configurar dependencias</strong>
+    <span class="detail">Crear las 30+ tareas pre-definidas del template. Establecer dependencias entre fases (Fase 2 no arranca sin Approval de Fase 1). Crear el milestone de sincronizacion en Fase 6 con dependencias de todos los cierres departamentales. Vincular tareas ancla a subproyectos via multi-homing.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Implementar las 15 reglas</strong>
+    <span class="detail">Configurar R1-R15 en el orden del roadmap. Probar cada regla individualmente con una tarea de prueba antes de pasar a la siguiente. Las reglas R14 y R15 (cross-project) son las mas delicadas porque dependen de que el War Room exista y tenga las secciones correctas.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Configurar AI Studio y AI Teammate</strong>
+    <span class="detail">Crear los 3 flujos de AI Studio (F1-F3). Crear el AI Teammate "Analista de Crisis" con las instrucciones del roadmap. Probar F1 con un formulario de prueba para validar que la clasificacion funciona. El AI Teammate necesita 2-3 interacciones de calibracion.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Construir el formulario de intake</strong>
+    <span class="detail">Crear el formulario "Reporte de Contaminacion" con los 7 campos. Vincular al flujo F1 de AI Studio. Probar end-to-end: llenar formulario, tarea creada, AI clasifica, asigna a Dir. Calidad.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Armar el dashboard ejecutivo</strong>
+    <span class="detail">6 widgets: semaforo de SLAs, SLAs regulatorios vencidos, progreso por departamento, tareas criticas pendientes, recuperacion por jurisdiccion, costos acumulados. El widget de recuperacion por jurisdiccion requiere una tarea por jurisdiccion con el campo % actualizado &mdash; documentar esto para el equipo del cliente.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Cargar mock data y simular recall completo</strong>
+    <span class="detail">Cargar datos realistas: Lote L-2026-0847, contaminante Salmonella, 6 jurisdicciones, costos estimados. Ejecutar el recall completo paso a paso: formulario, clasificacion, activacion del Comite, notificaciones, ejecucion paralela, escalamiento por &lt; 95%, cierre. Documentar cualquier regla que no dispare correctamente.</span>
+  </li>
+  <li>
+    <strong><span class="print-check">&#9744;</span>Guardar como template y documentar</strong>
+    <span class="detail">Una vez validado, guardar el proyecto como Project Template. Escribir una guia de uso de 2 paginas para el equipo del cliente: como instanciar un recall, que campos llenar, como interpretar el dashboard, cuando escalar manualmente. El template es el entregable final &mdash; el cliente puede replicar el proceso para cada recall futuro sin depender de nosotros.</span>
+  </li>
+</ol>
+
+<!-- TIMELINE -->
+<h2>Estimacion de tiempo (3 escenarios)</h2>
+<p>El tiempo depende de la velocidad de respuesta del cliente y de si tienen Enterprise+ (para Script Actions).</p>
+<table class="tier-table">
+<thead><tr><th>Escenario</th><th>Duracion</th><th>Que incluye</th><th>Requisitos</th></tr></thead>
+<tbody>
+<tr><td>Rapido</td><td>10 dias habiles</td><td>Estructura + reglas + AI Studio + AI Teammate + dashboard + template + rehearsal. Sin Script Actions ni integracion SAP.</td><td>Plan Business o superior. Acceso al workspace en dia 1. Cliente responde en &lt; 24h.</td></tr>
+<tr><td>Completo</td><td>15 dias habiles</td><td>Todo lo del escenario rapido + Script Actions para sincronizacion de subprocesos + calibracion extendida del AI Teammate.</td><td>Plan Enterprise/Enterprise+. Acceso al workspace en dia 1. Sesiones de calibracion con el equipo de Calidad.</td></tr>
+<tr><td>Con SAP</td><td>4-8 semanas</td><td>Todo lo del escenario completo + middleware SAP HANA a Asana para datos de inventario y costos en tiempo real.</td><td>Enterprise+. Acceso a endpoints SAP. Consultor SAP del lado del cliente. Definicion de alcance de integracion.</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<strong>Recomendacion:</strong> Empezar con el escenario rapido (10 dias). Dejar que el equipo del cliente use el sistema durante 1-2 semanas de prueba. Despues evaluar si necesitan Script Actions y la integracion SAP con datos concretos de uso.
+</div>
+
+<!-- RIESGOS -->
+<h2>Riesgos y como mitigarlos</h2>
+<table>
+<thead><tr><th>Riesgo</th><th>Probabilidad</th><th>Impacto</th><th>Mitigacion</th></tr></thead>
+<tbody>
+<tr><td>Cliente tiene plan Business (no Enterprise)</td><td>Media</td><td>Alto &mdash; sin Script Actions ni AI Teammates avanzados</td><td>Confirmar plan en el paso 1. Si es Business, ajustar roadmap para funcionar sin Script Actions (sincronizacion manual de subprocesos).</td></tr>
+<tr><td>Expectativas de BPM enterprise que Asana no cumple</td><td>Alta</td><td>Medio &mdash; frustraccion del cliente</td><td>El roadmap ya documenta cada limitacion con honestidad. En la demo, mostrar la limitacion y el workaround en el mismo momento.</td></tr>
+<tr><td>Equipo SAP no disponible para integracion</td><td>Alta</td><td>Bajo en fase 1 &mdash; la implementacion base no depende de SAP</td><td>Separar claramente la implementacion base (Asana) del proyecto de integracion (SAP). Avanzar con Asana primero.</td></tr>
+<tr><td>AI Teammate genera outputs incorrectos</td><td>Media</td><td>Medio &mdash; informacion erronea al Comite de Crisis</td><td>Checkpoint obligatorio: el AI Teammate genera subtareas, pero un humano revisa antes de distribuir. Nunca envio automatico directo al Comite.</td></tr>
+<tr><td>Reglas que no disparan en el orden esperado</td><td>Media</td><td>Bajo &mdash; se corrige en la fase de rehearsal</td><td>El paso 9 (simulacion) es especificamente para detectar y corregir estos casos. Reservar 2 dias completos para rehearsal.</td></tr>
+</tbody>
+</table>
+
+<!-- CONTACTOS -->
+<h2>Contactos del proyecto</h2>
+<table>
+<thead><tr><th>Rol</th><th>Nombre</th><th>Responsabilidad</th></tr></thead>
+<tbody>
+<tr><td>Consultor principal</td><td>Ruben Mendoza (Asana)</td><td>Diseno, implementacion, demo, handoff</td></tr>
+<tr><td>Punto de contacto del cliente</td><td>Jorge Romero</td><td>Validacion de requerimientos, acceso al workspace, coordinacion con equipo interno</td></tr>
+<tr><td>Equipo SAP (si aplica)</td><td>Por confirmar</td><td>Definicion de endpoints, mapeo de datos, pruebas de integracion</td></tr>
+</tbody>
+</table>
+
+<footer>
+  Prepared by Asana &mdash; Abril 2026
+</footer>
+
+</body>
+</html>

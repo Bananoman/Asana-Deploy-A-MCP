@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de pruebas — Product Recall Clase I | Demo Jorge Romero</title>
+<style>
+  :root {
+    --dark-coral: #690031;
+    --bright-coral: #FFEAEC;
+    --black: #000000;
+    --white: #FFFFFF;
+    --gray-100: #F7F7F7;
+    --gray-200: #E8E8E8;
+    --gray-400: #999999;
+    --gray-600: #555555;
+    --green-dark: #004232;
+    --green-bright: #C9FCDB;
+    --blue-dark: #222875;
+    --blue-bright: #CBEDFF;
+    --purple-dark: #6A0085;
+    --purple-bright: #FFDCFF;
+    --sidebar-width: 280px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    color: var(--black);
+    background: var(--white);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--dark-coral);
+    color: var(--white);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 24px 0;
+  }
+
+  .sidebar-header {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-header h1 {
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .sidebar nav a {
+    display: block;
+    padding: 8px 20px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  .sidebar nav a:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+    border-left-color: var(--bright-coral);
+  }
+
+  .sidebar nav a.nav-section {
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.5;
+    padding-top: 16px;
+    pointer-events: none;
+  }
+
+  /* ---- MAIN ---- */
+  .main {
+    margin-left: var(--sidebar-width);
+    padding: 40px 56px 80px;
+    max-width: 960px;
+  }
+
+  /* ---- TYPOGRAPHY ---- */
+  h1 { font-size: 28px; font-weight: 500; color: var(--dark-coral); margin-bottom: 16px; }
+  h2 { font-size: 22px; font-weight: 500; color: var(--dark-coral); margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--bright-coral); }
+  h3 { font-size: 17px; font-weight: 600; color: var(--dark-coral); margin: 32px 0 12px; }
+  h4 { font-size: 15px; font-weight: 600; color: var(--black); margin: 24px 0 8px; }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 0 0 16px 24px; }
+  li { margin-bottom: 6px; }
+
+  /* ---- CALLOUT BOXES ---- */
+  .scenario-box {
+    background: var(--bright-coral);
+    border-left: 4px solid var(--dark-coral);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .scenario-box strong { color: var(--dark-coral); }
+
+  .result-box {
+    background: var(--green-bright);
+    border-left: 4px solid var(--green-dark);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .result-box strong { color: var(--green-dark); }
+
+  .fires-box {
+    background: var(--blue-bright);
+    border-left: 4px solid var(--blue-dark);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .fires-box strong { color: var(--blue-dark); }
+
+  .warning-box {
+    background: #FFF3CD;
+    border-left: 4px solid #856404;
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .warning-box strong { color: #856404; }
+
+  .info-box {
+    background: var(--purple-bright);
+    border-left: 4px solid var(--purple-dark);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .info-box strong { color: var(--purple-dark); }
+
+  /* ---- DIAGRAM BLOCKS ---- */
+  .diagram-block {
+    background: #1a1a2e;
+    color: #E0E0E0;
+    padding: 20px 24px;
+    margin: 20px 0;
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .diagram-block .hl { color: #FF6B6B; }
+  .diagram-block .hl-blue { color: #6BC5FF; }
+  .diagram-block .hl-green { color: #6BFFB8; }
+  .diagram-block .hl-yellow { color: #FFD93D; }
+  .diagram-block .hl-dim { color: #666; }
+
+  /* ---- TABLES ---- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+  thead th {
+    background: var(--dark-coral);
+    color: var(--white);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 13px;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) { background: var(--gray-100); }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    background: var(--gray-100);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* ---- CHECKLIST ---- */
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li { position: relative; padding-left: 28px; margin-bottom: 10px; }
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--dark-coral);
+    border-radius: 3px;
+    background: var(--white);
+  }
+
+  /* ---- STEP LIST ---- */
+  .steps { counter-reset: step; list-style: none; margin-left: 0; }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 14px;
+    min-height: 28px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    background: var(--dark-coral);
+    color: var(--white);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .tag-rule { background: var(--bright-coral); color: var(--dark-coral); }
+  .tag-script { background: var(--blue-bright); color: var(--blue-dark); }
+  .tag-ai { background: var(--purple-bright); color: var(--purple-dark); }
+  .tag-manual { background: var(--gray-200); color: var(--gray-600); }
+
+  .section-anchor { scroll-margin-top: 20px; }
+
+  .gid { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--gray-400); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .two-col > div { padding: 16px; border-radius: 6px; }
+
+  .header-bar {
+    background: var(--bright-coral);
+    padding: 32px 56px;
+    margin: -40px -56px 40px;
+    border-bottom: 3px solid var(--dark-coral);
+  }
+  .header-bar p { color: var(--gray-600); margin-bottom: 4px; }
+  .header-bar h1 { margin-bottom: 8px; font-size: 26px; }
+
+  .footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 2px solid var(--gray-200);
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 13px;
+  }
+
+  /* ---- PRINT ---- */
+  @media print {
+    .sidebar { display: none; }
+    .main {
+      margin-left: 0;
+      padding: 20px;
+      max-width: 100%;
+    }
+    .header-bar { margin: -20px -20px 20px; padding: 20px; }
+    h2 { page-break-before: always; }
+    h2:first-of-type { page-break-before: avoid; }
+    .diagram-block { background: #f0f0f0 !important; color: #000 !important; border: 1px solid #ccc; }
+    .diagram-block .hl, .diagram-block .hl-blue, .diagram-block .hl-green, .diagram-block .hl-yellow { color: #000 !important; }
+    .checklist li::before { border-color: #000; }
+    .scenario-box, .result-box, .fires-box, .warning-box, .info-box { break-inside: avoid; }
+    table { font-size: 11px; }
+    a { color: var(--black); text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2>Demo Phoenix</h2>
+    <h1>Guia de pruebas<br>Product Recall Clase I</h1>
+  </div>
+  <nav>
+    <a class="nav-section">Setup inicial</a>
+    <a href="#config-manual">0. Configuracion manual</a>
+    <a class="nav-section">Contexto</a>
+    <a href="#resumen">1. Resumen ejecutivo</a>
+    <a href="#mapa">2. Mapa general de flujos</a>
+    <a href="#prerequisitos">3. Prerequisitos</a>
+    <a class="nav-section">Flujos de prueba</a>
+    <a href="#flujo-1">4. Deteccion y clasificacion</a>
+    <a href="#flujo-2">5. Activacion del comite</a>
+    <a href="#flujo-3">6. Notificaciones multi-jurisdiccion</a>
+    <a href="#flujo-4">7. Ejecucion paralela (9 dptos)</a>
+    <a href="#flujo-5">8. Escalamiento triple</a>
+    <a href="#flujo-6">9. Sincronizacion de subproceso</a>
+    <a href="#flujo-7">10. Cierre y trazabilidad</a>
+    <a class="nav-section">Transversales</a>
+    <a href="#war-room">11. War Room y SLAs</a>
+    <a href="#ai-teammates">12. AI Teammates</a>
+    <a class="nav-section">Referencia</a>
+    <a href="#referencia">13. Tabla de referencia rapida</a>
+    <a href="#troubleshooting">14. Troubleshooting</a>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<div class="header-bar">
+  <p>Demo Phoenix &mdash; Workspace Favorita</p>
+  <h1>Guia de pruebas: Product Recall Clase I</h1>
+  <p>Preparada por <strong>Ruben Mendoza, Sr. Channel Partner Manager &mdash; Asana</strong> | Abril 2026</p>
+  <p>Documento interno para validacion end-to-end de los 7 flujos antes de la demo con Jorge Romero</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 0: CONFIGURACION MANUAL -->
+<!-- ============================================================ -->
+<h2 id="config-manual" class="section-anchor">0. Configuracion manual &mdash; lo que debes hacer en la UI de Asana</h2>
+
+<p>Esta seccion lista TODO lo que requiere configuracion manual antes de poder ejecutar los flujos de prueba. Los items marcados con <strong>COMPLETADO VIA MCP</strong> ya fueron ejecutados automaticamente. Los items <strong>MANUAL</strong> deben hacerse en la UI de Asana.</p>
+
+<div class="step-block">
+<h3>Bloque 1 &mdash; Equipos y organizacion <span class="tag tag-rule">COMPLETADO VIA MCP</span></h3>
+<p><strong>Tiempo estimado: 0 min</strong> &mdash; ya ejecutado automaticamente.</p>
+<ul class="checklist">
+  <li><strong>14 teams renombrados a espanol</strong>: Staff &rarr; Equipo General, IT &rarr; Tecnologia, People Operations &rarr; Recursos Humanos, Sales &rarr; Ventas, Product &rarr; Producto, Leadership &rarr; Liderazgo, Content Marketing &rarr; Marketing de Contenido, Events &rarr; Eventos, Creative &rarr; Creativo, Customer Success &rarr; Exito del Cliente, Innovation &rarr; Innovacion, Sales Enablement &rarr; Habilitacion de Ventas, Product Marketing &rarr; Marketing de Producto, Marketing Communications &rarr; Comunicaciones de Marketing</li>
+  <li><strong>3 teams nuevos creados</strong>: Calidad y Seguridad Alimentaria, Logistica y Supply Chain, Comite de Crisis</li>
+  <li><strong>4 proyectos asignados a teams</strong>: Recall &rarr; Calidad y Seguridad Alimentaria, SP Logistica &rarr; Logistica y Supply Chain, War Room &rarr; Comite de Crisis, Guia config &rarr; Calidad y Seguridad Alimentaria</li>
+  <li><strong>10 custom fields creados</strong>: Departamento Responsable, Clasificacion de Recall, Jurisdiccion, Tipo de SLA, Estado de SLA, % Recuperacion de Producto, Costo Acumulado (USD), Prioridad Recall, Fase del Proceso, <strong>Evidencia Adjunta</strong> (Si/No &mdash; GID: <code>1213993491558247</code>)</li>
+  <li><strong>5 equipos departamentales creados</strong>: Regulatorio, Comunicaciones y PR, Produccion, Atencion al Consumidor, Finanzas</li>
+</ul>
+</div>
+
+<div class="step-block">
+<h3>Bloque 2 &mdash; 8 Rules nativas <span class="tag tag-manual">MANUAL</span></h3>
+<p><strong>Tiempo estimado: 15 min</strong> &mdash; Ir a Customize &rarr; Rules en cada proyecto.</p>
+<table>
+  <thead><tr><th>Regla</th><th>Proyecto</th><th>Trigger</th><th>Accion</th></tr></thead>
+  <tbody>
+    <tr><td>R1</td><td>Recall</td><td>Due date en 24h + Tipo SLA = Regulatorio</td><td>Estado SLA &rarr; Proximo a vencer + comentario</td></tr>
+    <tr><td>R2</td><td>Recall</td><td>Due date vencido + Tipo SLA = Regulatorio</td><td>Estado SLA &rarr; Vencido + Prioridad Critica + subtarea escalamiento</td></tr>
+    <tr><td>R3</td><td>Recall</td><td>Due date vencido + Tipo SLA = Interno</td><td>Estado SLA &rarr; Vencido + Prioridad Alta</td></tr>
+    <tr><td>R4</td><td>Recall</td><td>Clasificacion = Clase I</td><td>Agregar tarea al War Room</td></tr>
+    <tr><td>R5</td><td>Recall</td><td>Tarea creada</td><td>Prioridad = Alta, Fase = Deteccion, Estado SLA = En tiempo</td></tr>
+    <tr><td>R6</td><td>Recall</td><td>Approval aprobado</td><td>Mover a siguiente seccion + comentario auditoria</td></tr>
+    <tr><td>R7</td><td>Recall</td><td>Estado SLA changed to Vencido</td><td>Crear tarea alerta en War Room</td></tr>
+    <tr><td>R8</td><td>Recall</td><td>Task moved to Cierre section</td><td>Marcar tarea como completada + agregar fecha</td></tr>
+    <tr><td>R9</td><td>Recall</td><td>Task marked completed</td><td>Mover a seccion Cierre y Post-Mortem</td></tr>
+    <tr><td>R10</td><td>Recall</td><td>Clasificacion = Clase I</td><td>Crear subtarea &ldquo;Activar protocolo Clase I &mdash; Comite de Crisis en &le;2h&rdquo; + Prioridad Critica</td></tr>
+    <tr><td>R13</td><td>Recall</td><td>Tarea movida a Notificaciones</td><td>Agregar followers Legal + Regulatorio</td></tr>
+  </tbody>
+</table>
+<p><em>Instrucciones detalladas: ver tarea "MANUAL: Configurar 11 Rules nativas" en proyecto Guia de configuracion en Asana.</em></p>
+</div>
+
+<div class="step-block">
+<h3>Bloque 3 &mdash; 3 Script Actions <span class="tag tag-manual">MANUAL</span></h3>
+<p><strong>Tiempo estimado: 5 min</strong> &mdash; Requiere plan Enterprise+ con Script Actions habilitado.</p>
+<table>
+  <thead><tr><th>Script</th><th>Proyecto</th><th>Trigger</th><th>Archivo fuente</th></tr></thead>
+  <tbody>
+    <tr><td>Script 1 &mdash; Sync subproceso</td><td>SP: Logistica Inversa</td><td>Task marked complete</td><td>script-1-sync-subprocess.js</td></tr>
+    <tr><td>Script 2 &mdash; Escalamiento triple</td><td>Recall Clase I</td><td>Custom field % Recuperacion changed</td><td>script-2-triple-escalation.js</td></tr>
+    <tr><td>Script 3 &mdash; Multi-jurisdiccion</td><td>Recall Clase I</td><td>Task added to section Notificaciones</td><td>script-3-multi-jurisdiction.js</td></tr>
+  </tbody>
+</table>
+<p>Para cada script: Customize &rarr; Rules &rarr; Add Rule &rarr; seleccionar trigger &rarr; Action: Run a script &rarr; pegar codigo del archivo .js &rarr; Save.</p>
+</div>
+
+<div class="step-block">
+<h3>Bloque 4 &mdash; 3 AI Studio Flows <span class="tag tag-manual">MANUAL</span></h3>
+<p><strong>Tiempo estimado: 10 min</strong> &mdash; Configurar en AI Studio del proyecto Recall.</p>
+<table>
+  <thead><tr><th>Flow</th><th>Trigger</th><th>Funcion</th></tr></thead>
+  <tbody>
+    <tr><td>F1 &mdash; Clasificador</td><td>Formulario completado</td><td>Clasifica contaminacion, asigna departamento y prioridad</td></tr>
+    <tr><td>F2 &mdash; Status update</td><td>Recurrente cada 4h</td><td>Genera resumen ejecutivo para Comite de Crisis</td></tr>
+    <tr><td>F3 &mdash; Verificador cierre</td><td>Tarea movida a Cierre</td><td>Verifica evidencia adjunta, marca si falta</td></tr>
+  </tbody>
+</table>
+<p><em>Prompts completos: ver tarea "MANUAL: Configurar 3 AI Studio Flows" en proyecto Guia de configuracion en Asana.</em></p>
+</div>
+
+<div class="step-block">
+<h3>Bloque 5 &mdash; 2 AI Teammates <span class="tag tag-manual">MANUAL</span></h3>
+<p><strong>Tiempo estimado: 10 min</strong> &mdash; Crear en AI Studio &rarr; AI Teammates.</p>
+<ol>
+  <li><strong>Analista de Crisis</strong>: Sintetiza estado del recall, detecta SLAs en riesgo, genera talking points. Acceso a 3 proyectos. CHECKPOINT: siempre revision humana antes de distribuir.</li>
+  <li><strong>Script Actions Writer</strong>: Genera scripts adicionales bajo demanda usando los prompts de ai-teammate-prompts.md.</li>
+</ol>
+</div>
+
+<div class="step-block">
+<h3>Bloque 6 &mdash; Dashboard con 6 widgets <span class="tag tag-manual">MANUAL</span></h3>
+<p><strong>Tiempo estimado: 10 min</strong> &mdash; En proyecto Recall &rarr; vista Dashboard.</p>
+<ol>
+  <li>Semaforo de SLA (donut chart por Estado de SLA)</li>
+  <li>Violaciones regulatorias (bar chart filtrado por SLA Vencido + Regulatorio)</li>
+  <li>Progreso por departamento (bar horizontal completadas vs pendientes)</li>
+  <li>Tareas criticas (task list filtrada Prioridad = Critica)</li>
+  <li>% Recuperacion por jurisdiccion (number/chart)</li>
+  <li>Costos acumulados (number, suma total)</li>
+</ol>
+</div>
+
+<div class="step-block">
+<h3>Bloque 7 &mdash; Formulario de intake <span class="tag tag-manual">MANUAL</span></h3>
+<p><strong>Tiempo estimado: 5 min</strong> &mdash; En proyecto Recall &rarr; Customize &rarr; Forms.</p>
+<p>Crear formulario "Reporte de Contaminacion" con 7 campos: producto, lote, tipo contaminante, descripcion, jurisdicciones, fecha deteccion, reportado por. Vincular al AI Studio F1.</p>
+</div>
+
+<div class="step-block" style="background: var(--green-bright); border-left: 4px solid var(--green-dark); padding: 16px; margin: 24px 0;">
+<h3>Resumen de tiempos</h3>
+<table>
+  <thead><tr><th>Bloque</th><th>Estado</th><th>Tiempo</th></tr></thead>
+  <tbody>
+    <tr><td>1. Equipos y organizacion</td><td><strong>COMPLETADO</strong></td><td>0 min</td></tr>
+    <tr><td>2. Rules nativas (11)</td><td>MANUAL</td><td>~20 min</td></tr>
+    <tr><td>3. Script Actions (3)</td><td>MANUAL</td><td>~5 min</td></tr>
+    <tr><td>4. AI Studio Flows (3)</td><td>MANUAL</td><td>~10 min</td></tr>
+    <tr><td>5. AI Teammates (2)</td><td>MANUAL</td><td>~10 min</td></tr>
+    <tr><td>6. Dashboard (6 widgets)</td><td>MANUAL</td><td>~10 min</td></tr>
+    <tr><td>7. Formulario de intake</td><td>MANUAL</td><td>~5 min</td></tr>
+    <tr><td colspan="2"><strong>TOTAL manual restante</strong></td><td><strong>~60 min</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: RESUMEN EJECUTIVO -->
+<!-- ============================================================ -->
+<h2 id="resumen" class="section-anchor">1. Resumen ejecutivo</h2>
+
+<p>Esta guia documenta las pruebas necesarias para validar que la demo de Product Recall Clase I funciona correctamente de punta a punta. Cubre los 4 proyectos del workspace Demo Phoenix, las 7 reglas configuradas manualmente, los 3 Script Actions, los 3 flujos de AI Studio y los 2 AI Teammates.</p>
+
+<p>El objetivo no es verificar que Asana funcione; es verificar que nuestra configuracion especifica produce los resultados que le prometimos a Jorge Romero en cada uno de sus 7 requerimientos.</p>
+
+<h3>Los 7 requerimientos de Jorge Romero</h3>
+
+<table>
+  <thead>
+    <tr><th>#</th><th>Requerimiento</th><th>Flujo de prueba</th><th>Tipo de automatizacion</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>Modelamiento de 9 carriles departamentales con bifurcacion paralela</td><td>Flujo 4 &mdash; Ejecucion paralela</td><td><span class="tag tag-manual">Manual</span> Configuracion de campos</td></tr>
+    <tr><td>2</td><td>Logica condicional (gateways exclusivos, inclusivos, paralelos)</td><td>Flujos 1, 3, 5</td><td><span class="tag tag-script">Script Action</span> <span class="tag tag-rule">Rule</span></td></tr>
+    <tr><td>3</td><td>Subprocesos con ciclo de vida independiente</td><td>Flujo 6 &mdash; Sincronizacion de subproceso</td><td><span class="tag tag-script">Script Action 1</span></td></tr>
+    <tr><td>4</td><td>SLAs regulatorios con escalamiento automatico</td><td>Flujo 3 + Flujo transversal War Room</td><td><span class="tag tag-script">Script Action 3</span> <span class="tag tag-rule">Rules R1-R3</span></td></tr>
+    <tr><td>5</td><td>Escalamiento condicional multi-nivel</td><td>Flujo 5 &mdash; Escalamiento triple</td><td><span class="tag tag-script">Script Action 2</span></td></tr>
+    <tr><td>6</td><td>Trazabilidad y auditoria</td><td>Flujo 7 &mdash; Cierre y trazabilidad</td><td><span class="tag tag-ai">AI Studio F3</span> <span class="tag tag-rule">Rules</span></td></tr>
+    <tr><td>7</td><td>Reporteria ejecutiva consolidada</td><td>Flujo transversal War Room</td><td><span class="tag tag-manual">Dashboard</span> 6 widgets</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 2: MAPA GENERAL DE FLUJOS -->
+<!-- ============================================================ -->
+<h2 id="mapa" class="section-anchor">2. Mapa general de flujos</h2>
+
+<p>El diagrama muestra los 4 proyectos del workspace, las interconexiones entre ellos, y que automatizaciones se disparan en cada punto. Lealo de arriba a abajo para seguir el flujo temporal del recall.</p>
+
+<div class="diagram-block">
+<span class="hl-dim">WORKSPACE: Favorita (1213987848922321)</span>
+
+<span class="hl">PROYECTO PRINCIPAL: Recall Clase I (1213986423006166)</span>
+<span class="hl-dim">Vista Board — 6 columnas = 6 fases</span>
+
+┌─────────────┐   ┌──────────────┐   ┌──────────────────┐   ┌──────────────────┐   ┌──────────────┐   ┌─────────────┐
+│ <span class="hl-yellow">1.DETECCION</span>  │──▶│ <span class="hl-yellow">2.ACTIVACION</span>  │──▶│ <span class="hl-yellow">3.NOTIFICACIONES</span>  │──▶│ <span class="hl-yellow">4.EJECUCION PAR.</span> │──▶│ <span class="hl-yellow">5.MONITOREO</span>  │──▶│ <span class="hl-yellow">6.CIERRE</span>    │
+│             │   │              │   │                  │   │                  │   │              │   │             │
+│ Formulario  │   │ Approval     │   │ Script Action 3  │   │ 9 departamentos  │   │ Script Act 2 │   │ AI Studio   │
+│ ingresa     │   │ gate →       │   │ crea N subtareas │   │ en paralelo      │   │ si % < 95%   │   │ F3 verifica │
+│ reporte     │   │ R6 mueve     │   │ con SLAs         │   │ (campo Depto)    │   │ crea 3       │   │ evidencia   │
+│             │   │              │   │                  │   │                  │   │ subtareas    │   │             │
+│ <span class="hl-green">AI Studio F1</span>│   │ <span class="hl">R6</span>           │   │ <span class="hl-blue">Script 3</span>        │   │ <span class="tag-manual">Manual</span>          │   │ <span class="hl-blue">Script 2</span>    │   │ <span class="hl-green">F3</span>  <span class="hl">R1/R2</span>  │
+│ clasifica   │   │              │   │                  │   │                  │   │              │   │             │
+│ <span class="hl">R5</span> defaults  │   │              │   │ <span class="hl">R13</span> followers   │   │                  │   │              │   │ Milestone   │
+└─────────────┘   └──────────────┘   └──────────────────┘   └──────────────────┘   └──────────────┘   │ sincroniza  │
+                                                                    │                                  └──────┬──────┘
+                                                                    │                                         │
+                                                      ┌─────────────┴───────────┐                            │
+                                                      │                         │                            │
+                                                      ▼                         ▼                            │
+                                     <span class="hl-blue">SUBPROCESO:                  SUBPROCESO:</span>                      │
+                                     <span class="hl-blue">Logistica Inversa            Otros subprocesos</span>              │
+                                     <span class="hl-blue">(1213986186148783)</span>           <span class="hl-dim">(Causa Raiz,</span>                   │
+                                     │                           <span class="hl-dim">Contact Center)</span>                 │
+                                     │ Tareas internas                                          │
+                                     │ con su propio flujo                                      │
+                                     │                                                          │
+                                     │ Al completar todas:                                      │
+                                     │ <span class="hl-blue">Script Action 1</span>                                        │
+                                     │ actualiza tarea ancla ─────────────────────────────────▶  │
+                                     │ "[Logistica]" en padre                                   │
+                                     └──────────────────────                                    │
+                                                                                                │
+                                                                                                ▼
+<span class="hl">PROYECTO: War Room (1213986386071277)</span>                          <span class="hl">PROYECTO: Guia config (1213986386536411)</span>
+┌──────────────────────────────────────────┐                ┌──────────────────────────────────────┐
+│ Secciones:                               │                │ Documentacion de:                    │
+│  - Escalamientos Activos                 │                │  - Reglas R1-R7                      │
+│  - SLAs en Riesgo                        │                │  - Scripts 1-3                       │
+│  - Decisiones Pendientes                 │                │  - AI Studio F1-F3                   │
+│  - Resueltos                             │                │  - AI Teammates                      │
+│                                          │                │  - Custom Fields                     │
+│ <span class="hl">R14</span> agrega Clase I al War Room           │                │                                      │
+│ <span class="hl">R15</span> agrega SLA Vencido al War Room       │                │ <span class="hl-dim">Solo referencia, no se prueba</span>        │
+│                                          │                │                                      │
+│ Dashboard: 6 widgets ejecutivos          │                │                                      │
+└──────────────────────────────────────────┘                └──────────────────────────────────────┘
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 3: PREREQUISITOS -->
+<!-- ============================================================ -->
+<h2 id="prerequisitos" class="section-anchor">3. Prerequisitos</h2>
+
+<p>Antes de ejecutar cualquier flujo de prueba, cada uno de estos elementos debe estar configurado y activo. Si alguno falta, el flujo correspondiente fallara silenciosamente (sin error visible en la UI).</p>
+
+<h3>Reglas nativas de Asana</h3>
+<p>Configuradas manualmente en la UI de Asana, dentro de cada proyecto correspondiente.</p>
+
+<ul class="checklist">
+  <li><strong>R1 &mdash; SLA proximo a vencer</strong>: En proyecto Recall. Trigger: due date en 24h + Tipo SLA = Regulatorio. Accion: Estado SLA → Proximo + comentario.</li>
+  <li><strong>R2 &mdash; SLA vencido regulatorio</strong>: En proyecto Recall. Trigger: due date vencido + Tipo SLA = Regulatorio. Accion: Estado SLA → Vencido + Prioridad Critica + subtarea de escalamiento.</li>
+  <li><strong>R3 &mdash; SLA vencido interno</strong>: En proyecto Recall. Trigger: due date vencido + Tipo SLA = Interno. Accion: Estado SLA → Vencido + Prioridad Alta.</li>
+  <li><strong>R4 &mdash; Entrada al War Room (Clase I)</strong>: Cross-project. Trigger: Clasificacion = Clase I. Accion: agregar tarea al proyecto War Room.</li>
+  <li><strong>R5 &mdash; Defaults en creacion</strong>: En proyecto Recall. Trigger: tarea creada. Accion: Prioridad = Alta, Fase = Deteccion, Estado SLA = En tiempo.</li>
+  <li><strong>R6 &mdash; Approval aprobado</strong>: En proyecto Recall. Trigger: approval aprobado. Accion: mover a siguiente seccion + comentario de auditoria.</li>
+  <li><strong>R7 &mdash; Entrada al War Room (SLA Vencido)</strong>: Cross-project. Trigger: Estado SLA = Vencido. Accion: agregar tarea de alerta al War Room.</li>
+</ul>
+
+<h3>Script Actions</h3>
+<p>Instalados como Script Actions dentro de reglas del proyecto. Requieren Enterprise/Enterprise+.</p>
+
+<ul class="checklist">
+  <li><strong>Script Action 1 &mdash; Sincronizacion subproceso</strong>: En proyecto Logistica Inversa (<code>1213986186148783</code>). Trigger: tarea marcada completada. Archivo: <code>script-1-sync-subprocess.js</code></li>
+  <li><strong>Script Action 2 &mdash; Escalamiento triple</strong>: En proyecto Recall (<code>1213986423006166</code>). Trigger: custom field cambia (% Recuperacion). Archivo: <code>script-2-triple-escalation.js</code></li>
+  <li><strong>Script Action 3 &mdash; Multi-jurisdiccion</strong>: En proyecto Recall (<code>1213986423006166</code>). Trigger: tarea anadida a seccion Notificaciones. Archivo: <code>script-3-multi-jurisdiction.js</code></li>
+</ul>
+
+<h3>AI Studio</h3>
+
+<ul class="checklist">
+  <li><strong>F1 &mdash; Clasificador de incidencia</strong>: Trigger: formulario "Reporte de Contaminacion" completado. Accion: clasifica y asigna custom fields.</li>
+  <li><strong>F2 &mdash; Generador de status</strong>: Trigger: tarea recurrente "Status Update" cada 4h. Accion: crea Status Update del proyecto.</li>
+  <li><strong>F3 &mdash; Verificador de evidencia</strong>: Trigger: tarea movida a seccion Cierre. Accion: verifica adjuntos, marca campo Evidencia.</li>
+</ul>
+
+<h3>AI Teammates</h3>
+
+<ul class="checklist">
+  <li><strong>Analista de Crisis</strong>: Configurado con acceso al proyecto Recall + subprocesos. Instrucciones de rol como sintetizador de status.</li>
+  <li><strong>Script Actions Writer</strong>: Configurado para generar codigo de Script Actions bajo demanda.</li>
+</ul>
+
+<h3>Estructura del workspace</h3>
+
+<ul class="checklist">
+  <li>Proyecto Recall con 6 secciones verificadas y en orden correcto</li>
+  <li>Proyecto War Room con 4 secciones (Escalamientos Activos, SLAs en Riesgo, Decisiones Pendientes, Resueltos)</li>
+  <li>Proyecto Logistica Inversa con tareas de prueba creadas</li>
+  <li>Los 10 custom fields globales creados y asociados a los proyectos (incluye Evidencia Adjunta)</li>
+  <li>Dashboard del War Room con 6 widgets configurados</li>
+  <li>Formulario "Reporte de Contaminacion" publicado</li>
+</ul>
+
+<div class="warning-box">
+  <strong>Nota sobre orden de pruebas:</strong> Los flujos 1-7 estan disenados para ejecutarse en secuencia, simulando un recall completo de principio a fin. Sin embargo, cada flujo tambien se puede probar de forma aislada creando las condiciones iniciales manualmente.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 4: FLUJO 1 -->
+<!-- ============================================================ -->
+<h2 id="flujo-1" class="section-anchor">4. Flujo 1: Deteccion y clasificacion del recall</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> El laboratorio de la planta de Guayaquil detecta Salmonella spp. en el Lote L-2026-0847 de salsa de tomate. El jefe de calidad completa el formulario de reporte en Asana. AI Studio clasifica el incidente automaticamente.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Abrir el formulario "Reporte de Contaminacion" del proyecto Recall (<code>1213986423006166</code>).</li>
+  <li>Completar los campos:
+    <ul>
+      <li>Planta: <em>Guayaquil &mdash; Planta 3</em></li>
+      <li>Tipo de contaminante: <em>Microbiologico</em></li>
+      <li>Lote(s) afectado(s): <em>L-2026-0847 Salsa de Tomate 500ml</em></li>
+      <li>Descripcion: <em>Resultado positivo para Salmonella spp. en muestra de retencion del lote L-2026-0847. Analisis confirmatorio pendiente. Producto ya distribuido a 6 mercados.</em></li>
+      <li>Urgencia percibida: <em>Critica</em></li>
+    </ul>
+  </li>
+  <li>Enviar el formulario.</li>
+  <li>Esperar 15-30 segundos a que AI Studio F1 procese la tarea.</li>
+  <li>Verificar que la tarea aparece en la seccion <strong>1. Deteccion</strong> (<code>1213986423006186</code>).</li>
+  <li>Verificar los custom fields asignados por F1 y R5.</li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-ai">AI Studio F1</span> Lee la descripcion, clasifica como microbiologico, asigna Clasificacion = Clase I, Departamento = Calidad.<br>
+  <span class="tag tag-rule">R5</span> Asigna defaults: Prioridad = Alta, Fase = Deteccion, Estado SLA = En tiempo.
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 1: Deteccion y clasificacion</span>
+
+  Formulario            AI Studio F1              Regla R5
+  "Reporte de     ─────▶  Clasifica          ─────▶  Asigna defaults
+   Contaminacion"        contaminante               Prioridad: Alta
+                         Clase: I                   Fase: Deteccion
+                         Depto: Calidad             Estado SLA: En tiempo
+        │                      │                          │
+        └──────────────────────┴──────────────────────────┘
+                               │
+                               ▼
+                    Tarea en seccion <span class="hl-green">1. Deteccion</span>
+                    con 3 custom fields asignados
+</div>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>Tarea creada con nombre del lote en seccion 1. Deteccion</li>
+    <li>Clasificacion de Recall = <strong>Clase I</strong> (riesgo de muerte)</li>
+    <li>Departamento = <strong>Calidad</strong></li>
+    <li>Prioridad = <strong>Alta</strong></li>
+    <li>Fase = <strong>Deteccion</strong></li>
+    <li>Estado SLA = <strong>En tiempo</strong></li>
+  </ul>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 5: FLUJO 2 -->
+<!-- ============================================================ -->
+<h2 id="flujo-2" class="section-anchor">5. Flujo 2: Activacion del comite de crisis</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> El Director de Calidad revisa la clasificacion Clase I y aprueba la activacion del protocolo de crisis. La aprobacion dispara el movimiento de la tarea a la fase 2 y la convocatoria del comite.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Localizar la tarea del Flujo 1 en la seccion Deteccion, o crear una tarea de prueba con Clasificacion = <strong>Clase I</strong>.</li>
+  <li>Convertir la tarea en una <strong>Approval</strong> (o localizar la tarea de clasificacion que ya es approval).</li>
+  <li>Hacer clic en <strong>Aprobar</strong> como si fueras el Director de Calidad.</li>
+  <li>Esperar 5-10 segundos a que la regla R6 se ejecute.</li>
+  <li>Verificar que la tarea se movio a la seccion <strong>2. Activacion</strong> (<code>1213986378095107</code>).</li>
+  <li>Verificar que aparece un comentario de auditoria con el nombre del aprobador.</li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-rule">R6</span> Approval aprobado → mueve tarea a siguiente seccion + agrega comentario "Aprobado por [approver] &mdash; registrado para auditoria".<br>
+  <span class="tag tag-rule">R4</span> Clasificacion = Clase I → agrega tarea al proyecto War Room (<code>1213986386071277</code>).
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 2: Activacion del comite</span>
+
+  Tarea Clase I         Approval Gate           Regla R6
+  en Deteccion    ─────▶  Director de    ─────▶  Mueve a seccion
+                          Calidad aprueba       "2. Activacion"
+                                                + Comentario auditoria
+                               │
+                               │ <span class="hl">R4</span> (cross-project)
+                               ▼
+                     Tarea aparece tambien
+                     en <span class="hl-blue">War Room</span> → Escalamientos Activos
+</div>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>Tarea movida a seccion 2. Activacion</li>
+    <li>Comentario de auditoria visible en el Activity Log</li>
+    <li>Tarea tambien visible en el proyecto War Room (multi-homed)</li>
+    <li>Si hay tareas de asignacion de coordinadores, deben estar visibles en la seccion</li>
+  </ul>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 6: FLUJO 3 -->
+<!-- ============================================================ -->
+<h2 id="flujo-3" class="section-anchor">6. Flujo 3: Notificaciones regulatorias multi-jurisdiccion</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> La tarea de notificaciones se mueve a la seccion "3. Notificaciones" con las 7 jurisdicciones seleccionadas en el campo multi-enum. El Script Action 3 lee las jurisdicciones y genera una subtarea por cada regulador, con SLA especifico y due date calculado automaticamente.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Crear (o localizar) una tarea en el proyecto Recall con nombre <em>"Notificaciones regulatorias &mdash; Lote L-2026-0847"</em>.</li>
+  <li>Abrir la tarea y asignar el campo <strong>Jurisdiccion</strong> (<code>1213986355488023</code>) seleccionando las 7 opciones: FDA, RASFF, FSA, CFIA, MHLW, FSANZ, ARCSA.</li>
+  <li>Mover la tarea a la seccion <strong>3. Notificaciones</strong> (<code>1213986355333127</code>).</li>
+  <li>Esperar 15-30 segundos a que el Script Action 3 se ejecute.</li>
+  <li>Abrir la tarea y verificar que se crearon <strong>7 subtareas</strong>.</li>
+  <li>Verificar nombre, due date y custom fields de cada subtarea.</li>
+</ol>
+
+<h4>Comportamiento del Script Action 3</h4>
+
+<p>El script (<code>script-3-multi-jurisdiction.js</code>) ejecuta la siguiente logica:</p>
+
+<ol>
+  <li>Lee la tarea con <code>opt_fields: 'name,custom_fields,...multi_enum_values'</code></li>
+  <li>Busca el campo Jurisdiccion (<code>1213986355488023</code>) y extrae las opciones seleccionadas</li>
+  <li>Verifica que no existan subtareas previas con prefijo "Notificar " para evitar duplicados</li>
+  <li>Para cada jurisdiccion, calcula el due date sumando las horas de SLA al momento actual:
+    <ul>
+      <li>FDA: 24h | RASFF: 48h | FSA: 48h | CFIA: 48h | MHLW: 72h | FSANZ: 72h | ARCSA: 24h</li>
+    </ul>
+  </li>
+  <li>Crea las subtareas en paralelo con <code>Promise.all()</code>, cada una con:
+    <ul>
+      <li>Tipo SLA = Regulatorio (<code>1213986423408742</code>)</li>
+      <li>Estado SLA = En tiempo (<code>1213986386240818</code>)</li>
+      <li>Departamento = Regulatorio (<code>1213986186376769</code>)</li>
+      <li>Prioridad = Critica (<code>1213986378365788</code>)</li>
+    </ul>
+  </li>
+  <li>Agrega un comentario resumen listando todas las jurisdicciones y sus SLAs</li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-script">Script Action 3</span> Tarea anadida a seccion Notificaciones → lee multi-enum → crea N subtareas con SLA.<br>
+  <span class="tag tag-rule">R13</span> Tarea en seccion Notificaciones → agrega como followers a Dir. Legal + Dir. Regulatorio.
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 3: Gateway inclusivo — Multi-jurisdiccion</span>
+
+  Tarea movida a                    Script Action 3 lee
+  seccion 3.Notificaciones    ─────▶  campo Jurisdiccion (multi-enum)
+                                       │
+                 ┌─────────────────────┼─────────────────────┐
+                 │          │          │          │           │          │          │
+                 ▼          ▼          ▼          ▼           ▼          ▼          ▼
+              <span class="hl">FDA</span>       <span class="hl">RASFF</span>      <span class="hl">FSA</span>       <span class="hl">CFIA</span>       <span class="hl">MHLW</span>      <span class="hl">FSANZ</span>     <span class="hl">ARCSA</span>
+             24h        48h        48h        48h         72h        72h        24h
+              │          │          │          │           │          │          │
+              ▼          ▼          ▼          ▼           ▼          ▼          ▼
+           Subtarea   Subtarea   Subtarea   Subtarea   Subtarea   Subtarea   Subtarea
+           due +1d    due +2d    due +2d    due +2d    due +3d    due +3d    due +1d
+           <span class="hl-green">Tipo SLA: Regulatorio | Estado: En tiempo | Prioridad: Critica</span>
+</div>
+
+<h4>Tabla de verificacion por subtarea</h4>
+
+<table>
+  <thead>
+    <tr><th>Subtarea</th><th>SLA</th><th>Due date esperado</th><th>Tipo SLA</th><th>Prioridad</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Notificar FDA (USA) &mdash; SLA &le;24h (REGULATORIO)</td><td>24h</td><td>+1 dia</td><td>Regulatorio</td><td>Critica</td></tr>
+    <tr><td>Notificar RASFF (EU) &mdash; SLA &le;48h (REGULATORIO)</td><td>48h</td><td>+2 dias</td><td>Regulatorio</td><td>Critica</td></tr>
+    <tr><td>Notificar FSA (UK) &mdash; SLA &le;48h (REGULATORIO)</td><td>48h</td><td>+2 dias</td><td>Regulatorio</td><td>Critica</td></tr>
+    <tr><td>Notificar CFIA (Canada) &mdash; SLA &le;48h (REGULATORIO)</td><td>48h</td><td>+2 dias</td><td>Regulatorio</td><td>Critica</td></tr>
+    <tr><td>Notificar MHLW (Japon) &mdash; SLA &le;72h (REGULATORIO)</td><td>72h</td><td>+3 dias</td><td>Regulatorio</td><td>Critica</td></tr>
+    <tr><td>Notificar FSANZ (Aus/NZ) &mdash; SLA &le;72h (REGULATORIO)</td><td>72h</td><td>+3 dias</td><td>Regulatorio</td><td>Critica</td></tr>
+    <tr><td>Notificar ARCSA (Ecuador) &mdash; SLA &le;24h (REGULATORIO)</td><td>24h</td><td>+1 dia</td><td>Regulatorio</td><td>Critica</td></tr>
+  </tbody>
+</table>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>7 subtareas creadas bajo la tarea de notificaciones</li>
+    <li>Cada subtarea con nombre estandarizado, due date correcto, y 4 custom fields asignados</li>
+    <li>Comentario resumen en la tarea padre listando las 7 jurisdicciones</li>
+    <li>Dir. Legal y Dir. Regulatorio agregados como followers (via R13)</li>
+    <li>Si se ejecuta de nuevo, NO se crean duplicados (check por prefijo "Notificar ")</li>
+  </ul>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 7: FLUJO 4 -->
+<!-- ============================================================ -->
+<h2 id="flujo-4" class="section-anchor">7. Flujo 4: Ejecucion paralela de 9 departamentos</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> Con el recall activado y las notificaciones en curso, los 9 departamentos trabajan simultaneamente en la fase 4. Cada tarea de ejecucion tiene un departamento asignado. La vista Board filtrada por departamento muestra los "carriles" que Jorge Romero necesita ver.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Verificar que existen 9 tareas (minimo) en la seccion <strong>4. Ejecucion Paralela</strong> (<code>1213986423170793</code>), una por departamento.</li>
+  <li>Verificar que cada tarea tiene el campo <strong>Departamento</strong> (<code>1213986186376767</code>) asignado correctamente:
+    <table>
+      <thead><tr><th>Tarea</th><th>Departamento</th><th>GID opcion</th></tr></thead>
+      <tbody>
+        <tr><td>[Calidad] Cuarentena de producto en planta</td><td>Calidad</td><td><code>1213986186376768</code></td></tr>
+        <tr><td>[Regulatorio] Preparar documentacion</td><td>Regulatorio</td><td><code>1213986186376769</code></td></tr>
+        <tr><td>[Legal] Evaluar exposicion legal</td><td>Legal</td><td><code>1213986186376770</code></td></tr>
+        <tr><td>[Logistica] Iniciar logistica inversa</td><td>Logistica</td><td><code>1213986186376771</code></td></tr>
+        <tr><td>[Comunicaciones] Comunicado de prensa</td><td>Comunicaciones</td><td><code>1213986186376772</code></td></tr>
+        <tr><td>[Produccion] Detener lineas afectadas</td><td>Produccion</td><td><code>1213986186376773</code></td></tr>
+        <tr><td>[Comercial] Notificar distribuidores</td><td>Comercial</td><td><code>1213986186376774</code></td></tr>
+        <tr><td>[Atencion] Linea de atencion al consumidor</td><td>Atencion</td><td><code>1213986186376775</code></td></tr>
+        <tr><td>[Finanzas] Estimar costo y provision</td><td>Finanzas</td><td><code>1213986186376776</code></td></tr>
+      </tbody>
+    </table>
+  </li>
+  <li>En la vista Board, aplicar filtro por campo <strong>Departamento</strong> = <em>Logistica</em>. Debe mostrar solo la tarea de logistica.</li>
+  <li>Quitar el filtro. Aplicar agrupacion por Departamento en la vista Board para ver los 9 "carriles".</li>
+  <li>Verificar que las tareas no tienen dependencias entre si (son paralelas).</li>
+  <li>Completar 2-3 tareas para demostrar que se pueden resolver independientemente.</li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-manual">No hay automatizacion en este flujo.</span> La ejecucion paralela es un patron de diseno, no una regla. El valor esta en la estructura y la visualizacion. La tarea "[Logistica]" es la tarea ancla que conecta con el subproceso Logistica Inversa (probado en Flujo 6).
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 4: Bifurcacion paralela — 9 departamentos</span>
+
+  Seccion 4. Ejecucion Paralela
+  ┌──────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │  <span class="hl">Calidad</span>    ████████████████░░░░  70%                       │
+  │  <span class="hl">Regulat.</span>   ██████████░░░░░░░░░░  50%                       │
+  │  <span class="hl">Legal</span>      ████████░░░░░░░░░░░░  40%                       │
+  │  <span class="hl">Logistica</span>  ██████████████░░░░░░  65%  → <span class="hl-blue">SP: Logistica Inversa</span> │
+  │  <span class="hl">Comunic.</span>   ████████████████████  100%                      │
+  │  <span class="hl">Producc.</span>   ██████████████████░░  90%                       │
+  │  <span class="hl">Comercial</span>  ████████████░░░░░░░░  55%                       │
+  │  <span class="hl">Atencion</span>   ██████████████░░░░░░  65%                       │
+  │  <span class="hl">Finanzas</span>   ████████░░░░░░░░░░░░  40%                       │
+  │                                                              │
+  │  <span class="hl-dim">Sin dependencias entre departamentos</span>                       │
+  │  <span class="hl-dim">Filtrar Board por Departamento para ver "carriles"</span>          │
+  └──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+               Milestone de sincronizacion
+               en seccion 6. Cierre
+               (dependencias de TODAS las tareas)
+</div>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>9 tareas visibles en la seccion 4, cada una con su departamento asignado</li>
+    <li>Filtro por departamento funciona correctamente y muestra "carriles"</li>
+    <li>Las tareas se pueden completar en cualquier orden sin bloqueos</li>
+    <li>La tarea "[Logistica]" esta multi-homed al proyecto Logistica Inversa</li>
+  </ul>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 8: FLUJO 5 -->
+<!-- ============================================================ -->
+<h2 id="flujo-5" class="section-anchor">8. Flujo 5: Escalamiento triple (% recuperacion &lt; 95%)</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> Durante el monitoreo, se actualiza el campo "% Recuperacion" a 42.5% en la tarea de monitoreo. Como esta por debajo del 95%, el Script Action 2 crea 3 subtareas de escalamiento simultaneo a Comunicaciones, Supply Chain y Regulatorio, cada una con prioridad critica.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Localizar (o crear) una tarea en la seccion <strong>5. Monitoreo</strong> (<code>1213986386129051</code>) con nombre <em>"Reporte de % recuperacion por mercado"</em>.</li>
+  <li>Verificar que la tarea <strong>no tiene</strong> subtareas previas que empiecen con "ESCALAMIENTO:" (el script las detectaria y no crearia nuevas).</li>
+  <li>Cambiar el campo <strong>% Recuperacion</strong> (<code>1213986386281851</code>) a <strong>42.5</strong>.</li>
+  <li>Esperar 15-30 segundos a que el Script Action 2 se ejecute.</li>
+  <li>Verificar que se crearon <strong>3 subtareas</strong>.</li>
+  <li>Verificar el comentario de alerta consolidado.</li>
+</ol>
+
+<h4>Comportamiento del Script Action 2</h4>
+
+<p>El script (<code>script-2-triple-escalation.js</code>) sigue esta secuencia:</p>
+
+<ol>
+  <li>Lee la tarea con <code>opt_fields: 'name,custom_fields,...number_value'</code></li>
+  <li>Busca el campo % Recuperacion (<code>1213986386281851</code>) y lee su <code>number_value</code></li>
+  <li>Si el valor es <code>null</code> o <code>&ge; 95</code>, no hace nada</li>
+  <li>Si <code>&lt; 95</code>, busca subtareas existentes con prefijo "ESCALAMIENTO:" para evitar duplicados</li>
+  <li>Crea 3 subtareas en paralelo con <code>Promise.all()</code>:
+    <table>
+      <thead><tr><th>Subtarea</th><th>Departamento</th><th>Due</th></tr></thead>
+      <tbody>
+        <tr><td>ESCALAMIENTO: Aviso publico adicional &mdash; recuperacion al 42.5%</td><td>Comunicaciones (<code>1213986186376772</code>)</td><td>+24h</td></tr>
+        <tr><td>ESCALAMIENTO: Extension logistica inversa &mdash; recuperacion al 42.5%</td><td>Logistica (<code>1213986186376771</code>)</td><td>+48h</td></tr>
+        <tr><td>ESCALAMIENTO: Notificacion adicional a reguladores &mdash; recuperacion al 42.5%</td><td>Regulatorio (<code>1213986186376769</code>)</td><td>+24h</td></tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Todas con Prioridad = Critica (<code>1213986378365788</code>)</li>
+  <li>Agrega comentario de alerta con resumen de las 3 acciones</li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-script">Script Action 2</span> Campo % Recuperacion cambia a valor &lt; 95 → crea 3 subtareas de escalamiento + comentario.
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 5: Escalamiento condicional triple</span>
+
+  Campo "% Recuperacion"
+  cambia a <span class="hl">42.5%</span>
+        │
+        ▼
+  ┌──────────────┐
+  │ <span class="hl-blue">Script Act 2</span> │
+  │ &lt; 95% ?      │──── <span class="hl-green">NO</span> ────▶ No hace nada
+  │              │
+  └──────┬───────┘
+         │ <span class="hl">SI</span>
+         │
+         ├── Hay subtareas "ESCALAMIENTO:" ? ──── <span class="hl-green">SI</span> ────▶ No duplica, sale
+         │
+         │ <span class="hl">NO (primera vez)</span>
+         │
+   ┌─────┼──────────────────┐
+   │     │                  │
+   ▼     ▼                  ▼
+<span class="hl">Comunic.</span>  <span class="hl">Supply Chain</span>     <span class="hl">Regulatorio</span>
+Aviso    Extension        Notificacion
+publico  logistica        a reguladores
++24h     +48h             +24h
+   │     │                  │
+   └─────┼──────────────────┘
+         │
+         ▼
+  Comentario consolidado
+  en la tarea padre
+</div>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>3 subtareas creadas con nombres que incluyen "ESCALAMIENTO:" y el porcentaje actual (42.5%)</li>
+    <li>Cada subtarea con Departamento correcto y Prioridad = Critica</li>
+    <li>Due dates: Comunicaciones y Regulatorio a +1 dia, Supply Chain a +2 dias</li>
+    <li>Comentario de alerta en la tarea padre con las 3 acciones detalladas</li>
+    <li>Si se cambia el % de nuevo (ej. a 60%), NO se crean subtareas adicionales (ya existen)</li>
+  </ul>
+</div>
+
+<div class="warning-box">
+  <strong>Prueba negativa:</strong> Cambiar % Recuperacion a 96. El script debe detectar que esta por encima del umbral y no crear nada. Verificar en los logs del Script Action que el mensaje dice "No se requiere escalamiento".
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 9: FLUJO 6 -->
+<!-- ============================================================ -->
+<h2 id="flujo-6" class="section-anchor">9. Flujo 6: Sincronizacion de subproceso (Logistica Inversa)</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> El subproceso de Logistica Inversa (<code>1213986186148783</code>) tiene sus propias tareas internas. Cuando se completa la ultima tarea, el Script Action 1 detecta que todo esta cerrado, busca la tarea ancla "[Logistica]" en el proyecto padre, y actualiza su campo Fase a "Cierre" con un comentario de confirmacion.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Abrir el proyecto <strong>Logistica Inversa</strong> (<code>1213986186148783</code>).</li>
+  <li>Verificar que hay al menos 3-5 tareas de prueba creadas (ej. "Recoger producto &mdash; Ecuador", "Recoger producto &mdash; Colombia", "Certificacion de destruccion", etc.).</li>
+  <li>Completar todas las tareas <strong>excepto una</strong>.</li>
+  <li>En el proyecto Recall, verificar que la tarea ancla "[Logistica] Iniciar logistica inversa" <strong>no ha cambiado</strong> su campo Fase (el script solo se ejecuta cuando se completa la ultima).</li>
+  <li>Completar la <strong>ultima tarea</strong> pendiente en Logistica Inversa.</li>
+  <li>Esperar 15-30 segundos a que el Script Action 1 se ejecute.</li>
+  <li>En el proyecto Recall, verificar la tarea ancla "[Logistica]".</li>
+</ol>
+
+<h4>Comportamiento del Script Action 1</h4>
+
+<p>El script (<code>script-1-sync-subprocess.js</code>) se dispara <strong>cada vez que se completa una tarea</strong> en el subproceso, pero solo actua cuando es la ultima:</p>
+
+<ol>
+  <li>Lee todas las tareas del subproceso con <code>getTasksForProject(project_gid, {opt_fields: 'name,completed'})</code></li>
+  <li>Filtra las incompletas. Si hay alguna, sale con log detallado de cuales faltan</li>
+  <li>Si todas estan completas, busca en el proyecto padre (<code>1213986423006166</code>) la tarea con keyword "[Logistica]" en el nombre</li>
+  <li>Ejecuta en paralelo con <code>Promise.all()</code>:
+    <ul>
+      <li>Actualiza campo Fase (<code>1213986423378908</code>) a Cierre (<code>1213986423378914</code>)</li>
+      <li>Agrega comentario: "Subproceso completado automaticamente..."</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-script">Script Action 1</span> Tarea completada en subproceso → verifica todas completas → actualiza tarea ancla en padre → Fase = Cierre + comentario.
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 6: Sincronizacion subproceso → padre</span>
+
+  <span class="hl-blue">Proyecto: Logistica Inversa (1213986186148783)</span>
+
+  Tarea 1: Recoger Ecuador ........... <span class="hl-green">✓ Completada</span>
+  Tarea 2: Recoger Colombia .......... <span class="hl-green">✓ Completada</span>
+  Tarea 3: Certificar destruccion .... <span class="hl-green">✓ Completada</span>
+  Tarea 4: Reporte final logistica ... <span class="hl-green">✓ Completada</span>  ← <span class="hl">ULTIMA</span>
+        │
+        │  <span class="hl-blue">Script Action 1 se dispara</span>
+        │
+        ├── Lee todas las tareas → 0 incompletas
+        │
+        ├── Busca en proyecto padre (1213986423006166)
+        │   tarea con keyword "[Logistica]"
+        │
+        ▼
+  <span class="hl">Proyecto Padre: Recall Clase I</span>
+
+  Tarea ancla: "[Logistica] Iniciar logistica inversa"
+    ├── Fase del Proceso → <span class="hl-green">Cierre</span>  (antes: Ejecucion)
+    └── Comentario: "Subproceso completado automaticamente..."
+</div>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>Mientras quede 1+ tarea incompleta en Logistica Inversa, la tarea ancla del padre no cambia</li>
+    <li>Al completar la ultima, la tarea ancla muestra Fase = <strong>Cierre</strong></li>
+    <li>Comentario visible en la tarea ancla confirmando la sincronizacion</li>
+    <li>El Script Action registra logs detallados: "Total tareas: X, Incompletas: Y"</li>
+  </ul>
+</div>
+
+<div class="warning-box">
+  <strong>Prerequisito critico:</strong> La tarea ancla en el proyecto padre DEBE contener "[Logistica]" en su nombre. Si el nombre fue editado y ya no contiene ese keyword, el script fallara con el error "No se encontro tarea ancla".
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 10: FLUJO 7 -->
+<!-- ============================================================ -->
+<h2 id="flujo-7" class="section-anchor">10. Flujo 7: Cierre y trazabilidad</h2>
+
+<div class="scenario-box">
+  <strong>Escenario:</strong> Todos los departamentos reportan cierre de sus actividades. Las tareas se mueven a la seccion 6. Cierre. AI Studio F3 verifica que cada tarea tenga evidencia adjunta. El milestone de sincronizacion se habilita cuando todas sus dependencias estan completas. Se asigna la retrospectiva y se archiva el caso.
+</div>
+
+<h4>Pasos de prueba</h4>
+<ol class="steps">
+  <li>Mover 2-3 tareas departamentales a la seccion <strong>6. Cierre</strong> (<code>1213986355325369</code>).</li>
+  <li>Esperar que AI Studio F3 se ejecute sobre cada tarea movida (10-15 seg por tarea).</li>
+  <li>Verificar que F3 revisa si hay adjuntos y marca el campo "Evidencia Adjunta" correspondientemente:
+    <ul>
+      <li>Si la tarea tiene adjuntos → Evidencia = Si</li>
+      <li>Si no tiene adjuntos → Evidencia = No + comentario de advertencia</li>
+    </ul>
+  </li>
+  <li>Agregar un documento adjunto a una tarea sin evidencia y moverla de nuevo (o verificar que F3 reevalua).</li>
+  <li>Completar todas las tareas de cierre departamental.</li>
+  <li>Verificar que el <strong>milestone de sincronizacion</strong> "Cierre formal del Recall" se puede completar (todas sus dependencias resueltas).</li>
+  <li>Crear tarea "Retrospectiva con Comite de Crisis" y verificar que se asigna al equipo.</li>
+</ol>
+
+<div class="fires-box">
+  <strong>Que se dispara:</strong><br>
+  <span class="tag tag-ai">AI Studio F3</span> Tarea movida a seccion Cierre → verifica evidencia adjunta → marca campo + comentario.<br>
+  <span class="tag tag-rule">R1/R2</span> Si alguna tarea de cierre tiene SLA regulatorio, las reglas de SLA siguen activas.<br>
+  <span class="tag tag-rule">R6</span> Bidireccional: completar tarea ↔ mover a Cierre.
+</div>
+
+<div class="diagram-block">
+  <span class="hl-yellow">FLUJO 7: Cierre y trazabilidad</span>
+
+  Tareas departamentales         AI Studio F3            Milestone
+  se mueven a Cierre      ─────▶  Verifica       ─────▶  Sincronizacion
+                                  evidencia
+  [Calidad] ─────┐               adjuntos?              ┌── Dep: Calidad
+  [Legal] ───────┤                 │                     ├── Dep: Legal
+  [Logistica] ───┤               Si / No                ├── Dep: Logistica
+  [Comunic.] ────┤                 │                     ├── Dep: Comunicaciones
+  [Producc.] ────┤               Marca campo             ├── Dep: Produccion
+  [Comercial] ───┤               Evidencia               ├── Dep: Comercial
+  [Regulat.] ────┤                                       ├── Dep: Regulatorio
+  [Atencion] ────┤                                       ├── Dep: Atencion
+  [Finanzas] ────┘                                       └── Dep: Finanzas
+                                                                │
+                                                                ▼
+                                                         Todas completas?
+                                                          │         │
+                                                         <span class="hl">SI</span>        <span class="hl-dim">NO</span>
+                                                          │         │
+                                                          ▼         ▼
+                                                   Milestone    Milestone
+                                                   completable  bloqueado
+                                                          │
+                                                          ▼
+                                                   Retrospectiva
+                                                   + Archivo (30 anos)
+</div>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>Cada tarea en seccion Cierre tiene el campo Evidencia marcado (Si o No)</li>
+    <li>Tareas sin adjuntos muestran comentario "Esta tarea no tiene evidencia adjunta &mdash; requerida para auditoria"</li>
+    <li>El milestone solo se puede completar cuando todas las dependencias estan resueltas</li>
+    <li>La tarea de retrospectiva queda asignada como siguiente paso</li>
+    <li>En el War Room, los items resueltos se mueven a la seccion "Resueltos"</li>
+  </ul>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 11: WAR ROOM -->
+<!-- ============================================================ -->
+<h2 id="war-room" class="section-anchor">11. Flujo transversal: War Room y SLAs</h2>
+
+<p>El War Room (<code>1213986386071277</code>) es un proyecto transversal que concentra alertas, escalamientos y decisiones. No se "prueba" como un flujo secuencial &mdash; se alimenta automaticamente de los otros flujos.</p>
+
+<h3>Como entran tareas al War Room</h3>
+
+<table>
+  <thead>
+    <tr><th>Trigger</th><th>Regla</th><th>Seccion destino en War Room</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Clasificacion = Clase I</td><td>R4</td><td>Escalamientos Activos</td></tr>
+    <tr><td>Estado SLA = Vencido</td><td>R7</td><td>SLAs en Riesgo</td></tr>
+    <tr><td>Manual (decision del comite)</td><td>&mdash;</td><td>Decisiones Pendientes</td></tr>
+  </tbody>
+</table>
+
+<h3>Como salen tareas del War Room</h3>
+
+<p>Cuando la tarea original en el proyecto Recall se resuelve (se completa o su SLA vuelve a estar en tiempo), se mueve manualmente a la seccion <strong>Resueltos</strong> del War Room. No hay regla automatica para esto en la demo actual; es una accion manual del coordinador del comite.</p>
+
+<h3>Dashboard ejecutivo (6 widgets)</h3>
+
+<table>
+  <thead>
+    <tr><th>Widget</th><th>Tipo</th><th>Que muestra</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Semaforo de SLAs</td><td>Donut chart</td><td>Distribucion En tiempo / Proximo / Vencido</td></tr>
+    <tr><td>SLAs Regulatorios Vencidos</td><td>Lista filtrada</td><td>Solo tareas con Tipo SLA = Regulatorio + Estado = Vencido</td></tr>
+    <tr><td>Progreso por departamento</td><td>Stacked bar</td><td>% completado agrupado por campo Departamento</td></tr>
+    <tr><td>Tareas criticas pendientes</td><td>Lista filtrada</td><td>Prioridad = Critica + incompletas, por due date</td></tr>
+    <tr><td>Recuperacion por jurisdiccion</td><td>Bar chart</td><td>Campo % Recuperacion por jurisdiccion</td></tr>
+    <tr><td>Costos acumulados</td><td>Numerico</td><td>Suma del campo Costo Acumulado</td></tr>
+  </tbody>
+</table>
+
+<h4>Pasos de prueba del War Room</h4>
+<ol class="steps">
+  <li>Verificar que la tarea Clase I del Flujo 1 aparece en el War Room (via R4).</li>
+  <li>Crear una tarea con <strong>Estado SLA = Vencido</strong> y verificar que aparece en el War Room (via R7).</li>
+  <li>Abrir el Dashboard y verificar que los 6 widgets muestran datos coherentes.</li>
+  <li>Mover una tarea resuelta a la seccion "Resueltos" y verificar que el dashboard se actualiza.</li>
+</ol>
+
+<div class="result-box">
+  <strong>Resultado esperado:</strong>
+  <ul>
+    <li>El War Room contiene tareas provenientes de los flujos 1-6</li>
+    <li>El Dashboard refleja el estado actual sin necesidad de actualizacion manual (excepto % Recuperacion y Costos)</li>
+    <li>La vista del War Room funciona como "centro de comando" para la demo ejecutiva</li>
+  </ul>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 12: AI TEAMMATES -->
+<!-- ============================================================ -->
+<h2 id="ai-teammates" class="section-anchor">12. Flujo transversal: AI Teammates</h2>
+
+<h3>Analista de Crisis</h3>
+
+<div class="info-box">
+  <strong>Rol:</strong> Sintetizador de status y detector de riesgos para el Comite de Crisis. Tiene acceso al proyecto principal de recall y a los subprocesos vinculados.
+</div>
+
+<h4>Como probar</h4>
+<ol class="steps">
+  <li>Crear una tarea asignada al AI Teammate "Analista de Crisis".</li>
+  <li>En la descripcion o comentario, escribir uno de estos prompts de prueba:
+    <ul>
+      <li><em>"Sintetiza el estado del recall en las ultimas 6 horas &mdash; que departamentos reportaron avance y cuales estan bloqueados."</em></li>
+      <li><em>"Compara el % de recuperacion por jurisdiccion e identifica donde estamos mas lejos del 95%."</em></li>
+      <li><em>"Redacta los talking points para la reunion del Comite de Crisis de hoy."</em></li>
+    </ul>
+  </li>
+  <li>Esperar respuesta del AI Teammate (puede tomar 1-3 minutos).</li>
+  <li>Verificar que la respuesta:
+    <ul>
+      <li>Referencia tareas reales del proyecto</li>
+      <li>Identifica SLAs en riesgo si los hay</li>
+      <li>Genera subtareas con hallazgos (checkpoint humano antes de distribuir)</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>Script Actions Writer</h3>
+
+<div class="info-box">
+  <strong>Rol:</strong> Genera codigo de Script Actions bajo demanda. Util para crear nuevos scripts durante la demo si Jorge Romero pide funcionalidad adicional.
+</div>
+
+<h4>Como probar</h4>
+<ol class="steps">
+  <li>Crear una tarea asignada al AI Teammate "Script Actions Writer".</li>
+  <li>En la descripcion, escribir:
+    <ul>
+      <li><em>"Genera un Script Action que cuando se complete una tarea con Prioridad = Critica, cree un comentario etiquetando al director del departamento correspondiente."</em></li>
+    </ul>
+  </li>
+  <li>Verificar que genera un script con:
+    <ul>
+      <li>Estructura <code>async function run()</code> correcta</li>
+      <li>Uso de <code>tasksApiInstance</code> y <code>storiesApiInstance</code></li>
+      <li>Error handling con try/catch</li>
+      <li>Logs descriptivos con <code>log()</code></li>
+    </ul>
+  </li>
+</ol>
+
+<div class="warning-box">
+  <strong>Nota:</strong> Los AI Teammates requieren que la funcionalidad este habilitada en el plan del workspace. Si no esta disponible, esta seccion se omite de la demo y se presenta de forma narrativa con capturas de pantalla.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 13: REFERENCIA RAPIDA -->
+<!-- ============================================================ -->
+<h2 id="referencia" class="section-anchor">13. Tabla de referencia rapida</h2>
+
+<h3>Reglas, scripts y flujos AI</h3>
+
+<table>
+  <thead>
+    <tr><th>ID</th><th>Tipo</th><th>Trigger</th><th>Accion</th><th>Proyecto</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>R1</td><td><span class="tag tag-rule">Rule</span></td><td>Due date en 24h + SLA Regulatorio</td><td>Estado SLA → Proximo + comentario</td><td>Recall</td></tr>
+    <tr><td>R2</td><td><span class="tag tag-rule">Rule</span></td><td>Due date vencido + SLA Regulatorio</td><td>Estado SLA → Vencido + Prioridad Critica + subtarea</td><td>Recall</td></tr>
+    <tr><td>R3</td><td><span class="tag tag-rule">Rule</span></td><td>Due date vencido + SLA Interno</td><td>Estado SLA → Vencido + Prioridad Alta</td><td>Recall</td></tr>
+    <tr><td>R4</td><td><span class="tag tag-rule">Rule</span></td><td>Clasificacion = Clase I</td><td>Agregar tarea al War Room</td><td>Cross-project</td></tr>
+    <tr><td>R5</td><td><span class="tag tag-rule">Rule</span></td><td>Tarea creada</td><td>Defaults: Prioridad Alta, Fase Deteccion, SLA En tiempo</td><td>Recall</td></tr>
+    <tr><td>R6</td><td><span class="tag tag-rule">Rule</span></td><td>Approval aprobado</td><td>Mover a siguiente seccion + comentario auditoria</td><td>Recall</td></tr>
+    <tr><td>R7</td><td><span class="tag tag-rule">Rule</span></td><td>Estado SLA = Vencido</td><td>Agregar alerta al War Room</td><td>Cross-project</td></tr>
+    <tr><td>R8</td><td><span class="tag tag-rule">Rule</span></td><td>Tarea movida a Cierre</td><td>Marcar completada + fecha</td><td>Recall</td></tr>
+    <tr><td>R9</td><td><span class="tag tag-rule">Rule</span></td><td>Tarea completada</td><td>Mover a seccion Cierre</td><td>Recall</td></tr>
+    <tr><td>R10</td><td><span class="tag tag-rule">Rule</span></td><td>Clasificacion = Clase I</td><td>Crear subtarea protocolo Clase I</td><td>Recall</td></tr>
+    <tr><td>R13</td><td><span class="tag tag-rule">Rule</span></td><td>Tarea en seccion Notificaciones</td><td>Agregar followers: Dir. Legal + Dir. Regulatorio</td><td>Recall</td></tr>
+    <tr><td>SA-1</td><td><span class="tag tag-script">Script</span></td><td>Tarea completada en subproceso</td><td>Verifica todas completas → actualiza ancla en padre</td><td>Logistica Inv.</td></tr>
+    <tr><td>SA-2</td><td><span class="tag tag-script">Script</span></td><td>% Recuperacion cambia</td><td>Si &lt; 95% → 3 subtareas de escalamiento</td><td>Recall</td></tr>
+    <tr><td>SA-3</td><td><span class="tag tag-script">Script</span></td><td>Tarea en seccion Notificaciones</td><td>Lee jurisdicciones → N subtareas con SLA</td><td>Recall</td></tr>
+    <tr><td>F1</td><td><span class="tag tag-ai">AI Studio</span></td><td>Formulario completado</td><td>Clasifica contaminante + asigna campos</td><td>Recall</td></tr>
+    <tr><td>F2</td><td><span class="tag tag-ai">AI Studio</span></td><td>Tarea recurrente (cada 4h)</td><td>Genera Status Update del proyecto</td><td>Recall</td></tr>
+    <tr><td>F3</td><td><span class="tag tag-ai">AI Studio</span></td><td>Tarea movida a Cierre</td><td>Verifica evidencia adjunta</td><td>Recall</td></tr>
+  </tbody>
+</table>
+
+<h3>GIDs de proyectos</h3>
+
+<table>
+  <thead>
+    <tr><th>Proyecto</th><th>GID</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Recall principal</td><td><code>1213986423006166</code></td></tr>
+    <tr><td>War Room</td><td><code>1213986386071277</code></td></tr>
+    <tr><td>Logistica Inversa</td><td><code>1213986186148783</code></td></tr>
+    <tr><td>Guia de configuracion</td><td><code>1213986386536411</code></td></tr>
+    <tr><td>Workspace Favorita</td><td><code>1213987848922321</code></td></tr>
+  </tbody>
+</table>
+
+<h3>GIDs de secciones (Recall principal)</h3>
+
+<table>
+  <thead>
+    <tr><th>Seccion</th><th>GID</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1. Deteccion</td><td><code>1213986423006186</code></td></tr>
+    <tr><td>2. Activacion</td><td><code>1213986378095107</code></td></tr>
+    <tr><td>3. Notificaciones</td><td><code>1213986355333127</code></td></tr>
+    <tr><td>4. Ejecucion Paralela</td><td><code>1213986423170793</code></td></tr>
+    <tr><td>5. Monitoreo</td><td><code>1213986386129051</code></td></tr>
+    <tr><td>6. Cierre</td><td><code>1213986355325369</code></td></tr>
+  </tbody>
+</table>
+
+<h3>GIDs de custom fields y opciones</h3>
+
+<table>
+  <thead>
+    <tr><th>Campo</th><th>GID campo</th><th>Opciones (nombre → GID)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Departamento</td>
+      <td><code>1213986186376767</code></td>
+      <td>Calidad: <code>...768</code> | Regulatorio: <code>...769</code> | Legal: <code>...770</code> | Logistica: <code>...771</code> | Comunicaciones: <code>...772</code> | Produccion: <code>...773</code> | Comercial: <code>...774</code> | Atencion: <code>...775</code> | Finanzas: <code>...776</code></td>
+    </tr>
+    <tr>
+      <td>Clasificacion</td>
+      <td><code>1213986378342655</code></td>
+      <td>Clase I: <code>...656</code> | Clase II: <code>...657</code> | Clase III: <code>...658</code></td>
+    </tr>
+    <tr>
+      <td>Tipo SLA</td>
+      <td><code>1213986423408741</code></td>
+      <td>Regulatorio: <code>...742</code> | Interno: <code>...743</code></td>
+    </tr>
+    <tr>
+      <td>Estado SLA</td>
+      <td><code>1213986386240817</code></td>
+      <td>En tiempo: <code>...818</code> | Proximo: <code>...819</code> | Vencido: <code>...820</code></td>
+    </tr>
+    <tr>
+      <td>Fase</td>
+      <td><code>1213986423378908</code></td>
+      <td>Deteccion: <code>...909</code> | Activacion: <code>...910</code> | Notificacion: <code>...911</code> | Ejecucion: <code>...912</code> | Monitoreo: <code>...913</code> | Cierre: <code>...914</code></td>
+    </tr>
+    <tr>
+      <td>Prioridad</td>
+      <td><code>1213986378365787</code></td>
+      <td>Critica: <code>...788</code> | Alta: <code>...789</code> | Media: <code>...790</code> | Baja: <code>...791</code></td>
+    </tr>
+    <tr>
+      <td>Jurisdiccion</td>
+      <td><code>1213986355488023</code></td>
+      <td>FDA: <code>...024</code> | RASFF: <code>...025</code> | FSA: <code>...026</code> | CFIA: <code>...027</code> | MHLW: <code>...028</code> | FSANZ: <code>...029</code> | ARCSA: <code>...030</code></td>
+    </tr>
+    <tr>
+      <td>% Recuperacion</td>
+      <td><code>1213986386281851</code></td>
+      <td>(Number field, 0-100)</td>
+    </tr>
+    <tr>
+      <td>Costo</td>
+      <td><code>1213986423400560</code></td>
+      <td>(Currency field, USD)</td>
+    </tr>
+    <tr>
+      <td>Evidencia Adjunta</td>
+      <td><code>1213993491558247</code></td>
+      <td>Si: <code>1213993491558248</code> | No: <code>1213993491558249</code></td>
+    </tr>
+  </tbody>
+</table>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 14: TROUBLESHOOTING -->
+<!-- ============================================================ -->
+<h2 id="troubleshooting" class="section-anchor">14. Troubleshooting</h2>
+
+<h3>Problemas con Script Actions</h3>
+
+<table>
+  <thead>
+    <tr><th>Sintoma</th><th>Causa probable</th><th>Solucion</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Script no se ejecuta al mover tarea</td>
+      <td>La regla no tiene el trigger correcto o esta deshabilitada</td>
+      <td>Ir a Project Settings → Rules → verificar que la regla esta activa y el trigger es el correcto (ej. "Task added to section")</td>
+    </tr>
+    <tr>
+      <td>Script se ejecuta pero no crea subtareas</td>
+      <td>Ya existen subtareas con el prefijo esperado (proteccion anti-duplicados)</td>
+      <td>Eliminar las subtareas existentes y volver a disparar. Revisar los logs del Script Action en la consola de reglas</td>
+    </tr>
+    <tr>
+      <td>Error "No se encontro tarea ancla"</td>
+      <td>El keyword "[Logistica]" no esta en el nombre de la tarea ancla en el proyecto padre</td>
+      <td>Verificar que la tarea en el proyecto Recall contiene exactamente "[Logistica]" en su nombre</td>
+    </tr>
+    <tr>
+      <td>Script timeout (no completa)</td>
+      <td>Script Actions tienen timeout de ~20 segundos. Si el proyecto tiene muchas tareas, <code>getTasksForProject</code> puede tardar</td>
+      <td>Reducir el numero de tareas en el proyecto de prueba a &lt;50. Verificar que <code>limit: 100</code> es suficiente</td>
+    </tr>
+    <tr>
+      <td>Error de permisos en el script</td>
+      <td>El script intenta acceder a un proyecto donde el token no tiene acceso</td>
+      <td>Verificar que el usuario del workspace tiene acceso a ambos proyectos (subproceso y padre)</td>
+    </tr>
+    <tr>
+      <td>Custom fields no se asignan</td>
+      <td>Los GIDs de los custom fields no coinciden con los del workspace real</td>
+      <td>Verificar GIDs en la seccion 13 de este documento. Los GIDs son especificos del workspace Favorita</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Problemas con reglas nativas</h3>
+
+<table>
+  <thead>
+    <tr><th>Sintoma</th><th>Causa probable</th><th>Solucion</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Regla no se dispara</td>
+      <td>La regla esta pausada o el trigger no coincide con la accion realizada</td>
+      <td>Abrir Rules del proyecto, verificar estado (activa/pausada), revisar trigger y condiciones</td>
+    </tr>
+    <tr>
+      <td>Regla se dispara pero no ejecuta la accion</td>
+      <td>La condicion no se cumple (ej. campo no tiene el valor esperado)</td>
+      <td>Verificar que el custom field tiene el valor exacto que la regla espera. Los enum values son case-sensitive</td>
+    </tr>
+    <tr>
+      <td>Tarea no aparece en War Room</td>
+      <td>R4 o R7 no esta configurada como cross-project rule</td>
+      <td>Las reglas cross-project requieren que el proyecto destino (War Room) este accesible. Verificar permisos</td>
+    </tr>
+    <tr>
+      <td>Defaults no se asignan en tarea nueva</td>
+      <td>R5 no esta activa o solo funciona para tareas creadas, no importadas/movidas</td>
+      <td>Crear una tarea nueva (no mover una existente) para verificar que R5 funciona</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Problemas con AI Studio</h3>
+
+<table>
+  <thead>
+    <tr><th>Sintoma</th><th>Causa probable</th><th>Solucion</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>F1 no clasifica el formulario</td>
+      <td>El flujo de AI Studio no esta vinculado al formulario correcto, o el plan no incluye AI Studio</td>
+      <td>Verificar en AI Studio que el trigger es "Form submission" del formulario "Reporte de Contaminacion"</td>
+    </tr>
+    <tr>
+      <td>F3 no detecta adjuntos</td>
+      <td>AI Studio tiene acceso limitado a attachments; puede no ver archivos subidos recientemente</td>
+      <td>Esperar 1-2 minutos despues de subir el archivo antes de mover la tarea a Cierre</td>
+    </tr>
+    <tr>
+      <td>Clasificacion incorrecta por F1</td>
+      <td>La descripcion del formulario no es lo suficientemente clara para que el AI clasifique correctamente</td>
+      <td>Usar descripciones especificas: "Salmonella spp. detectada en producto terminado" en lugar de textos ambiguos</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Como revisar logs de Script Actions</h3>
+
+<ol class="steps">
+  <li>Ir al proyecto donde esta la regla (ej. Recall para SA-2 y SA-3, Logistica Inversa para SA-1).</li>
+  <li>Abrir <strong>Customize</strong> → <strong>Rules</strong>.</li>
+  <li>Buscar la regla que contiene el Script Action.</li>
+  <li>Hacer clic en la regla → ver <strong>Activity log</strong> / <strong>Run history</strong>.</li>
+  <li>Cada ejecucion muestra los mensajes de <code>log()</code> del script, incluyendo contadores de tareas, valores de campos, y errores.</li>
+</ol>
+
+<h3>Reset para repetir pruebas</h3>
+
+<p>Si necesitas re-ejecutar un flujo desde cero:</p>
+
+<ul>
+  <li><strong>Flujo 3 (multi-jurisdiccion):</strong> Eliminar todas las subtareas que empiezan con "Notificar " de la tarea de notificaciones. Sacar la tarea de la seccion Notificaciones y volverla a agregar.</li>
+  <li><strong>Flujo 5 (escalamiento):</strong> Eliminar todas las subtareas que empiezan con "ESCALAMIENTO:" de la tarea de monitoreo. Cambiar % Recuperacion a 100 y luego a &lt;95.</li>
+  <li><strong>Flujo 6 (subproceso):</strong> Des-completar al menos 1 tarea en Logistica Inversa. Resetear el campo Fase de la tarea ancla a "Ejecucion". Luego completar la tarea de nuevo.</li>
+</ul>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Prepared by Asana</p>
+  <p style="font-size: 11px; margin-top: 4px;">Demo Phoenix &mdash; Workspace Favorita &mdash; Abril 2026</p>
+</div>
+
+</div><!-- .main -->
+</body>
+</html>

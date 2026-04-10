@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentacion interna — Demo Jorge Romero</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #000000;
+  background: #ffffff;
+  line-height: 1.7;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 56px 80px;
+}
+
+/* Confidential banner */
+.confidential {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #690031;
+  border: 1px solid #690031;
+  padding: 3px 12px;
+  border-radius: 2px;
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-size: 1.65rem;
+  font-weight: 600;
+  color: #690031;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #690031;
+  margin-top: 44px;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #FFEAEC;
+}
+h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+p { margin-bottom: 12px; }
+a { color: #690031; }
+a:hover { text-decoration: none; }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 20px;
+  font-size: 0.87rem;
+}
+thead th {
+  background: #690031;
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  padding: 9px 12px;
+}
+thead th:first-child { border-radius: 4px 0 0 0; }
+thead th:last-child { border-radius: 0 4px 0 0; }
+tbody tr:nth-child(odd) { background: #FFEAEC; }
+tbody tr:nth-child(even) { background: #ffffff; }
+tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0dde2;
+  vertical-align: top;
+}
+
+/* Divider */
+hr {
+  border: none;
+  border-top: 1px solid #e5e5e5;
+  margin: 40px 0;
+}
+
+/* Blockquote for original email */
+blockquote {
+  background: #fafafa;
+  border-left: 3px solid #690031;
+  padding: 16px 20px;
+  margin: 16px 0 20px;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.65;
+}
+
+/* Source list */
+.sources {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.sources li {
+  padding: 4px 0;
+  font-size: 0.85rem;
+}
+.sources li a {
+  word-break: break-all;
+}
+
+footer {
+  margin-top: 56px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.8rem;
+  color: #888;
+  text-align: center;
+}
+
+@media print {
+  body { padding: 24px 32px; max-width: 100%; }
+  a { color: #000; }
+}
+</style>
+</head>
+<body>
+
+<div class="confidential">Confidencial &mdash; Uso interno</div>
+
+<h1>Documentacion interna &mdash; Demo Jorge Romero</h1>
+<p class="subtitle">Preparado por Ruben Mendoza, Sr. Channel Partner Manager &mdash; Asana &nbsp;|&nbsp; 8 de abril de 2026</p>
+
+<!-- PARTE 1: BRIEF -->
+<h2>Brief del cliente</h2>
+
+<table>
+<thead><tr><th>Campo</th><th>Detalle</th></tr></thead>
+<tbody>
+<tr><td>Fuente</td><td>Email recibido el 8 de abril de 2026</td></tr>
+<tr><td>Contacto</td><td>Jorge Romero</td></tr>
+<tr><td>Solicitud</td><td>Demo de Asana para gestionar un Product Recall Clase I por contaminante microbiologico</td></tr>
+</tbody>
+</table>
+
+<h3>Contenido original del email</h3>
+<blockquote>
+<p>Estimado Jose,</p>
+<p>Te adjunto el diagrama BPMN 2.0 de un proceso corporativo critico: el Retiro de Producto Alimentario (Product Recall Clase I) por contaminante microbiologico. Este proceso involucra 9 departamentos trabajando en paralelo, 6 fases, mas de 40 actividades, 7 subprocesos anidados y 8 decisiones, con SLAs regulatorios de cumplimiento obligatorio impuestos por autoridades como FDA, RASFF, FSA, CFIA, MHLW y FSANZ.</p>
+<p>Lo que esperaria ver en la demo:</p>
+<p>1. <strong>Modelamiento del proceso completo:</strong> Como Asana representaria este flujo de trabajo con sus 9 carriles departamentales, incluyendo la logica de bifurcacion paralela donde 7 departamentos trabajan simultaneamente tras la activacion del Comite de Crisis, y la sincronizacion final donde TODOS los hilos deben completarse antes del cierre formal.</p>
+<p>2. <strong>Logica condicional:</strong> Como se implementa nativamente un esquema de decision exclusivo que determina si el recall es Clase I o no, una decision inclusiva que dispara notificaciones a N jurisdicciones segun los mercados afectados, y una decision paralela que sincroniza la finalizacion de multiples departamentos.</p>
+<p>3. <strong>Subprocesos con ciclo de vida independiente:</strong> Como Asana gestiona un subproceso como "Logistica inversa multinacional" que tiene su propio flujo interno (aduanas, transportistas, certificadores de destruccion en 6 paises), con estado independiente, aprobaciones internas y reporte de completitud al proceso padre.</p>
+<p>4. <strong>SLAs regulatorios con escalamiento automatico:</strong> Como la plataforma garantiza que una tarea como "Notificar FDA <=24h" dispare alertas de escalamiento progresivo cuando el plazo se acerca, y como se diferencia un SLA interno de un mandato regulatorio con consecuencias legales.</p>
+<p>5. <strong>Escalamiento condicional multi-nivel:</strong> Si el porcentaje de recuperacion de producto no alcanza el 95%, el proceso debe escalar simultaneamente a Comunicaciones (aviso publico adicional), Supply Chain (extension de logistica inversa) y Asuntos Regulatorios (notificacion al regulador). Necesito ver como Asana maneja este tipo de escalamiento condicional con ramificacion a multiples departamentos.</p>
+<p>6. <strong>Trazabilidad y auditoria:</strong> Como Asana preserva la integridad del registro de decisiones (quien aprobo que, cuando y con que evidencia), considerando que este tipo de proceso esta sujeto a auditoria regulatoria y potencial litigio legal.</p>
+<p>7. <strong>Reporteria ejecutiva consolidada:</strong> Como el Comite de Crisis visualiza en un solo dashboard: porcentaje de producto recuperado por mercado, costos acumulados vs. provision, estatus de SLAs regulatorios por jurisdiccion, y metricas de atencion al consumidor, todo en tiempo real y sin depender de herramientas externas.</p>
+<p>Saludos,<br>Jorge Romero</p>
+</blockquote>
+
+<hr>
+
+<!-- PARTE 2: RESEARCH -->
+<h2>Investigacion</h2>
+
+<h3>Empresa</h3>
+<table>
+<thead><tr><th>Aspecto</th><th>Detalle</th></tr></thead>
+<tbody>
+<tr><td>Actividad</td><td>Empresa alimentaria (nombre no especificado en el brief)</td></tr>
+<tr><td>Tamano estimado</td><td>Mediana-grande. Se infiere por la complejidad del proceso: 9 departamentos, operacion multinacional en 6+ paises, multiples reguladores.</td></tr>
+<tr><td>Mercados</td><td>Multinacional &mdash; opera en jurisdicciones de FDA (USA), RASFF (EU), FSA (UK), CFIA (Canada), MHLW (Japon), FSANZ (Australia/NZ)</td></tr>
+<tr><td>Stack tecnologico</td><td>No especificado. El roadmap asume SAP HANA como ERP en base al perfil de empresa multinacional alimentaria en Ecuador.</td></tr>
+</tbody>
+</table>
+
+<h3>Contexto competitivo</h3>
+<p>Los product recalls en alimentos son costosos y de alto riesgo reputacional. Un Class I (contaminante microbiologico) es el nivel mas critico &mdash; existe probabilidad razonable de dano grave o muerte. El plazo de notificacion a la FDA es de 24 horas, y el incumplimiento tiene consecuencias penales.</p>
+
+<h3>Regulaciones relevantes</h3>
+<table>
+<thead><tr><th>Jurisdiccion</th><th>Regulador</th><th>Marco legal</th></tr></thead>
+<tbody>
+<tr><td>Ecuador</td><td>ARCSA</td><td>Ministerio de Salud Publica, estandares Codex Alimentarius + INEN</td></tr>
+<tr><td>Estados Unidos</td><td>FDA</td><td>21 CFR 7.40-7.59</td></tr>
+<tr><td>Union Europea</td><td>RASFF</td><td>EU Regulation 178/2002</td></tr>
+<tr><td>Reino Unido</td><td>FSA</td><td>UK Food Safety Act</td></tr>
+<tr><td>Canada</td><td>CFIA</td><td>Canadian Food Inspection Agency</td></tr>
+<tr><td>Japon</td><td>MHLW</td><td>Ministry of Health, Labour and Welfare</td></tr>
+<tr><td>Australia/NZ</td><td>FSANZ</td><td>Food Standards Australia New Zealand</td></tr>
+</tbody>
+</table>
+
+<h3>Precedente relevante</h3>
+<p>Caso WanaBana/Austrofoods (2023-2024): contaminacion intencional de plomo en applesauce fabricado en Ecuador. Investigacion conjunta FDA + ARCSA. Relevante porque demuestra que las empresas alimentarias ecuatorianas operan bajo escrutinio internacional directo.</p>
+
+<h3>Madurez digital del cliente</h3>
+<p>El cliente envio un BPMN 2.0 del proceso, lo cual sugiere familiaridad con modelamiento de procesos y madurez operativa alta. Las expectativas (subprocesos con ciclo de vida independiente, gateways paralelos, SLA timers) son propias de herramientas BPM enterprise como Bizagi, Appian o Camunda &mdash; y exceden las capacidades nativas de cualquier herramienta de gestion de proyectos.</p>
+<p>Esto importa para la demo: el cliente sabe lo que es posible en un motor BPM, asi que la propuesta debe ser transparente sobre donde Asana hace match y donde requiere workarounds.</p>
+
+<h3>Caso de uso especifico</h3>
+<table>
+<thead><tr><th>Dimension</th><th>Valor</th></tr></thead>
+<tbody>
+<tr><td>Proceso</td><td>Product Recall Clase I por contaminante microbiologico</td></tr>
+<tr><td>Complejidad</td><td>9 departamentos, 6 fases, 40+ actividades, 7 subprocesos, 8 decisiones</td></tr>
+<tr><td>SLA critico</td><td>Notificacion FDA <=24h (mandato legal)</td></tr>
+<tr><td>Estandar de modelamiento</td><td>BPMN 2.0 con gateways exclusivos, inclusivos y paralelos</td></tr>
+<tr><td>Benchmark de exito</td><td>95% de recuperacion de producto</td></tr>
+</tbody>
+</table>
+
+<h3>Fuentes consultadas</h3>
+<ul class="sources">
+  <li><a href="https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-7/subpart-C" target="_blank">https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-7/subpart-C</a> &mdash; FDA recall regulations</li>
+  <li><a href="https://assyro.com/blog/fda-recalls-guide" target="_blank">https://assyro.com/blog/fda-recalls-guide</a> &mdash; FDA Class I guide</li>
+  <li><a href="https://www.digicomply.com/food-regulatory-bodies-standards-and-authorities/ecuador" target="_blank">https://www.digicomply.com/food-regulatory-bodies-standards-and-authorities/ecuador</a> &mdash; ARCSA info</li>
+  <li><a href="https://www.foodsafetynews.com/2023/12/officials-in-ecuador-continue-investigation-into-lead-tainted-applesauce-shipped-to-u-s/" target="_blank">https://www.foodsafetynews.com/2023/12/officials-in-ecuador-continue-investigation-into-lead-tainted-applesauce-shipped-to-u-s/</a> &mdash; Precedente WanaBana</li>
+</ul>
+
+<footer>
+  Prepared by Asana &mdash; Documento interno, abril 2026
+</footer>
+
+</body>
+</html>

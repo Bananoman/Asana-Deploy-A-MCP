@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product recall Clase I — Roadmap de implementacion en Asana</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  color: #000000;
+  background: #ffffff;
+  line-height: 1.65;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+nav.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 260px;
+  height: 100vh;
+  background: #690031;
+  color: #ffffff;
+  overflow-y: auto;
+  padding: 28px 0;
+  z-index: 100;
+}
+nav.sidebar .nav-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.55);
+  padding: 0 20px;
+  margin-bottom: 16px;
+}
+nav.sidebar a {
+  display: block;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  padding: 7px 20px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+nav.sidebar a:hover,
+nav.sidebar a:focus {
+  background: rgba(255,255,255,0.08);
+  border-left-color: #FFEAEC;
+}
+nav.sidebar a.indent { padding-left: 36px; font-size: 0.8rem; color: rgba(255,255,255,0.65); }
+nav.sidebar .nav-divider { height: 1px; background: rgba(255,255,255,0.12); margin: 14px 20px; }
+
+/* Main */
+main {
+  margin-left: 260px;
+  padding: 48px 56px 80px;
+  max-width: 980px;
+  width: 100%;
+}
+h1 {
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: #690031;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 36px;
+}
+h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #690031;
+  margin-top: 48px;
+  margin-bottom: 16px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #FFEAEC;
+}
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #000000;
+  margin-top: 28px;
+  margin-bottom: 10px;
+}
+p { margin-bottom: 14px; }
+p + p { margin-top: 0; }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  font-size: 0.88rem;
+}
+thead th {
+  background: #690031;
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 12px;
+}
+thead th:first-child { border-radius: 4px 0 0 0; }
+thead th:last-child { border-radius: 0 4px 0 0; }
+tbody tr:nth-child(odd) { background: #FFEAEC; }
+tbody tr:nth-child(even) { background: #ffffff; }
+tbody td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f0dde2;
+  vertical-align: top;
+}
+
+/* Code / script blocks */
+pre {
+  background: #f8f8f8;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 20px 24px;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  overflow-x: auto;
+  margin: 16px 0 24px;
+  color: #333;
+}
+.script-block {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border: 1px solid #45475a;
+  border-radius: 6px;
+  padding: 20px 24px;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 16px 0 24px;
+}
+.script-block .comment { color: #6c7086; }
+.script-block .keyword { color: #cba6f7; }
+.script-block .string { color: #a6e3a1; }
+.script-block .fn { color: #89b4fa; }
+
+/* Status markers */
+.ok { color: #004232; font-weight: 600; }
+.partial { color: #8a6d00; font-weight: 600; }
+.no { color: #690031; font-weight: 600; }
+
+/* Callout */
+.callout {
+  background: #FFEAEC;
+  border-left: 4px solid #690031;
+  padding: 14px 18px;
+  margin: 16px 0 24px;
+  font-size: 0.9rem;
+  border-radius: 0 4px 4px 0;
+}
+.callout strong { color: #690031; }
+
+/* Checklist */
+ul.checklist {
+  list-style: none;
+  padding-left: 0;
+  margin: 12px 0 20px;
+}
+ul.checklist li {
+  padding: 4px 0 4px 24px;
+  position: relative;
+  font-size: 0.9rem;
+}
+ul.checklist li::before {
+  content: "\2610";
+  position: absolute;
+  left: 0;
+  color: #690031;
+}
+
+/* Lists */
+ul.plain {
+  list-style: disc;
+  padding-left: 24px;
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+ul.plain li { margin-bottom: 6px; }
+
+/* Footer */
+footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.8rem;
+  color: #888;
+  text-align: center;
+}
+
+/* Print */
+@media print {
+  nav.sidebar { display: none; }
+  main { margin-left: 0; padding: 24px; max-width: 100%; }
+  body { background: #fff; }
+  h2 { page-break-before: auto; }
+  table { page-break-inside: avoid; }
+  pre, .script-block { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="nav-title">Roadmap de implementacion</div>
+  <a href="#contexto">Contexto del caso</a>
+  <a href="#mapeo">Mapeo de requerimientos</a>
+  <a href="#estructura">Estructura del proyecto</a>
+  <a href="#estructura-31" class="indent">Proyecto principal</a>
+  <a href="#estructura-32" class="indent">Custom fields globales</a>
+  <a href="#estructura-33" class="indent">Modelamiento departamental</a>
+  <a href="#estructura-34" class="indent">Subprocesos</a>
+  <div class="nav-divider"></div>
+  <a href="#reglas">Reglas de automatizacion</a>
+  <a href="#reglas-41" class="indent">SLA y escalamiento</a>
+  <a href="#reglas-42" class="indent">Escalamiento condicional</a>
+  <a href="#reglas-43" class="indent">Flujo del proceso</a>
+  <a href="#reglas-44" class="indent">Cross-project</a>
+  <div class="nav-divider"></div>
+  <a href="#dashboards">Informes y dashboards</a>
+  <a href="#aistudio">AI Studio</a>
+  <a href="#aiteammate">AI Teammates</a>
+  <a href="#templates">Plantillas de proyecto</a>
+  <a href="#warroom">War Room</a>
+  <a href="#formularios">Formularios de intake</a>
+  <a href="#cronograma">Cronograma</a>
+  <a href="#resumen">Resumen ejecutivo</a>
+  <div class="nav-divider"></div>
+  <a href="#gaps">Propuesta de mejora</a>
+  <a href="#gap1" class="indent">Gap 1: Sync subprocesos</a>
+  <a href="#gap2" class="indent">Gap 2: Datos y costos</a>
+  <a href="#gap3" class="indent">Gap 3: Escalamiento triple</a>
+  <a href="#gap4" class="indent">Gap 4: Multi-jurisdiccion</a>
+  <a href="#ai-writer" class="indent">AI Script Writer</a>
+</nav>
+
+<main>
+
+<h1>Roadmap de implementacion Asana</h1>
+<p class="subtitle">Product recall Clase I &mdash; Contaminante microbiologico &mdash; Preparado por Ruben Mendoza, Sr. Channel Partner Manager &mdash; Asana</p>
+
+<!-- SECTION: CONTEXTO -->
+<h2 id="contexto">Contexto del caso</h2>
+<p>Una empresa alimentaria multinacional con operaciones en Ecuador necesita modelar en Asana su proceso critico de Product Recall Clase I por contaminante microbiologico. El proceso involucra 9 departamentos trabajando en paralelo, 6 fases secuenciales, mas de 40 actividades, 7 subprocesos anidados y 8 puntos de decision, con SLAs regulatorios de cumplimiento obligatorio impuestos por FDA, RASFF, FSA, CFIA, MHLW y FSANZ.</p>
+<p>El reto principal es que el cliente espera funcionalidad de BPM enterprise (gateways BPMN, subprocesos con ciclo de vida independiente, SLA timers). Asana no es un motor BPMN, pero puede modelar este proceso de manera efectiva usando su Work Graph &mdash; secciones como fases, custom fields como metadata, rules como logica de automatizacion, y proyectos vinculados como subprocesos.</p>
+
+<!-- SECTION: MAPEO -->
+<h2 id="mapeo">Mapeo de los 7 puntos del cliente vs capacidades de Asana</h2>
+<p>Antes del detalle, el resumen honesto de que puede y que no puede Asana:</p>
+<table>
+<thead><tr><th>#</th><th>Lo que pide Jorge</th><th>Asana puede?</th><th>Como</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Modelamiento de 9 carriles departamentales con bifurcacion paralela</td><td><span class="ok">Si, con diseno</span></td><td>Custom Field "Departamento" + secciones por fase + filtros por departamento. Los 7 departamentos paralelos se modelan como tareas simultaneas en la misma seccion, cada una asignada a su departamento</td></tr>
+<tr><td>2</td><td>Logica condicional (gateways exclusivos, inclusivos, paralelos)</td><td><span class="partial">Parcial</span></td><td>Rules con condiciones simples (if field = X, then action). No hay boolean compuesto (AND/OR). Los gateways se modelan como: exclusivo = rule por valor de campo, inclusivo = multiples rules que se disparan por tags/multi-select, paralelo = dependencias + milestone de sincronizacion</td></tr>
+<tr><td>3</td><td>Subprocesos con ciclo de vida independiente</td><td><span class="partial">Workaround</span></td><td>Cada subproceso es un proyecto separado vinculado al proceso padre via multi-homing de una tarea "ancla". El subproceso tiene sus propias secciones, tareas y aprobaciones. El status se reporta al padre via custom field o comentario</td></tr>
+<tr><td>4</td><td>SLAs regulatorios con escalamiento automatico</td><td><span class="partial">Parcial</span></td><td>Due dates + rules de escalamiento progresivo (24h antes, 4h antes, vencido). No hay countdown timer nativo. Para SLAs estrictos (FDA &lt;=24h), la rule cambia prioridad + notifica + crea subtarea de escalamiento</td></tr>
+<tr><td>5</td><td>Escalamiento condicional multi-nivel</td><td><span class="ok">Si, con reglas</span></td><td>Rule: si custom field "% Recuperacion" &lt; 95% &rarr; crear 3 subtareas simultaneas (Comunicaciones, Supply Chain, Regulatorio) + asignar + notificar. Cada subtarea es un hilo de escalamiento independiente</td></tr>
+<tr><td>6</td><td>Trazabilidad y auditoria</td><td><span class="ok">Nativo</span></td><td>Task history (quien cambio que, cuando), Approvals con registro de aprobador, comentarios como evidencia, adjuntos como documentos de soporte. Todo inmutable en el Activity Log de Asana</td></tr>
+<tr><td>7</td><td>Reporteria ejecutiva consolidada</td><td><span class="partial">Parcial</span></td><td>Dashboard de portafolio con widgets (donut, bar, list). Puede mostrar: tareas por status, por departamento, SLAs vencidos, y metricas via Formula Custom Fields (% recuperacion calculado, costos restantes). Limitacion: los campos fuente que alimentan las formulas necesitan actualizacion manual o integracion con SAP para datos en tiempo real</td></tr>
+</tbody>
+</table>
+
+<!-- SECTION: ESTRUCTURA -->
+<h2 id="estructura">3. Estructura interna del proyecto</h2>
+
+<h3 id="estructura-31">3.1 Proyecto principal: "Recall Clase I &mdash; [Contaminante] &mdash; [Fecha]"</h3>
+<p>Vista recomendada: <strong>Board</strong> (para ver fases como columnas) + <strong>Timeline</strong> (para ver dependencias y SLAs)</p>
+<p><strong>Secciones (6 fases del proceso):</strong></p>
+<table>
+<thead><tr><th>Seccion</th><th>Proposito</th><th>Ejemplo de tareas</th></tr></thead>
+<tbody>
+<tr><td>1. Deteccion y evaluacion inicial</td><td>Identificar contaminante, evaluar riesgo, clasificar recall</td><td>"Analisis de laboratorio muestra Lote L-2026-0847", "Clasificar nivel de recall (I/II/III)"</td></tr>
+<tr><td>2. Activacion del comite de crisis</td><td>Convocar comite, tomar decision de recall, asignar roles</td><td>"Convocar Comite de Crisis &mdash; decision en &lt;=2h", "Asignar coordinador de recall por departamento"</td></tr>
+<tr><td>3. Notificaciones regulatorias</td><td>Notificar a cada jurisdiccion segun mercados afectados</td><td>"Notificar FDA &mdash; SLA &lt;=24h", "Notificar RASFF &mdash; SLA &lt;=48h", "Notificar ARCSA Ecuador"</td></tr>
+<tr><td>4. Ejecucion paralela (9 departamentos)</td><td>Trabajo simultaneo de todos los departamentos</td><td>"Logistica inversa &mdash; 6 paises", "Comunicado de prensa", "Linea de atencion al consumidor", "Bloqueo de inventario en sistema"</td></tr>
+<tr><td>5. Monitoreo y escalamiento</td><td>Tracking de % recuperacion, escalamientos, reportes</td><td>"Reporte diario de % recuperacion por mercado", "Escalamiento: recuperacion &lt; 95%"</td></tr>
+<tr><td>6. Cierre y post-mortem</td><td>Todos los hilos completados, cierre formal, retrospectiva</td><td>"Verificacion: todos los departamentos reportaron cierre", "Retrospectiva con Comite de Crisis", "Archivo de evidencia para auditoria"</td></tr>
+</tbody>
+</table>
+
+<h3 id="estructura-32">3.2 Custom fields globales</h3>
+<table>
+<thead><tr><th>Custom field</th><th>Tipo</th><th>Opciones</th><th>Proposito</th></tr></thead>
+<tbody>
+<tr><td>Departamento responsable</td><td>Single-select</td><td>Calidad, Regulatorio, Legal, Logistica/Supply Chain, Comunicaciones/PR, Produccion, Comercial/Ventas, Atencion al Consumidor, Finanzas</td><td>Los 9 carriles departamentales del BPMN</td></tr>
+<tr><td>Clasificacion de recall</td><td>Single-select</td><td>Clase I (riesgo de muerte), Clase II (riesgo temporal), Clase III (sin riesgo)</td><td>Gateway exclusivo: determina el flujo</td></tr>
+<tr><td>Jurisdiccion</td><td>Multi-select</td><td>FDA (USA), RASFF (EU), FSA (UK), CFIA (Canada), MHLW (Japon), FSANZ (Aus/NZ), ARCSA (Ecuador)</td><td>Gateway inclusivo: N jurisdicciones afectadas</td></tr>
+<tr><td>Tipo de SLA</td><td>Single-select</td><td>Regulatorio (mandato legal), Interno (meta operativa)</td><td>Diferencia SLAs con consecuencias legales</td></tr>
+<tr><td>Estado de SLA</td><td>Single-select</td><td>En tiempo, Proximo a vencer, Vencido</td><td>Semaforo de cumplimiento</td></tr>
+<tr><td>% Recuperacion de producto</td><td>Number</td><td>0-100</td><td>Metrica clave &mdash; trigger de escalamiento si &lt; 95%</td></tr>
+<tr><td>Costo acumulado</td><td>Currency (USD)</td><td>N/A</td><td>Tracking financiero para el Comite de Crisis</td></tr>
+<tr><td>Prioridad</td><td>Single-select</td><td>Critica, Alta, Media, Baja</td><td>Triaje</td></tr>
+<tr><td>Fase del proceso</td><td>Single-select</td><td>Deteccion, Activacion, Notificacion, Ejecucion, Monitoreo, Cierre</td><td>Tracking de progreso</td></tr>
+<tr><td>Evidencia adjunta</td><td>Yes/No</td><td>Si/No</td><td>Indica si la tarea tiene documentacion de soporte para auditoria</td></tr>
+</tbody>
+</table>
+
+<h3 id="estructura-33">3.3 Modelamiento de los 9 departamentos (respuesta al punto 1)</h3>
+<p>En lugar de 9 "carriles" (lanes) BPMN, usamos el Custom Field <strong>Departamento Responsable</strong> como filtro. En la vista Board:</p>
+<ul class="plain">
+<li>Cada columna es una <strong>fase</strong> (no un departamento)</li>
+<li>El campo Departamento permite filtrar para ver "solo las tareas de Logistica" o "solo Legal"</li>
+<li>En la fase 4 (Ejecucion Paralela), hay 9+ tareas simultaneas, una por departamento, sin dependencias entre si</li>
+<li>La sincronizacion final (fase 6) se logra con una <strong>tarea milestone</strong> "Cierre formal del Recall" que tiene dependencias de TODAS las tareas de cierre departamental</li>
+</ul>
+
+<h3 id="estructura-34">3.4 Modelamiento de subprocesos (respuesta al punto 3)</h3>
+<p>Cada subproceso complejo se modela como un <strong>proyecto separado</strong> vinculado al proceso padre:</p>
+<table>
+<thead><tr><th>Subproceso</th><th>Proyecto separado</th><th>Tarea ancla en proceso padre</th><th>Por que separar</th></tr></thead>
+<tbody>
+<tr><td>Logistica inversa multinacional</td><td>"SP: Logistica Inversa &mdash; [Lote]"</td><td>Tarea "Logistica inversa &mdash; 6 paises" en seccion 4</td><td>Tiene su propio flujo: aduanas, transportistas, certificadores de destruccion por pais. 20+ tareas internas, aprobaciones propias</td></tr>
+<tr><td>Investigacion de causa raiz</td><td>"SP: Investigacion Causa Raiz &mdash; [Lote]"</td><td>Tarea "Investigacion de causa raiz" en seccion 4</td><td>Involucra laboratorios, proveedores, linea de produccion. Puede durar semanas independiente del recall</td></tr>
+<tr><td>Atencion al consumidor</td><td>"SP: Contact Center Recall &mdash; [Lote]"</td><td>Tarea "Linea de atencion al consumidor" en seccion 4</td><td>Volumen de llamadas, scripts, FAQ, tracking de quejas. Formulario de intake propio</td></tr>
+</tbody>
+</table>
+<div class="callout"><strong>Limitacion honesta:</strong> Estos proyectos separados NO tienen "estado independiente" como un subprocess BPMN nativo. El estado se sincroniza manualmente o via un custom field "Status del Subproceso" en la tarea ancla del padre. Cuando el subproceso se completa, alguien actualiza la tarea ancla &rarr; la rule del padre detecta el cambio y avanza. <em>Ver seccion 14 para la solucion con Script Actions.</em></div>
+
+<!-- SECTION: REGLAS -->
+<h2 id="reglas">4. Reglas de automatizacion (smart rules)</h2>
+
+<h3 id="reglas-41">4.1 Reglas de SLA y escalamiento (respuesta al punto 4)</h3>
+<table>
+<thead><tr><th>#</th><th>Trigger</th><th>Condicion</th><th>Accion</th><th>Proposito</th></tr></thead>
+<tbody>
+<tr><td>R1</td><td>Due date en 24h</td><td>Campo "Tipo de SLA" = Regulatorio</td><td>Cambiar "Estado de SLA" &rarr; Proximo a vencer + Comentario "@responsable SLA regulatorio vence en 24h &mdash; accion inmediata requerida"</td><td>Alerta temprana para SLAs legales</td></tr>
+<tr><td>R2</td><td>Due date vencido</td><td>Campo "Tipo de SLA" = Regulatorio</td><td>Cambiar "Estado de SLA" &rarr; Vencido + Prioridad &rarr; Critica + Crear subtarea "ESCALAMIENTO: SLA regulatorio incumplido &mdash; notificar a Legal" asignada a Dir. Legal</td><td>Escalamiento automatico por incumplimiento regulatorio</td></tr>
+<tr><td>R3</td><td>Due date vencido</td><td>Campo "Tipo de SLA" = Interno</td><td>Cambiar "Estado de SLA" &rarr; Vencido + Prioridad &rarr; Alta + Comentario "@responsable SLA interno vencido"</td><td>Escalamiento menor para SLAs internos</td></tr>
+</tbody>
+</table>
+
+<h3 id="reglas-42">4.2 Reglas de escalamiento condicional (respuesta al punto 5)</h3>
+<table>
+<thead><tr><th>#</th><th>Trigger</th><th>Condicion</th><th>Accion</th><th>Proposito</th></tr></thead>
+<tbody>
+<tr><td>R4</td><td>Campo "% Recuperacion" cambia</td><td>Valor &lt; 95</td><td>Crear subtarea "ESCALAMIENTO: Aviso publico adicional" asignada a Dir. Comunicaciones + Due date +24h</td><td>Ramificacion a Comunicaciones</td></tr>
+<tr><td>R5</td><td>Campo "% Recuperacion" cambia</td><td>Valor &lt; 95</td><td>Crear subtarea "ESCALAMIENTO: Extension logistica inversa" asignada a VP Supply Chain + Due date +48h</td><td>Ramificacion a Supply Chain</td></tr>
+<tr><td>R6</td><td>Campo "% Recuperacion" cambia</td><td>Valor &lt; 95</td><td>Crear subtarea "ESCALAMIENTO: Notificacion adicional a reguladores" asignada a Dir. Regulatorio + Due date +24h</td><td>Ramificacion a Regulatorio</td></tr>
+<tr><td>R7</td><td>Campo "% Recuperacion" cambia</td><td>Valor &gt;= 95</td><td>Cambiar Prioridad &rarr; Media + Comentario "Meta de recuperacion alcanzada (&gt;=95%)"</td><td>Desescalamiento cuando se cumple meta</td></tr>
+</tbody>
+</table>
+
+<h3 id="reglas-43">4.3 Reglas de flujo del proceso</h3>
+<table>
+<thead><tr><th>#</th><th>Trigger</th><th>Accion</th><th>Proposito</th></tr></thead>
+<tbody>
+<tr><td>R8</td><td>Tarea movida a "Cierre"</td><td>Marcar completada + agregar fecha</td><td>Sync visual</td></tr>
+<tr><td>R9</td><td>Tarea marcada completada</td><td>Mover a "Cierre"</td><td>Bidireccionalidad</td></tr>
+<tr><td>R10</td><td>Campo "Clasificacion de Recall" cambia a "Clase I"</td><td>Crear subtarea "Activar protocolo Clase I &mdash; Comite de Crisis en &lt;=2h" + Prioridad Critica</td><td>Gateway exclusivo: si es Clase I, activar protocolo completo</td></tr>
+<tr><td>R11</td><td>Tarea creada</td><td>Asignar defaults: Prioridad = Alta, Fase = Deteccion, Estado SLA = En tiempo</td><td>Prevenir tareas sin metadata</td></tr>
+<tr><td>R12</td><td>Approval aprobado</td><td>Mover a siguiente seccion + Comentario "Aprobado por [approver] &mdash; registrado para auditoria"</td><td>Trazabilidad de aprobaciones</td></tr>
+<tr><td>R13</td><td>Tarea movida a "Notificaciones Regulatorias"</td><td>Agregar como followers a Dir. Legal + Dir. Regulatorio</td><td>Visibilidad automatica en fase critica</td></tr>
+</tbody>
+</table>
+
+<h3 id="reglas-44">4.4 Reglas cross-project (subprocesos)</h3>
+<table>
+<thead><tr><th>#</th><th>Trigger (proceso padre)</th><th>Accion</th></tr></thead>
+<tbody>
+<tr><td>R14</td><td>Campo "Clasificacion de Recall" = Clase I en proceso padre</td><td>Agregar tarea resumen al proyecto "Comite de Crisis &mdash; War Room"</td></tr>
+<tr><td>R15</td><td>Estado de SLA = Vencido en cualquier tarea</td><td>Agregar tarea de alerta al proyecto "Comite de Crisis &mdash; War Room"</td></tr>
+</tbody>
+</table>
+
+<!-- SECTION: DASHBOARDS -->
+<h2 id="dashboards">5. Informes y dashboards ejecutivos (respuesta al punto 7)</h2>
+
+<h3>5.1 Dashboard del comite de crisis</h3>
+<table>
+<thead><tr><th>Widget</th><th>Tipo</th><th>Configuracion</th><th>Lo que muestra</th></tr></thead>
+<tbody>
+<tr><td>Semaforo de SLAs</td><td>Chart (Donut)</td><td>Agrupar por "Estado de SLA", colores por valor</td><td>Cuantos SLAs estan en tiempo vs proximos a vencer vs vencidos</td></tr>
+<tr><td>SLAs regulatorios vencidos</td><td>List</td><td>Filtro: Tipo SLA = Regulatorio AND Estado = Vencido</td><td>Lista roja de incumplimientos legales &mdash; accion inmediata</td></tr>
+<tr><td>Progreso por departamento</td><td>Stacked Bar</td><td>% completado agrupado por "Departamento Responsable"</td><td>Que departamentos van adelantados/atrasados</td></tr>
+<tr><td>Tareas criticas pendientes</td><td>List</td><td>Filtro: Prioridad = Critica AND no completada, ordenar por due date</td><td>Top urgencias del dia</td></tr>
+<tr><td>Recuperacion por jurisdiccion</td><td>Bar Chart</td><td>Campo "% Recuperacion" filtrado por "Jurisdiccion"</td><td>Requiere una tarea por jurisdiccion con el % actualizado manualmente</td></tr>
+<tr><td>Costos acumulados</td><td>Numeric</td><td>Suma de campo "Costo Acumulado"</td><td>Requiere actualizacion manual del campo currency</td></tr>
+</tbody>
+</table>
+<div class="callout"><strong>Limitacion honesta sobre "tiempo real":</strong> Los dashboards de Asana se actualizan cuando las tareas se actualizan. No hay streaming en tiempo real. Para % recuperacion y costos, alguien debe actualizar los campos manualmente o via integracion. Los SLAs si se trackean automaticamente via due dates.</div>
+
+<h3>5.2 Informes universales</h3>
+<table>
+<thead><tr><th>Informe</th><th>Datos</th><th>Frecuencia</th><th>Audiencia</th></tr></thead>
+<tbody>
+<tr><td>Estado de recall</td><td>Todas las tareas del proyecto: fase, departamento, SLA status, % completado</td><td>Cada 4h durante crisis activa</td><td>Comite de Crisis</td></tr>
+<tr><td>Reporte regulatorio</td><td>Tareas de seccion "Notificaciones": jurisdiccion, fecha de notificacion, evidencia</td><td>Diario</td><td>Dir. Regulatorio + Legal</td></tr>
+<tr><td>Reporte de costos</td><td>Tareas con campo "Costo Acumulado" &gt; 0, agrupado por departamento</td><td>Diario</td><td>CFO + Dir. Finanzas</td></tr>
+</tbody>
+</table>
+
+<!-- SECTION: AI STUDIO -->
+<h2 id="aistudio">6. Asana AI Studio &mdash; flujos inteligentes</h2>
+<table>
+<thead><tr><th>#</th><th>Nombre</th><th>Trigger</th><th>Prompt</th><th>Accion</th></tr></thead>
+<tbody>
+<tr><td>F1</td><td>Clasificador de incidencia</td><td>Formulario "Reporte de Contaminacion" completado</td><td>"Lee la descripcion de la incidencia. Clasifica el tipo de contaminante (microbiologico, quimico, fisico, alergeno). Evalua si es potencial Clase I (riesgo de muerte/dano grave), Clase II (riesgo temporal) o Clase III (sin riesgo). Asigna al departamento de Calidad."</td><td>Set Custom Fields (Clasificacion, Departamento) + Asignar a Dir. Calidad</td></tr>
+<tr><td>F2</td><td>Generador de status para comite</td><td>Tarea recurrente "Status Update" (cada 4h)</td><td>"Sintetiza el estado actual del recall: tareas completadas, en progreso y bloqueadas. Identifica SLAs en riesgo. Lista los 3 riesgos principales. Formato: Logros / En Progreso / Bloqueadores / SLAs en Riesgo."</td><td>Crear Status Update del proyecto</td></tr>
+<tr><td>F3</td><td>Verificador de evidencia</td><td>Tarea movida a "Cierre"</td><td>"Revisa si esta tarea tiene documentos adjuntos o links a evidencia. Si no tiene evidencia, marca el campo 'Evidencia Adjunta' como No y agrega comentario: 'Esta tarea no tiene evidencia adjunta &mdash; requerida para auditoria.'"</td><td>Set campo Evidencia + Comentario si falta</td></tr>
+</tbody>
+</table>
+
+<!-- SECTION: AI TEAMMATES -->
+<h2 id="aiteammate">7. AI Teammates</h2>
+<p><strong>AI Teammate: "Analista de Crisis" (Crisis Analyst)</strong></p>
+<table>
+<thead><tr><th>Campo</th><th>Configuracion</th></tr></thead>
+<tbody>
+<tr><td>Nombre</td><td>Analista de Crisis</td></tr>
+<tr><td>Rol</td><td>Sintetizador de status y detector de riesgos para el Comite de Crisis</td></tr>
+<tr><td>Acceso</td><td>Proyecto principal de recall + subprocesos vinculados</td></tr>
+<tr><td>Instrucciones base</td><td>"Eres un analista de crisis para un proceso de Product Recall Clase I en una empresa alimentaria. Tu trabajo es sintetizar el progreso de los 9 departamentos involucrados, detectar SLAs en riesgo de incumplimiento, identificar dependencias bloqueadas y generar reportes ejecutivos para el Comite de Crisis. Priorizas la deteccion de riesgos regulatorios. Escribes en espanol ejecutivo, conciso y orientado a la accion."</td></tr>
+<tr><td>Casos de uso</td><td>"Sintetiza el estado del recall en las ultimas 6 horas &mdash; que departamentos reportaron avance y cuales estan bloqueados". "Compara el % de recuperacion por jurisdiccion e identifica donde estamos mas lejos del 95%". "Redacta los talking points para la reunion del Comite de Crisis de hoy."</td></tr>
+<tr><td>Checkpoints</td><td>Genera subtareas con hallazgos. Humano revisa antes de distribuir al Comite.</td></tr>
+</tbody>
+</table>
+
+<!-- SECTION: TEMPLATES -->
+<h2 id="templates">9. Plantillas de proyecto (project templates)</h2>
+<h3>9.1 Template "Recall Clase I &mdash; Contaminante microbiologico"</h3>
+<p><strong>Secciones:</strong> Deteccion &rarr; Activacion &rarr; Notificaciones &rarr; Ejecucion Paralela &rarr; Monitoreo &rarr; Cierre</p>
+<p><strong>Tareas pre-creadas:</strong></p>
+
+<p><strong>Fase 1 &mdash; Deteccion:</strong></p>
+<ul class="checklist">
+<li>Recepcion de alerta de contaminacion</li>
+<li>Analisis de laboratorio &mdash; confirmar contaminante</li>
+<li>Identificar lotes afectados (codigos, fechas, volumenes)</li>
+<li>Clasificar nivel de recall (Clase I / II / III) &mdash; Approval gate</li>
+<li>Mapear mercados/jurisdicciones afectados</li>
+</ul>
+
+<p><strong>Fase 2 &mdash; Activacion:</strong></p>
+<ul class="checklist">
+<li>Convocar Comite de Crisis &mdash; decision en &lt;=2h</li>
+<li>Asignar coordinador de recall por departamento</li>
+<li>Activar protocolo de comunicacion interna</li>
+<li>Crear proyecto War Room en Asana</li>
+</ul>
+
+<p><strong>Fase 3 &mdash; Notificaciones:</strong></p>
+<ul class="checklist">
+<li>Notificar FDA &mdash; SLA &lt;=24h (regulatorio)</li>
+<li>Notificar RASFF &mdash; SLA &lt;=48h (regulatorio)</li>
+<li>Notificar FSA UK &mdash; SLA &lt;=48h (regulatorio)</li>
+<li>Notificar CFIA Canada (regulatorio)</li>
+<li>Notificar MHLW Japon (regulatorio)</li>
+<li>Notificar FSANZ Australia/NZ (regulatorio)</li>
+<li>Notificar ARCSA Ecuador (regulatorio)</li>
+</ul>
+
+<p><strong>Fase 4 &mdash; Ejecucion paralela:</strong></p>
+<ul class="checklist">
+<li>[Calidad] Cuarentena de producto en planta</li>
+<li>[Regulatorio] Preparar documentacion para cada jurisdiccion</li>
+<li>[Legal] Evaluar exposicion legal y preparar defensa</li>
+<li>[Logistica] Iniciar logistica inversa multinacional (&rarr; subproceso)</li>
+<li>[Comunicaciones] Redactar y publicar comunicado de prensa</li>
+<li>[Produccion] Detener lineas de produccion afectadas</li>
+<li>[Comercial] Notificar a distribuidores y retailers</li>
+<li>[Atencion al Consumidor] Activar linea de atencion (&rarr; subproceso)</li>
+<li>[Finanzas] Estimar costo total y activar provision</li>
+</ul>
+
+<p><strong>Fase 5 &mdash; Monitoreo:</strong></p>
+<ul class="checklist">
+<li>Reporte diario de % recuperacion por mercado</li>
+<li>Verificar cumplimiento de SLAs regulatorios</li>
+<li>Monitorear cobertura mediatica</li>
+<li>Evaluar si % recuperacion &gt;= 95%</li>
+<li>Si &lt; 95%: ejecutar escalamiento triple (Comunicaciones + Supply Chain + Regulatorio)</li>
+</ul>
+
+<p><strong>Fase 6 &mdash; Cierre:</strong></p>
+<ul class="checklist">
+<li>Verificar cierre de todos los departamentos (milestone con dependencias)</li>
+<li>Compilar evidencia para auditoria</li>
+<li>Retrospectiva con Comite de Crisis</li>
+<li>Informe final al regulador</li>
+<li>Archivo del caso (30 anos &mdash; requisito regulatorio)</li>
+</ul>
+
+<p><strong>Custom Fields pre-asignados:</strong> Departamento, Clasificacion, Jurisdiccion, Tipo SLA, Estado SLA, % Recuperacion, Costo Acumulado, Prioridad, Fase, Evidencia Adjunta</p>
+<p><strong>Reglas pre-configuradas:</strong> R1-R15</p>
+
+<!-- SECTION: WAR ROOM -->
+<h2 id="warroom">10. Proyecto transversal: comite de crisis &mdash; war room</h2>
+<table>
+<thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+<tbody>
+<tr><td>Nombre</td><td>Comite de Crisis &mdash; War Room</td></tr>
+<tr><td>Proposito</td><td>Concentrar alertas, escalamientos, decisiones y status del recall activo</td></tr>
+<tr><td>Secciones</td><td>Escalamientos Activos / SLAs en Riesgo / Decisiones Pendientes / Resueltos</td></tr>
+<tr><td>Regla de entrada</td><td>Automatica: cualquier tarea con SLA Vencido o Clasificacion = Clase I genera entrada aqui (R14, R15)</td></tr>
+<tr><td>Regla de salida</td><td>Cuando la tarea original se resuelve, mover a "Resueltos"</td></tr>
+<tr><td>Reunion</td><td>Standup cada 4h durante crisis activa (primeras 72h), luego diario</td></tr>
+</tbody>
+</table>
+
+<!-- SECTION: FORMULARIOS -->
+<h2 id="formularios">11. Formularios de intake</h2>
+<h3>11.1 Formulario "Reporte de contaminacion"</h3>
+<p>Para que cualquier planta, laboratorio o equipo de calidad reporte una sospecha:</p>
+<table>
+<thead><tr><th>Campo</th><th>Tipo</th><th>Mapeo</th></tr></thead>
+<tbody>
+<tr><td>Planta / Ubicacion</td><td>Dropdown (lista de plantas)</td><td>&rarr; Descripcion</td></tr>
+<tr><td>Tipo de contaminante sospechado</td><td>Dropdown: Microbiologico / Quimico / Fisico / Alergeno / Desconocido</td><td>&rarr; Custom Field (input para AI Studio F1)</td></tr>
+<tr><td>Lote(s) afectado(s)</td><td>Texto</td><td>&rarr; Titulo de tarea</td></tr>
+<tr><td>Descripcion del hallazgo</td><td>Texto largo</td><td>&rarr; Descripcion</td></tr>
+<tr><td>Resultado de laboratorio</td><td>Archivo</td><td>&rarr; Adjuntos</td></tr>
+<tr><td>Fecha de deteccion</td><td>Fecha</td><td>&rarr; Due date (inicio del SLA)</td></tr>
+<tr><td>Urgencia percibida</td><td>Dropdown: Critica / Alta / Media</td><td>&rarr; Input para AI Studio</td></tr>
+</tbody>
+</table>
+<p>Regla post-formulario: AI Studio clasifica + asigna a Dir. Calidad para evaluacion inicial.</p>
+
+<!-- SECTION: CRONOGRAMA -->
+<h2 id="cronograma">12. Cronograma de implementacion sugerido</h2>
+<table>
+<thead><tr><th>Fase</th><th>Duracion</th><th>Actividades</th></tr></thead>
+<tbody>
+<tr><td>Fase 1: Estructura base</td><td>Dia 1-2</td><td>Crear proyecto principal con 6 secciones. Definir los 10 Custom Fields globales. Crear proyecto War Room.</td></tr>
+<tr><td>Fase 2: Template y tareas</td><td>Dia 3-4</td><td>Crear las 30+ tareas pre-definidas. Configurar dependencias. Crear milestone de sincronizacion en Fase 6. Crear subproyectos para Logistica Inversa, Causa Raiz, Contact Center.</td></tr>
+<tr><td>Fase 3: Automatizacion</td><td>Dia 5-6</td><td>Implementar reglas R1-R15. Configurar formulario de intake. Probar escalamientos con datos mock.</td></tr>
+<tr><td>Fase 4: AI + Dashboard</td><td>Dia 7-8</td><td>Configurar flujos AI Studio (F1-F3). Configurar AI Teammate "Analista de Crisis". Construir dashboard del Comite de Crisis.</td></tr>
+<tr><td>Fase 5: Mock data + rehearsal</td><td>Dia 9-10</td><td>Cargar datos realistas (lotes, jurisdicciones, costos). Simular un recall completo end-to-end. Ajustar reglas y dashboard segun hallazgos.</td></tr>
+</tbody>
+</table>
+<p><strong>Total: 10 dias habiles</strong> (2 semanas) para tener la demo lista.</p>
+
+<!-- SECTION: RESUMEN -->
+<h2 id="resumen">13. Resumen ejecutivo</h2>
+<pre>
+    +-------------------------------------------------+
+    |  PROYECTO: Recall Clase I - [Contaminante]      |
+    |  9 Departamentos | 6 Fases | SLAs Multinac.     |
+    +------------------------+------------------------+
+                             |
+    +------------------------+------------------------+
+    |                        |                        |
+    v                        v                        v
+ Subproceso              Subproceso              Subproceso
+ Logistica               Causa Raiz              Contact
+ Inversa                 Investigacion           Center
+ (6 paises)              (labs + proveedores)    (intake + FAQ)
+    |                        |                        |
+    +------------------------+------------------------+
+                             |
+                             v
+               +-------------------------+
+               |   WAR ROOM              |
+               |   Comite de Crisis      |
+               |   Dashboard + AI        |
+               +-------------------------+
+</pre>
+
+<p><strong>Numeros clave:</strong></p>
+<ul class="plain">
+<li>1 Proyecto principal con 6 secciones (fases)</li>
+<li>3 Subprocesos como proyectos separados</li>
+<li>1 War Room (Comite de Crisis)</li>
+<li>10 Custom Fields globales</li>
+<li>15 Reglas de automatizacion</li>
+<li>3 Flujos de AI Studio</li>
+<li>1 AI Teammate (Analista de Crisis)</li>
+<li>1 Formulario de intake</li>
+<li>1 Project Template replicable</li>
+<li>30+ tareas pre-definidas con SLAs y dependencias</li>
+<li>Dashboard con 6 widgets para vista ejecutiva</li>
+</ul>
+
+<p><strong>Marcadores de factibilidad:</strong></p>
+<ul class="plain">
+<li><span class="ok">5 de 7 puntos</span> del cliente son factibles nativamente o con diseno</li>
+<li><span class="partial">2 puntos</span> requieren workarounds documentados (subprocesos independientes, SLA timers)</li>
+<li>0 puntos son imposibles &mdash; todo se puede modelar, algunos con limitaciones claras</li>
+</ul>
+
+<!-- SECTION: GAPS / PROPUESTA DE MEJORA -->
+<h2 id="gaps">14. Propuesta de mejora &mdash; cerrar los gaps identificados</h2>
+<p>Asana cubre el 85% del proceso de forma nativa. Los gaps restantes se cierran con funcionalidades avanzadas de Asana (Script Actions, Formula Fields) y, donde sea necesario, integracion con el ecosistema SAP del cliente.</p>
+
+<!-- GAP 1 -->
+<h3 id="gap1">Gap 1: Sincronizacion de subprocesos con proceso padre</h3>
+<p><strong>Problema:</strong> Los proyectos vinculados funcionan como subprocesos, pero la sincronizacion de estado entre el subproceso y la tarea ancla en el proceso padre requiere actualizacion manual.</p>
+<p><strong>Solucion propuesta &mdash; Script Actions de Asana (opcion preferida):</strong></p>
+<p>Asana Script Actions es un entorno serverless (Node.js) disponible en Enterprise/Enterprise+ que permite ejecutar scripts como parte de una regla. El script puede llamar cualquier endpoint de la API de Asana. Esto permite:</p>
+<ul class="plain">
+<li>Regla en el subproceso: "Cuando la ultima tarea se complete &rarr; ejecutar Script Action"</li>
+<li>El script lee el estado del subproceso, identifica la tarea ancla en el proyecto padre, y la actualiza automaticamente (custom field, comentario, o marcar como completada)</li>
+<li>Todo ocurre dentro de Asana, sin servidores externos</li>
+</ul>
+<div class="callout"><strong>Limitaciones de Script Actions:</strong> Solo pueden llamar la API de Asana (no APIs externas). Timeout de ~20 segundos. Requiere Enterprise/Enterprise+.</div>
+
+<p><strong>Script listo para implementar</strong> (<code>scripts/script-1-sync-subprocess.js</code>):</p>
+<div class="script-block">
+<span class="comment">// Trigger: "Tarea marcada como completada" en el proyecto subproceso</span><br>
+<span class="comment">// 1. Lee todas las tareas del subproceso y verifica si TODAS estan completadas</span><br>
+<span class="comment">// 2. Si todas completas -> busca tarea ancla en proyecto padre por keyword "[Logistica]"</span><br>
+<span class="comment">// 3. Actualiza custom field "Fase del Proceso" -> "Cierre" + agrega comentario</span><br>
+<span class="comment">// 4. Usa Promise.all() para paralelizar update + comentario</span><br>
+<span class="comment">// 5. Incluye error handling completo con log() detallado</span><br>
+<br>
+<span class="keyword">const</span> parentProjectId = <span class="string">'PARENT_PROJECT_GID'</span>;<br>
+<span class="keyword">const</span> subprocessProjectId = <span class="string">'SUBPROCESS_PROJECT_GID'</span>;<br>
+<span class="keyword">const</span> anchorKeyword = <span class="string">'[Logistica]'</span>;<br>
+<br>
+<span class="comment">// Verificar que TODAS las tareas del subproceso estan completadas</span><br>
+<span class="keyword">const</span> tasks = <span class="keyword">await</span> <span class="fn">asana.get</span>(<span class="string">`/projects/${subprocessProjectId}/tasks`</span>);<br>
+<span class="keyword">const</span> allComplete = tasks.data.<span class="fn">every</span>(t => t.completed);<br>
+<br>
+<span class="keyword">if</span> (allComplete) {<br>
+&nbsp;&nbsp;<span class="keyword">const</span> parentTasks = <span class="keyword">await</span> <span class="fn">asana.get</span>(<span class="string">`/projects/${parentProjectId}/tasks`</span>);<br>
+&nbsp;&nbsp;<span class="keyword">const</span> anchor = parentTasks.data.<span class="fn">find</span>(t => t.name.<span class="fn">includes</span>(anchorKeyword));<br>
+&nbsp;&nbsp;<span class="keyword">await</span> Promise.<span class="fn">all</span>([<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">asana.put</span>(<span class="string">`/tasks/${anchor.gid}`</span>, { custom_fields: { fase: <span class="string">'Cierre'</span> } }),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">asana.post</span>(<span class="string">`/tasks/${anchor.gid}/stories`</span>, { text: <span class="string">'Subproceso completado automaticamente'</span> })<br>
+&nbsp;&nbsp;]);<br>
+}
+</div>
+
+<p><strong>Alternativa si Script Actions no alcanza:</strong> Un servidor ligero en Vercel que escuche webhooks de Asana. Cuando detecta que la ultima tarea del subproceso se completa, envia la instruccion de vuelta a Asana para actualizar el proceso padre.</p>
+<p><strong>Impacto cuantificable:</strong> Elimina ~15 min diarios de actualizacion manual por subproceso x 3 subprocesos = <strong>45 min/dia</strong> durante una crisis de 2-4 semanas.</p>
+
+<table>
+<thead><tr><th>Opcion</th><th>Complejidad</th><th>Requiere servidor externo</th><th>Tiempo</th></tr></thead>
+<tbody>
+<tr><td>Script Actions (preferida)</td><td>Baja</td><td>No</td><td>1-2 dias</td></tr>
+<tr><td>Vercel + Webhook</td><td>Media</td><td>Si (Vercel free tier)</td><td>3-5 dias</td></tr>
+</tbody>
+</table>
+
+<!-- GAP 2 -->
+<h3 id="gap2">Gap 2: Datos de recuperacion y costos</h3>
+<p><strong>Correccion importante:</strong> Asana SI tiene campos calculados (Formula Custom Fields, disponible desde 2023). Soportan operadores +, -, x, / con campos numericos. Esto cambia significativamente el panorama.</p>
+<p><strong>Lo que SI se puede hacer nativamente con Formula Fields:</strong></p>
+<ul class="plain">
+<li>Campo "% Recuperacion" = (Unidades Recuperadas / Total Unidades) x 100</li>
+<li>Campo "Costo Restante" = Provision Total - Costo Acumulado</li>
+<li>Campo "Dias para Cierre" = Fecha Limite - Hoy</li>
+</ul>
+<p>Estos campos calculados se actualizan automaticamente cuando los campos fuente cambian, y se pueden usar en dashboards y reportes universales.</p>
+<p><strong>Lo que NO se puede hacer nativamente:</strong> Conexion con SAP HANA para alimentar los campos fuente automaticamente. El cliente opera con SAP, no con herramientas simples &mdash; Make/Zapier no es adecuado para este nivel de integracion.</p>
+
+<p><strong>Solucion para la conexion con SAP:</strong></p>
+<p>El cliente necesita un middleware dedicado que conecte los endpoints de SAP HANA con los endpoints de Asana. Este es un proyecto de integracion en si mismo que requiere:</p>
+<ol style="margin: 8px 0 16px 24px; font-size: 0.9rem;">
+<li>Mapear los endpoints relevantes de SAP (modulo de inventario/WMS, modulo financiero)</li>
+<li>Construir el middleware que traduzca eventos SAP &rarr; actualizaciones Asana</li>
+<li>Definir la direccionalidad: unidireccional (SAP &rarr; Asana) o bidireccional</li>
+<li>Trabajar en conjunto con el equipo SAP del cliente</li>
+</ol>
+
+<table>
+<thead><tr><th>Aspecto</th><th>Detalle</th></tr></thead>
+<tbody>
+<tr><td>Alcance</td><td>Middleware SAP HANA &harr; Asana via API</td></tr>
+<tr><td>Datos a sincronizar</td><td>Unidades devueltas por mercado, costos por categoria</td></tr>
+<tr><td>Direccionalidad</td><td>Unidireccional (SAP &rarr; Asana) como minimo</td></tr>
+<tr><td>Equipo necesario</td><td>Consultor Asana + consultor SAP del cliente</td></tr>
+<tr><td>Estimacion</td><td>2-4 semanas dependiendo de la complejidad del landscape SAP</td></tr>
+<tr><td>Nota</td><td>Este es un proyecto de integracion separado, no parte de la implementacion base de Asana</td></tr>
+</tbody>
+</table>
+
+<!-- GAP 3 -->
+<h3 id="gap3">Gap 3: Escalamiento condicional multi-nivel</h3>
+<p><strong>Problema:</strong> Cuando el % de recuperacion no alcanza el 95%, se necesita escalar simultaneamente a 3 departamentos. Las reglas nativas de Asana no pueden evaluar un campo numerico con threshold y crear multiples subtareas condicionalmente.</p>
+
+<p><strong>Script listo para implementar</strong> (<code>scripts/script-2-triple-escalation.js</code>):</p>
+<div class="script-block">
+<span class="comment">// Trigger: "Custom field cambia" en campo "% Recuperacion"</span><br>
+<span class="comment">// 1. Lee el valor actual del campo; si es >= 95 o null, no hace nada</span><br>
+<span class="comment">// 2. Si &lt; 95 -> verifica que no existan escalamientos previos (evita duplicados)</span><br>
+<span class="comment">// 3. Crea 3 subtareas en paralelo con Promise.all()</span><br>
+<span class="comment">// 4. Agrega comentario de alerta consolidado</span><br>
+<br>
+<span class="keyword">const</span> recoveryPct = task.custom_fields.<span class="fn">find</span>(f => f.name === <span class="string">'% Recuperacion'</span>);<br>
+<span class="keyword">if</span> (!recoveryPct || recoveryPct.number_value >= 95) <span class="keyword">return</span>;<br>
+<br>
+<span class="comment">// Verificar duplicados</span><br>
+<span class="keyword">const</span> subtasks = <span class="keyword">await</span> <span class="fn">asana.get</span>(<span class="string">`/tasks/${task.gid}/subtasks`</span>);<br>
+<span class="keyword">const</span> hasEscalation = subtasks.data.<span class="fn">some</span>(s => s.name.<span class="fn">includes</span>(<span class="string">'ESCALAMIENTO'</span>));<br>
+<span class="keyword">if</span> (hasEscalation) <span class="keyword">return</span>;<br>
+<br>
+<span class="keyword">const</span> escalations = [<br>
+&nbsp;&nbsp;{ name: <span class="string">'ESCALAMIENTO: Aviso publico adicional'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assignee: <span class="string">'DIR_COMUNICACIONES'</span>, due: <span class="string">'+24h'</span> },<br>
+&nbsp;&nbsp;{ name: <span class="string">'ESCALAMIENTO: Extension logistica inversa'</span>, assignee: <span class="string">'VP_SUPPLY_CHAIN'</span>,&nbsp;&nbsp; due: <span class="string">'+48h'</span> },<br>
+&nbsp;&nbsp;{ name: <span class="string">'ESCALAMIENTO: Notificacion a reguladores'</span>,&nbsp; assignee: <span class="string">'DIR_REGULATORIO'</span>,&nbsp; due: <span class="string">'+24h'</span> }<br>
+];<br>
+<br>
+<span class="keyword">await</span> Promise.<span class="fn">all</span>(escalations.<span class="fn">map</span>(e =><br>
+&nbsp;&nbsp;<span class="fn">asana.post</span>(<span class="string">`/tasks/${task.gid}/subtasks`</span>, {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: e.name, assignee: e.assignee,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;due_on: <span class="fn">addHours</span>(e.due), custom_fields: { prioridad: <span class="string">'Critica'</span> }<br>
+&nbsp;&nbsp;})<br>
+));
+</div>
+
+<!-- GAP 4 -->
+<h3 id="gap4">Gap 4: Logica inclusiva (gateways BPMN multi-jurisdiccion)</h3>
+<p><strong>Problema:</strong> Cuando se activa un recall, se deben notificar N jurisdicciones segun los mercados afectados, cada una con SLA diferente. El gateway inclusivo BPMN dispara multiples caminos segun condiciones.</p>
+
+<p><strong>Script listo para implementar</strong> (<code>scripts/script-3-multi-jurisdiction.js</code>):</p>
+<div class="script-block">
+<span class="comment">// Trigger: "Tarea anadida a seccion Notificaciones Regulatorias"</span><br>
+<span class="comment">// 1. Lee el campo multi-enum "Jurisdiccion" de la tarea</span><br>
+<span class="comment">// 2. Para cada jurisdiccion seleccionada, crea subtarea con SLA especifico</span><br>
+<span class="comment">// 3. Verifica duplicados antes de crear</span><br>
+<span class="comment">// 4. Agrega comentario resumen con todas las jurisdicciones</span><br>
+<br>
+<span class="keyword">const</span> SLA_MAP = {<br>
+&nbsp;&nbsp;FDA:&nbsp;&nbsp; { regulator: <span class="string">'FDA (USA)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 24 },<br>
+&nbsp;&nbsp;RASFF: { regulator: <span class="string">'RASFF (EU)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 48 },<br>
+&nbsp;&nbsp;FSA:&nbsp;&nbsp; { regulator: <span class="string">'FSA (UK)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 48 },<br>
+&nbsp;&nbsp;CFIA:&nbsp; { regulator: <span class="string">'CFIA (Canada)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 48 },<br>
+&nbsp;&nbsp;MHLW:&nbsp; { regulator: <span class="string">'MHLW (Japon)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 72 },<br>
+&nbsp;&nbsp;FSANZ: { regulator: <span class="string">'FSANZ (Aus/NZ)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 72 },<br>
+&nbsp;&nbsp;ARCSA: { regulator: <span class="string">'ARCSA (Ecuador)'</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hours: 24 }<br>
+};<br>
+<br>
+<span class="keyword">const</span> jurisdictions = task.custom_fields<br>
+&nbsp;&nbsp;.<span class="fn">find</span>(f => f.name === <span class="string">'Jurisdiccion'</span>)<br>
+&nbsp;&nbsp;.multi_enum_values;<br>
+<br>
+<span class="keyword">await</span> Promise.<span class="fn">all</span>(jurisdictions.<span class="fn">map</span>(j => {<br>
+&nbsp;&nbsp;<span class="keyword">const</span> sla = SLA_MAP[j.name];<br>
+&nbsp;&nbsp;<span class="keyword">return</span> <span class="fn">asana.post</span>(<span class="string">`/tasks/${task.gid}/subtasks`</span>, {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name: <span class="string">`Notificar ${sla.regulator} - SLA &lt;=${sla.hours}h (REGULATORIO)`</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;due_on: <span class="fn">addHours</span>(sla.hours),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;custom_fields: { tipo_sla: <span class="string">'Regulatorio'</span>, estado_sla: <span class="string">'En tiempo'</span>, prioridad: <span class="string">'Critica'</span> }<br>
+&nbsp;&nbsp;});<br>
+}));
+</div>
+
+<!-- AI TEAMMATE: SCRIPT WRITER -->
+<h3 id="ai-writer">Capacidad adicional: AI Teammate para generar nuevos scripts</h3>
+<p>Para scripts futuros que el cliente necesite, se puede configurar un AI Teammate <strong>"Script Actions Writer"</strong> que genera codigo bajo demanda. Se le asigna una tarea con la descripcion del comportamiento deseado y genera el script listo para copy-paste en Script Actions de Asana.</p>
+<p>Los prompts pre-escritos para este AI Teammate se encuentran en <code>scripts/ai-teammate-prompts.md</code>.</p>
+
+<!-- NARRATIVA -->
+<h3>Narrativa actualizada para la demo</h3>
+<div class="callout"><strong>Para el equipo directivo:</strong> "Asana gestiona nativamente la gran mayoria de su proceso de recall &mdash; modelamiento multi-departamental, SLAs con escalamiento, campos calculados para metricas, trazabilidad de decisiones, y reporteria ejecutiva. Para la sincronizacion de subprocesos, usamos Script Actions de Asana que mantienen todo dentro de la plataforma sin servidores externos. El unico punto que requiere integracion dedicada es la conexion con SAP HANA para alimentar datos de inventario en tiempo real &mdash; eso es un proyecto de integracion que trabajamos en conjunto con su equipo SAP."</div>
+<p>Esta narrativa es mas precisa y honesta: diferencia lo que Asana hace solo, lo que hace con sus herramientas avanzadas (Script Actions), y lo que necesita integracion real (SAP).</p>
+
+<footer>
+  Prepared by Asana &mdash; Abril 2026
+</footer>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Demo — Product Recall Clase I | Jorge Romero</title>
+<style>
+  :root {
+    --dark-coral: #690031;
+    --bright-coral: #FFEAEC;
+    --black: #000000;
+    --white: #FFFFFF;
+    --gray-100: #F7F7F7;
+    --gray-200: #E8E8E8;
+    --gray-400: #999999;
+    --gray-600: #555555;
+    --green-dark: #004232;
+    --green-bright: #C9FCDB;
+    --blue-dark: #222875;
+    --blue-bright: #CBEDFF;
+    --yellow-bright: #FFF4CC;
+    --yellow-dark: #7A6200;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 300;
+    color: var(--black);
+    background: var(--white);
+    line-height: 1.6;
+    font-size: 15px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+  h1 { font-size: 28px; font-weight: 600; color: var(--dark-coral); margin-bottom: 8px; }
+  h2 { font-size: 20px; font-weight: 600; color: var(--dark-coral); margin: 40px 0 16px; padding-top: 24px; border-top: 2px solid var(--gray-200); }
+  h3 { font-size: 16px; font-weight: 600; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--gray-600); font-size: 14px; margin-bottom: 32px; }
+  .timing { display: inline-block; background: var(--dark-coral); color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; margin-right: 8px; }
+  .action-box {
+    background: var(--blue-bright);
+    border-left: 4px solid var(--blue-dark);
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .action-box strong { color: var(--blue-dark); }
+  .say-box {
+    background: var(--bright-coral);
+    border-left: 4px solid var(--dark-coral);
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+  .say-box::before { content: '🎤 '; font-style: normal; }
+  .result-box {
+    background: var(--green-bright);
+    border-left: 4px solid var(--green-dark);
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .result-box strong { color: var(--green-dark); }
+  .warn-box {
+    background: var(--yellow-bright);
+    border-left: 4px solid var(--yellow-dark);
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .warn-box strong { color: var(--yellow-dark); }
+  ol, ul { margin: 8px 0 16px 24px; }
+  li { margin-bottom: 6px; }
+  code { background: var(--gray-100); padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th { background: var(--dark-coral); color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--gray-200); }
+  tr:nth-child(even) { background: var(--gray-100); }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--dark-coral); color: white; border-radius: 50%; font-weight: 600; font-size: 14px; margin-right: 8px; }
+  hr { border: none; border-top: 1px solid var(--gray-200); margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<h1>Guia de Demo en Vivo</h1>
+<p class="subtitle">Product Recall Clase I — Jorge Romero | Preparada por Ruben Mendoza, Sr. Channel Partner Manager — Asana<br>Tiempo total estimado: 25-30 minutos</p>
+
+<div class="warn-box">
+<strong>ANTES DE LA DEMO:</strong> Verifica que los 3 Script Actions esten activos (Customize &rarr; Rules). Abre el proyecto "Recall Clase I" en vista Board. Ten la vista Dashboard lista en otra pestana.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">2 min</span> Acto 1 — La estructura del proceso</h2>
+
+<div class="say-box">
+Jorge, lo que ves aqui es tu proceso de Product Recall Clase I modelado completo en Asana. Las 6 columnas representan las 6 fases de tu BPMN: desde Deteccion hasta Cierre. Cada tarea tiene metadatos ricos — departamento, jurisdiccion, prioridad, SLA.
+</div>
+
+<div class="action-box">
+<strong>MOSTRAR:</strong>
+<ol>
+  <li>Vista Board con las 6 columnas (fases)</li>
+  <li>Clic en cualquier tarea de la columna "4. Ejecucion Paralela" &rarr; mostrar los custom fields: Departamento, Prioridad, Fase, Clasificacion</li>
+  <li>Aplicar filtro por Departamento = "Calidad" &rarr; mostrar que solo se ven las tareas de Calidad</li>
+  <li>Quitar filtro &rarr; Agrupar por Departamento &rarr; "Estos son tus 9 carriles BPMN"</li>
+</ol>
+</div>
+
+<div class="say-box">
+Cada departamento ve solo lo suyo, pero tu como director ves todo el proceso consolidado. Eso es lo que nos pedia tu diagrama BPMN.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">3 min</span> Acto 2 — Ingreso de incidente (Formulario + AI)</h2>
+
+<div class="say-box">
+Ahora imagina que llega un reporte de contaminacion. En vez de mandar un email, el equipo de planta llena un formulario estandarizado.
+</div>
+
+<div class="action-box">
+<strong>ACCION:</strong> Ir a la pestana "Forms" del proyecto &rarr; mostrar el formulario "Reporte de Contaminacion" &rarr; explicar los 7 campos. <em>No lo llenes en vivo, ya tenemos tareas de ejemplo.</em>
+</div>
+
+<div class="say-box">
+Cuando se envia el formulario, Asana AI clasifica automaticamente el tipo de contaminante y la severidad. Mira esta tarea — el AI la clasifico como Clase I y la asigno a Calidad con prioridad Critica. Sin intervencion humana.
+</div>
+
+<div class="action-box">
+<strong>MOSTRAR:</strong> Clic en la tarea "Analisis de laboratorio — Salmonella spp." &rarr; mostrar que tiene Clasificacion = Clase I, Departamento = Calidad, Prioridad = Critica. Mostrar en Activity log que F1 hizo la clasificacion.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">4 min</span> Acto 3 — Notificaciones multi-jurisdiccion (Script Action 3)</h2>
+
+<div class="say-box">
+Tu proceso requiere notificar a multiples reguladores simultaneamente — FDA, ARCSA, RASFF. Cada uno con su propio SLA. Esto es lo que en BPMN llamas un "gateway inclusivo". Mira como Asana lo resuelve.
+</div>
+
+<div class="action-box">
+<strong>ACCION EN VIVO:</strong>
+<ol>
+  <li>Ir a la columna "1. Deteccion"</li>
+  <li>Buscar la tarea <code>TEST SA-3: Segundo brote detectado</code></li>
+  <li>Verificar que tiene 3 jurisdicciones seleccionadas (FDA, ARCSA, FSA)</li>
+  <li><strong>ARRASTRAR la tarea a la columna "3. Notificaciones Regulatorias"</strong></li>
+  <li>Esperar 5-10 segundos</li>
+</ol>
+</div>
+
+<div class="result-box">
+<strong>RESULTADO AUTOMATICO:</strong> El Script Action lee las jurisdicciones seleccionadas y crea 3 subtareas con SLAs calculados:
+<ul>
+  <li>Notificar FDA (USA) - SLA 24h &rarr; due date: manana</li>
+  <li>Notificar ARCSA (Ecuador) - SLA 24h &rarr; due date: manana</li>
+  <li>Notificar FSA (UK) - SLA 48h &rarr; due date: pasado manana</li>
+</ul>
+Clic en la tarea para mostrar las subtareas creadas + el comentario resumen automatico.
+</div>
+
+<div class="say-box">
+Cada regulador tiene su propio plazo legal. El sistema calculo las fechas automaticamente. Si agregas una jurisdiccion mas tarde, simplemente seleccionas el valor y mueves la tarea — se crean las subtareas adicionales.
+</div>
+
+<div class="warn-box">
+<strong>SI YA PROBASTE ESTE SCRIPT ANTES:</strong> El script evita duplicados. Si la tarea ya tiene subtareas "Notificar...", no creara nuevas. Usa una tarea nueva o borra las subtareas existentes antes de la demo.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">4 min</span> Acto 4 — Escalamiento triple (Script Action 2)</h2>
+
+<div class="say-box">
+Durante el monitoreo del recall, el KPI critico es el porcentaje de producto recuperado. Tu BPMN dice: si baja del 95%, activar tres hilos de escalamiento en paralelo. Veamos.
+</div>
+
+<div class="action-box">
+<strong>ACCION EN VIVO:</strong>
+<ol>
+  <li>Ir a la columna "5. Monitoreo y Escalamiento"</li>
+  <li>Clic en la tarea <code>TEST: Evaluacion de recuperacion — mercado Ecuador semana 2</code></li>
+  <li>Mostrar que % Recuperacion = 38.2% (muy por debajo del 95%)</li>
+  <li><strong>Cambiar el valor de % Recuperacion de 38.2 a 35</strong> (simula que empeoro)</li>
+  <li>Esperar 5-10 segundos</li>
+</ol>
+</div>
+
+<div class="result-box">
+<strong>RESULTADO AUTOMATICO:</strong> El Script Action detecta que % &lt; 95% y crea 3 subtareas de escalamiento:
+<ul>
+  <li>Comunicaciones — aviso publico adicional (due +24h)</li>
+  <li>Supply Chain — extension logistica inversa (due +48h)</li>
+  <li>Regulatorio — notificacion adicional a reguladores (due +24h)</li>
+</ul>
+Cada subtarea asignada al departamento correcto con prioridad Critica.
+</div>
+
+<div class="say-box">
+Tres departamentos activados en paralelo, automaticamente, sin que nadie tenga que mandar un email. Esto es tu gateway paralelo del BPMN, ejecutandose dentro de Asana.
+</div>
+
+<div class="warn-box">
+<strong>NOTA:</strong> Si la tarea ya tiene subtareas con prefijo "ESCALAMIENTO:", el script no creara duplicados. Para repetir la demo, borra las subtareas de escalamiento primero.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">3 min</span> Acto 5 — War Room y SLAs</h2>
+
+<div class="say-box">
+Todo lo critico se centraliza automaticamente en el War Room — tu centro de comando para el Comite de Crisis.
+</div>
+
+<div class="action-box">
+<strong>MOSTRAR:</strong>
+<ol>
+  <li>Abrir proyecto "Comite de Crisis — War Room"</li>
+  <li>Mostrar las 4 secciones: Escalamientos Activos, SLAs en Riesgo, Decisiones Pendientes, Resueltos</li>
+  <li>Clic en "ALERTA: SLA FDA vencido" &rarr; mostrar que tiene Estado SLA = Vencido, Prioridad = Critica</li>
+  <li>Clic en "DECISION: Aprobar comunicado de prensa v3" &rarr; mostrar que es una Approval task</li>
+</ol>
+</div>
+
+<div class="say-box">
+Las tareas llegan aqui automaticamente via reglas. Cuando el SLA de FDA se vencio, Asana creo esta alerta en el War Room. Cuando la clasificacion es Clase I, la tarea aparece aqui. El Comite de Crisis no necesita buscar nada — todo lo urgente llega a ellos.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">3 min</span> Acto 6 — Subproceso de logistica inversa</h2>
+
+<div class="say-box">
+Tu diagrama BPMN tiene subprocesos con ciclo de vida independiente. En Asana, cada subproceso es un proyecto vinculado. Mira Logistica Inversa.
+</div>
+
+<div class="action-box">
+<strong>MOSTRAR:</strong>
+<ol>
+  <li>Abrir proyecto "SP: Logistica Inversa Multinacional"</li>
+  <li>Mostrar las secciones por jurisdiccion: Ecuador (ARCSA), USA (FDA), EU (RASFF), UK, Canada, Japon, Australia</li>
+  <li>Mostrar tareas con datos reales: Walmart 312 uds, AEON 140 uds, Woolworths 95 uds</li>
+  <li>Mostrar que algunas estan completadas (UK, Canada) y otras pendientes (Japon, Australia)</li>
+  <li>Mostrar seccion "Destruccion y certificacion" y "Tracking en transito"</li>
+</ol>
+</div>
+
+<div class="say-box">
+Cada mercado tiene su propio flujo de retiro con retailers reales, cantidades especificas y fechas de cumplimiento. Cuando TODAS las tareas de este subproceso se completen, un Script Action automaticamente actualiza la tarea ancla en el proceso padre. Asi se sincroniza el subproceso con el proceso principal.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">3 min</span> Acto 7 — Dashboard ejecutivo</h2>
+
+<div class="say-box">
+Para el Comite de Crisis, necesitas una vista consolidada. Aqui esta.
+</div>
+
+<div class="action-box">
+<strong>MOSTRAR:</strong>
+<ol>
+  <li>Ir a la pestana Dashboard del proyecto Recall</li>
+  <li>Mostrar los 6 widgets:
+    <ul>
+      <li>Semaforo de SLAs (donut: verde/amarillo/rojo)</li>
+      <li>Violaciones regulatorias por jurisdiccion</li>
+      <li>Progreso por departamento (barras)</li>
+      <li>Tareas criticas pendientes (lista)</li>
+      <li>% Recuperacion (numero)</li>
+      <li>Costos acumulados ($403K+ USD)</li>
+    </ul>
+  </li>
+</ol>
+</div>
+
+<div class="say-box">
+Esto es lo que tu Comite de Crisis ve en cada reunion. Todo actualizado en tiempo real basado en las tareas. No hay que preparar un PowerPoint — los datos estan vivos.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">2 min</span> Acto 8 — Verificacion de cierre (AI Studio F3)</h2>
+
+<div class="say-box">
+Cuando una tarea llega a la fase de Cierre, el AI verifica automaticamente que tenga evidencia adjunta. Sin evidencia, no se puede cerrar — es un requisito regulatorio.
+</div>
+
+<div class="action-box">
+<strong>MOSTRAR:</strong>
+<ol>
+  <li>Ir a la columna "6. Cierre y Post-Mortem"</li>
+  <li>Clic en la tarea "Verificacion: todos los departamentos reportaron cierre"</li>
+  <li>Mostrar que Evidencia Adjunta = No</li>
+  <li>Mostrar en Activity el comentario automatico: "EVIDENCIA FALTANTE: Esta tarea no contiene archivos adjuntos..."</li>
+</ol>
+</div>
+
+<div class="say-box">
+El AI actua como un auditor automatico. Ninguna tarea puede cerrarse sin evidencia documentada. Esto protege a la empresa en caso de auditorias de la FDA o ARCSA.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">2 min</span> Acto 9 — AI Teammate (Analista de Crisis)</h2>
+
+<div class="say-box">
+Ademas de las automatizaciones, tienes un AI Teammate que puede sintetizar el estado del recall en cualquier momento.
+</div>
+
+<div class="action-box">
+<strong>ACCION EN VIVO:</strong>
+<ol>
+  <li>Ir a cualquier tarea del proyecto</li>
+  <li>En comentarios, escribir: <code>@Analista de Crisis genera un resumen ejecutivo del estado actual del recall</code></li>
+  <li>Esperar la respuesta del Teammate (10-30 segundos)</li>
+</ol>
+</div>
+
+<div class="result-box">
+<strong>RESULTADO:</strong> El AI Teammate analiza todas las tareas y genera un resumen con Logros, En Progreso, Bloqueadores y SLAs en Riesgo. Listo para compartir con el Comite.
+</div>
+
+<!-- ============================================================ -->
+<h2><span class="timing">2 min</span> Acto 10 — Cierre y preguntas</h2>
+
+<div class="say-box">
+Jorge, lo que acabas de ver es tu proceso BPMN de 9 departamentos, 6 fases y SLAs multinacionales corriendo dentro de Asana. Resumo las 3 capas:
+</div>
+
+<div class="action-box">
+<strong>RESUMEN EN PANTALLA (mostrar tabla):</strong>
+<table>
+  <tr><th>Capa</th><th>Que resuelve</th><th>Ejemplo que viste</th></tr>
+  <tr><td>Rules nativas</td><td>Defaults, escalamiento SLA, auditoria</td><td>SLA vencido &rarr; alerta automatica en War Room</td></tr>
+  <tr><td>Script Actions</td><td>Logica compleja que Asana no tiene nativo</td><td>Gateway inclusivo: 3 jurisdicciones &rarr; 3 subtareas con SLA</td></tr>
+  <tr><td>AI Studio + Teammate</td><td>Clasificacion, verificacion, reportes</td><td>AI clasifica Clase I, verifica evidencia, genera status</td></tr>
+</table>
+</div>
+
+<div class="say-box">
+El 85% del proceso corre con funcionalidad nativa de Asana. El 15% restante lo cubrimos con Script Actions — codigo serverless que vive dentro de Asana, sin servidores externos. Y para la integracion con SAP HANA, eso seria una fase 2 con middleware dedicado. Preguntas?
+</div>
+
+<hr>
+
+<h2>Checklist pre-demo</h2>
+<ul>
+  <li>[ ] 3 Script Actions activos en Rules</li>
+  <li>[ ] Tarea "TEST SA-3" en seccion "Deteccion" (lista para mover en Acto 3)</li>
+  <li>[ ] Tarea "TEST: Evaluacion de recuperacion" sin subtareas ESCALAMIENTO (lista para Acto 4)</li>
+  <li>[ ] Dashboard con 6 widgets configurados</li>
+  <li>[ ] AI Teammate "Analista de Crisis" activo</li>
+  <li>[ ] Formulario "Reporte de Contaminacion" creado</li>
+  <li>[ ] Proyecto War Room con 4 tareas de ejemplo en secciones correctas</li>
+  <li>[ ] SP: Logistica Inversa con seed data (18 tasks en 8 secciones)</li>
+</ul>
+
+<h2>Si algo falla durante la demo</h2>
+<table>
+  <tr><th>Problema</th><th>Solucion rapida</th></tr>
+  <tr><td>Script no dispara al mover tarea</td><td>Verificar que la rule esta activa. Mover la tarea de vuelta y re-moverla.</td></tr>
+  <tr><td>Script dice "Ya existen subtareas"</td><td>Borrar las subtareas "Notificar..." o "ESCALAMIENTO:" y repetir.</td></tr>
+  <tr><td>AI Teammate no responde</td><td>Esperar 30s. Si no, mostrar la tarea recurrente de Status Update como alternativa.</td></tr>
+  <tr><td>Dashboard vacio</td><td>Verificar que las tareas tienen custom fields con valores (seed data).</td></tr>
+  <tr><td>F3 no marca Evidencia</td><td>Verificar que la tarea se movio a seccion "Cierre". F3 solo dispara en esa seccion.</td></tr>
+</table>
+
+<p style="text-align: center; color: var(--gray-400); margin-top: 40px; font-size: 12px;">
+Documento interno — Asana Demo | Abril 2026
+</p>
+
+</body>
+</html>
