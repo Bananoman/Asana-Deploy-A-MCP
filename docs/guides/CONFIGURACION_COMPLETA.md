@@ -20,7 +20,7 @@
         "/Users/rubenmendoza/Documents/VSCode Tests/Deploy-A/src/mcp-standalone/server.js"
       ],
       "env": {
-        "ASANA_TOKEN": "ASANA_TOKEN_REDACTED_ROTATED",
+        "ASANA_TOKEN": "your_asana_personal_access_token_here",
         "NODE_ENV": "production",
         "LOG_LEVEL": "info",
         "PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -34,7 +34,7 @@
 
 | Variable | Valor | Propósito |
 |----------|-------|-----------|
-| `ASANA_TOKEN` | `2/1210823662400036/...447` | Token de acceso a Asana API |
+| `ASANA_TOKEN` | `<your_asana_pat>` | Token de acceso a Asana API (https://app.asana.com/0/my-apps) |
 | `NODE_ENV` | `production` | Modo de ejecución optimizado |
 | `LOG_LEVEL` | `info` | Nivel de logging (info/debug/error) |
 | `PATH` | `/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` | Path del sistema |

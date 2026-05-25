@@ -1,398 +1,255 @@
-# 🚀 Asana MCP Server - Standalone Edition
+# Asana MCP Server
 
-**Complete Asana API integration for Claude Desktop via Model Context Protocol (MCP)**
+**Complete Asana API integration for Claude Desktop / Claude Code via the Model Context Protocol (MCP).**
 
-[![Tools](https://img.shields.io/badge/Tools-220-blue)](docs/api-reference/TOOLS_SUMMARY.txt)
-[![API Coverage](https://img.shields.io/badge/API_Coverage-100%25-success)](docs/api-reference/100_PERCENT_COMPLETE.md)
-[![Quality](https://img.shields.io/badge/Quality-PERFECTION_💎-gold)](docs/PERFECTION_100_REPORT.md)
-[![Tests](https://img.shields.io/badge/Tests-57%2F57_Passing-success)](#testing)
+[![Tools](https://img.shields.io/badge/Tools-247-blue)](#tool-categories)
+[![Version](https://img.shields.io/badge/Version-2.1.0-green)](../CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-57%2F57-success)](#testing)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
-> **220 tools** organized in **8 categories** for complete Asana workflow automation directly from Claude Desktop.
+> **247 tools** across **10 categories** — 242 API tools (100% Asana REST coverage) + 5 advisor tools that analyze workspaces and recommend AI Teammates / AI Studio rules / Claude Code agents.
 
----
-
-## 📋 Table of Contents
-
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Tool Categories](#-tool-categories)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Usage Examples](#-usage-examples)
-- [Testing](#-testing)
-- [Documentation](#-documentation)
+This is NOT a wrapper of the official Asana MCP. It's a superset: full API coverage **plus** advisory intelligence in a single server.
 
 ---
 
-## ✨ Features
+## Table of Contents
 
-### 🎯 Complete API Coverage
-- **220 tools** covering 100% of Asana REST API
-- **8 organized categories** for easy navigation
-- **Automation workflows** (Kanban, Sprint, custom rules)
-- **Bulk operations** for enterprise-scale management
-- **Real-time webhooks** and event streaming
-
-### 🏗️ Enterprise-Grade Architecture
-- **Circuit breaker** for resilient API calls
-- **Response caching** with configurable TTL
-- **Input validation** with JSON Schema
-- **Error handling** with detailed diagnostics
-- **Logging** with rotation and compression
-
-### 🔧 Developer Experience
-- **TypeScript-ready** with full type definitions
-- **Comprehensive tests** (57/57 passing)
-- **Detailed documentation** with examples
-- **Quick start scripts** for instant setup
-- **Claude Desktop integration** out of the box
+- [What's new in v2.1.0](#whats-new-in-v210)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Tool Categories](#tool-categories)
+- [Architecture](#architecture)
+- [Testing](#testing)
+- [Documentation](#documentation)
 
 ---
 
-## 🚀 Quick Start
+## What's new in v2.1.0
+
+LLM tool-selection accuracy on a 50-case NL benchmark went from **26% → 58% (+32pp)** by rewriting tool descriptions across 5 recipes (anti-defensive-lookups, entry-point writes, bulk, relations, advisor disambiguation). 57 tools changed, zero schema/behavior changes. Empirical methodology and findings live in [MCP-Eval-Harness](https://github.com/Bananoman/MCP-Eval-Harness) (sibling repo).
+
+See [CHANGELOG.md](../CHANGELOG.md) for full notes.
+
+---
+
+## Quick Start
 
 ### Prerequisites
-- Node.js 16+
-- npm or yarn
-- Asana account with API token
-- Claude Desktop (optional, for MCP integration)
 
-### Installation
+- Node.js 18+ (required by `@modelcontextprotocol/sdk`)
+- An Asana Personal Access Token from https://app.asana.com/0/my-apps
+- Claude Desktop or Claude Code
+
+### Install
 
 ```bash
-# Clone or download this folder
-cd asana-mcp-server
-
-# Install dependencies
+git clone https://github.com/Bananoman/Asana-Deploy-A-MCP.git
+cd Asana-Deploy-A-MCP
 npm install
-
-# Configure your Asana token
 cp .env.example .env
-# Edit .env and add your ASANA_TOKEN
-
-# Test the server
+# Edit .env and set ASANA_TOKEN to your PAT
 npm test
-
-# Start the server (for Claude Desktop)
-npm start
 ```
 
-### Claude Desktop Setup
+### Wire it into Claude Desktop
 
-1. Get your Asana token from [Asana Developer Console](https://app.asana.com/0/my-apps)
-
-2. Add to Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
   "mcpServers": {
     "asana": {
       "command": "node",
-      "args": ["/path/to/asana-mcp-server/src/index.js"],
+      "args": ["/absolute/path/to/Asana-Deploy-A-MCP/src/index.js"],
       "env": {
-        "ASANA_TOKEN": "your-asana-token-here"
+        "ASANA_TOKEN": "your_pat_here"
       }
     }
   }
 }
 ```
 
-3. Restart Claude Desktop
+Restart Claude Desktop. The 247 tools become available as `mcp__asana__*`.
 
-4. Start using Asana tools! 🎉
+### Wire it into Claude Code
 
----
-
-## 📁 Project Structure
-
-```
-asana-mcp-server/
-├── src/                          # Source code
-│   ├── index.js                  # Main entry point
-│   ├── server.js                 # MCP server setup
-│   ├── core/                     # Core functionality
-│   │   ├── AsanaClient.js       # HTTP client with circuit breaker
-│   │   ├── CircuitBreakerWrapper.js
-│   │   ├── ResponseCache.js
-│   │   └── InputValidator.js
-│   │
-│   └── tools/                    # 220 tools organized by category
-│       ├── index.js             # Tool registry
-│       ├── workspace/           # 4 tools: workspaces, users, teams, memberships
-│       ├── projects/            # 6 tools: projects, templates, statuses, briefs
-│       ├── tasks/               # 6 tools: tasks, stories, attachments, operations
-│       ├── portfolio/           # 2 tools: portfolios, allocations
-│       ├── goals/               # 3 tools: goals, relationships, time periods
-│       ├── automation/          # 3 tools: rules, webhooks, jobs
-│       ├── reporting/           # 2 tools: exports, audit logs
-│       ├── collaboration/       # 3 tools: updates, reactions, tags
-│       └── advanced/            # 12 tools: batch, custom objects, integrations
-│
-├── tests/                        # Test suite (57 tests)
-│   ├── unit/                    # Unit tests
-│   └── integration/             # Integration tests
-│
-├── docs/                         # Documentation
-│   ├── guides/                  # User guides
-│   │   ├── QUICK_START.md
-│   │   ├── MANUAL_USO_CLAUDE_DESKTOP.md
-│   │   ├── CONFIGURACION_COMPLETA.md
-│   │   └── RULES_AUTOMATION.md
-│   │
-│   ├── api-reference/           # API reference
-│   │   ├── COMPLETE_API_SPEC.md
-│   │   ├── TOOLS_SUMMARY.txt
-│   │   └── 100_PERCENT_COMPLETE.md
-│   │
-│   ├── PERFECTION_100_REPORT.md
-│   ├── PRODUCTION_READY_REPORT.md
-│   └── AUDIT_REPORT.md
-│
-├── scripts/                      # Utility scripts
-│   ├── quick-start.sh
-│   └── verify-production.sh
-│
-├── config/                       # Configuration
-│   ├── jest.config.js
-│   └── claude-desktop-example.json
-│
-├── package.json
-├── .env.example
-├── .gitignore
-└── README.md
-```
-
----
-
-## 🛠️ Tool Categories
-
-### 1. 🏢 Workspace (4 modules)
-Manage workspaces, users, teams, and memberships
-- `list_workspaces`, `get_user`, `create_team`, `add_team_member`
-
-### 2. 📊 Projects (6 modules)
-Complete project management and configuration
-- `create_project`, `update_project_status`, `add_project_brief`, `clone_project_template`
-
-### 3. ✅ Tasks (6 modules)
-Task creation, updates, stories, and attachments
-- `create_task`, `add_subtask`, `create_story`, `upload_attachment`
-
-### 4. 💼 Portfolio (2 modules)
-Portfolio and resource allocation management
-- `create_portfolio`, `add_portfolio_item`, `create_allocation`
-
-### 5. 🎯 Goals (3 modules)
-OKR and goal tracking
-- `create_goal`, `add_supporting_relationship`, `create_time_period`
-
-### 6. 🤖 Automation (3 modules)
-Rules, webhooks, and workflow automation
-- `create_rule`, `setup_kanban_workflow`, `create_webhook`, `bulk_create_rules`
-
-### 7. 📈 Reporting (2 modules)
-Data exports and audit trails
-- `create_organization_export`, `get_audit_log_events`
-
-### 8. 💬 Collaboration (3 modules)
-Team communication and updates
-- `create_status_update`, `add_reaction`, `create_tag`
-
-### 9. 🔧 Advanced (12 modules)
-Batch operations, custom objects, and integrations
-- `create_batch_request`, `bulk_update_tasks`, `create_custom_object`
-
----
-
-## 💻 Installation
-
-### Method 1: NPM Install (Recommended)
-
-```bash
-cd asana-mcp-server
-npm install
-```
-
-### Method 2: From Source
-
-```bash
-git clone <repo-url>
-cd asana-mcp-server
-npm install
-npm test  # Verify installation
-```
-
-### Dependencies
+Create or edit `.mcp.json` in your project root:
 
 ```json
 {
-  "@modelcontextprotocol/sdk": "^1.0.4",
-  "axios": "^1.7.9",
-  "dotenv": "^16.4.7",
-  "winston": "^3.17.0",
-  "winston-daily-rotate-file": "^5.0.0"
+  "mcpServers": {
+    "asana": {
+      "command": "node",
+      "args": ["/absolute/path/to/Asana-Deploy-A-MCP/src/index.js"],
+      "env": {
+        "ASANA_TOKEN": "your_pat_here"
+      }
+    }
+  }
 }
 ```
 
+### Run multiple Asana accounts
+
+For multi-tenant setups (one MCP per Asana workspace), copy the entry and rename the key:
+
+```json
+{
+  "mcpServers": {
+    "asana_xma":   { "command": "node", "args": ["..."], "env": { "ASANA_TOKEN": "pat_for_xmarts" } },
+    "asana_ecol":  { "command": "node", "args": ["..."], "env": { "ASANA_TOKEN": "pat_for_ecol" } }
+  }
+}
+```
+
+Each instance is fully isolated.
+
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-### Environment Variables
+All knobs are environment variables. Defaults are production-safe.
 
-Create a `.env` file:
+| Variable | Default | Purpose |
+|---|---|---|
+| `ASANA_TOKEN` | *(required)* | Asana Personal Access Token |
+| `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
+| `MCP_LOG_DIR` | `/tmp/deploy-a-mcp-logs` | Log file directory (rotates daily) |
+| `CACHE_TTL` | `300` | Response cache TTL in seconds |
+| `CACHE_MAX_SIZE` | `1000` | Max cached responses |
+| `RATE_LIMIT_MAX_REQUESTS` | `1400` | Max req/min (Asana's hard limit is 1500) |
+| `RATE_LIMIT_CONCURRENT` | `150` | Max concurrent in-flight requests |
+| `ASANA_TOOL_MODE` | `efficient` | `full` (all 247) / `efficient` (saves ~80K tokens) / `minimal` |
+| `ASANA_DOMAINS` | `all` | Comma-list to load only some categories: `workspace,projects,tasks,...` |
+| `ASANA_RESPONSE_MODE` | `full` | `full` / `compact` (50-70% smaller responses) |
+| `ASANA_READ_ONLY` | `false` | `true` loads only read-only tools (safe exploration) |
+
+See [.env.example](.env.example) for the template.
+
+---
+
+## Tool Categories
+
+247 tools, 10 categories, 46 module files in `src/tools/`:
+
+| Category | Modules | Representative tools |
+|---|---|---|
+| **workspace** (4) | users, teams, workspaces, memberships | `get_current_user`, `list_workspaces`, `list_teams`, `add_user_to_team` |
+| **projects** (6) | projects, sections, statuses, briefs, templates, operations | `create_project`, `create_project_with_structure`, `clone_project_structure`, `duplicate_project` |
+| **tasks** (6) | tasks, attachments, stories, task-operations, templates, user-task-lists | `create_task`, `search_tasks`, `add_task_comment`, `add_task_dependencies`, `duplicate_task` |
+| **portfolio** (2) | portfolios, allocations | `create_portfolio`, `add_item_to_portfolio`, `create_allocation` |
+| **goals** (3) | goals, relationships, time-periods | `create_goal`, `add_supporting_goal_relationship`, `list_workspace_time_periods` |
+| **automation** (5) | rules, rules-bulk, rules-workflows, webhooks, jobs | `create_rule`, `bulk_create_rules`, `setup_kanban_workflow`, `setup_sprint_workflow`, `create_webhook` |
+| **reporting** (2) | organization-exports, audit-log | `create_organization_export`, `get_audit_log_events` |
+| **collaboration** (3) | status-updates, reactions, tags | `create_status_update`, `create_task_reaction`, `create_tag` |
+| **advanced** (15) | batch, bulk-operations, custom-fields, custom-objects, composite-operations, events, external-data, time-tracking, typeahead, access-requests, methodology-tools, workspace-advisor, etc. | `batch_api`, `bulk_create_tasks`, `bulk_update_tasks`, `create_custom_field`, `create_custom_object`, `workspace_typeahead`, `clone_project_structure` |
+| **advisor** (5, embedded in `advanced/`) | workspace-advisor, methodology-tools | `analyze_workspace_overview`, `analyze_project_ai_readiness`, `detect_team_industry`, `validate_ai_capability`, `generate_teammate_blueprint` |
+
+### Advisor flow
+
+```
+1. analyze_workspace_overview   → "What's in this workspace?"
+2. analyze_project_ai_readiness → "Is this project ready for AI?"
+3. detect_team_industry         → "Which industry playbook applies?"
+4. validate_ai_capability       → "Is what I want to do feasible?"
+5. generate_teammate_blueprint  → "Give me the copy-paste spec for AI Studio"
+```
+
+Knowledge embedded as constants in the tools themselves (no external files): 15 AI Teammate capabilities, 15 limitations with alternatives, 6 industry playbooks, 6 trigger types mapped to Asana primitives, 6 output formats.
+
+---
+
+## Architecture
+
+Modular monolith. No microservices.
+
+```
+src/
+├── index.js           ← Entry point (stdio transport)
+├── server.js          ← MCP server + request handlers
+├── core/
+│   ├── AsanaClient.js          ← HTTP client (axios + retry + circuit breaker + cache + rate limit)
+│   ├── CircuitBreakerWrapper.js
+│   ├── ResponseCache.js
+│   └── InputValidator.js
+└── tools/             ← 247 tools across 46 modules
+    ├── index.js           ← Central registry
+    ├── workspace/  projects/  tasks/  portfolio/  goals/
+    ├── automation/  reporting/  collaboration/  advanced/
+```
+
+### Stack (decided, not up for re-debate)
+
+| Layer | Choice | Why |
+|---|---|---|
+| Runtime | Node.js 18+ | Required by `@modelcontextprotocol/sdk` |
+| MCP SDK | `@modelcontextprotocol/sdk` ^1.0.4 | Standard for Claude Desktop/Code |
+| HTTP | `axios` ^1.7.9 + `axios-retry` | Interceptors, retry, robust |
+| Circuit breaker | `opossum` ^9.0.0 | Protects against cascading failures |
+| Rate limiter | `bottleneck` ^2.19.5 | Respects Asana's 1500 req/min |
+| Validation | `joi` ^18.0.1 | Input schema validation |
+| Cache | `node-cache` ^5.1.2 | TTL-configurable, reduces API calls |
+| Logging | `winston` + daily-rotate | Rotating logs, configurable levels |
+| Tests | `jest` ^29.7.0 | 57/57 passing |
+
+### Tool definition convention
+
+Every tool is an object:
+
+```js
+{
+  name: 'create_task',
+  description: 'Creates a task in Asana. ...',
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+  inputSchema: { type: 'object', properties: { ... }, required: [...] },
+  handler: async (args) => { /* uses client.get/post/put/delete */ }
+}
+```
+
+Each module file under `src/tools/<category>/` exports a function `(client) => Array<Tool>`.
+
+---
+
+## Testing
 
 ```bash
-# Required
-ASANA_TOKEN=your_asana_personal_access_token
-
-# Optional
-LOG_LEVEL=info              # debug, info, warn, error
-MCP_LOG_DIR=/custom/log/dir # Default: /tmp/deploy-a-mcp-logs
-CACHE_TTL=300              # Cache TTL in seconds (default: 300)
+npm test                  # full suite
+npm run test:unit         # unit only
+npm run test:integration  # integration only
+npm run test:coverage     # with coverage report
 ```
 
-### Getting Your Asana Token
+**Status:** 57/57 passing. Coverage 95%+ across modules.
 
-1. Go to [Asana Developer Console](https://app.asana.com/0/my-apps)
-2. Click "Create New Token"
-3. Copy the token
-4. Add to `.env` or Claude Desktop config
-
----
-
-## 📚 Usage Examples
-
-### Example 1: Create Kanban Workflow
-
-```javascript
-// Using setup_kanban_workflow tool
-{
-  "project_gid": "1234567890",
-  "todo_section_gid": "111111",
-  "doing_section_gid": "222222",
-  "done_section_gid": "333333",
-  "developer_gid": "444444"
-}
-
-// Creates 4-5 automation rules in 30 seconds
-// Manual setup would take 40+ minutes
-```
-
-### Example 2: Clone Project Rules
-
-```javascript
-// Using clone_project_rules tool
-{
-  "source_project_gid": "1111",
-  "target_project_gid": "2222",
-  "section_mapping": {
-    "old_section_1": "new_section_1",
-    "old_section_2": "new_section_2"
-  },
-  "add_prefix": "[Cloned] "
-}
-
-// Copies all rules with smart mapping
-// Saves hours of manual configuration
-```
-
-### Example 3: Bulk Task Updates
-
-```javascript
-// Using bulk_update_tasks tool
-{
-  "task_updates": [
-    {"task_gid": "111", "assignee": "user_1"},
-    {"task_gid": "222", "assignee": "user_1"},
-    {"task_gid": "333", "due_on": "2025-10-15"}
-  ]
-}
-
-// Updates multiple tasks in one call
-```
-
----
-
-## 🧪 Testing
-
-### Run All Tests
+### Smoke test (verify all tools load)
 
 ```bash
-npm test
-```
-
-### Run Specific Test Suite
-
-```bash
-# Unit tests only
-npm run test:unit
-
-# Integration tests only
-npm run test:integration
-
-# With coverage
-npm run test:coverage
-```
-
-### Test Results
-
-```
-✅ 57/57 tests passing
-📊 Coverage: 95%+ across all modules
-⚡ Performance: All tests < 100ms
+node -e "const {getAllTools}=require('./src/tools/index'); const m={get:async()=>({data:[]}),post:async()=>({}),put:async()=>({}),delete:async()=>({})}; console.log(getAllTools(m).length,'tools')"
+# Expected: 247 tools
 ```
 
 ---
 
-## 📖 Documentation
+## Documentation
 
-### Guides
-- **[Quick Start Guide](docs/guides/QUICK_START.md)** - Get started in 5 minutes
-- **[Claude Desktop Setup](docs/guides/MANUAL_USO_CLAUDE_DESKTOP.md)** - Complete integration guide
-- **[Configuration Guide](docs/guides/CONFIGURACION_COMPLETA.md)** - Advanced configuration
-- **[Rules Automation](docs/guides/RULES_AUTOMATION.md)** - Workflow automation guide
-
-### API Reference
-- **[Complete API Spec](docs/api-reference/COMPLETE_API_SPEC.md)** - Full API documentation
-- **[Tools Summary](docs/api-reference/TOOLS_SUMMARY.txt)** - All 220 tools listed
-- **[100% Coverage](docs/api-reference/100_PERCENT_COMPLETE.md)** - Coverage analysis
-
-### Reports
-- **[Perfection Report](docs/PERFECTION_100_REPORT.md)** - Quality metrics
-- **[Production Ready](docs/PRODUCTION_READY_REPORT.md)** - Deployment checklist
-- **[Audit Report](docs/AUDIT_REPORT.md)** - Security and compliance
+| File | Purpose |
+|---|---|
+| [README.md](README.md) | This file |
+| [../CLAUDE.md](../CLAUDE.md) | Project constitution (tesis, stack, conventions) |
+| [../CHANGELOG.md](../CHANGELOG.md) | Narrative history (per version) |
+| [DESCRIPTION-AUDIT-FASE1.md](DESCRIPTION-AUDIT-FASE1.md) | v2.1.0 audit: 5 recipes + before/after examples |
+| [docs/guides/](docs/guides/) | User guides (Quick Start, Claude Desktop, Rules Automation) |
+| [docs/api-reference/](docs/api-reference/) | Full API spec + tool inventory |
+| [docs/adr/](docs/adr/) | Architectural decision records |
+| [docs/build-log/](docs/build-log/) | Implementation decisions |
 
 ---
 
-## 🎯 Key Metrics
+## License
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| **Tools** | 220 | ✅ Complete |
-| **API Coverage** | 100% | ✅ Perfect |
-| **Tests** | 57/57 | ✅ Passing |
-| **Performance** | 99% time savings | ✅ Optimal |
-| **Quality Score** | 100/100 | 💎 Perfection |
+MIT — see [LICENSE](LICENSE).
 
----
+## Acknowledgments
 
-## 🎊 Ready for Production!
-
-Your MCP server is:
-- ✅ **100% Functional**
-- ✅ **Enterprise-Grade**
-- ✅ **Production-Ready**
-- ✅ **Optimized** (99% faster)
-- ✅ **Secure** (zero vulnerabilities)
-- ✅ **Monitored** (logs + metrics)
-- ✅ **Resilient** (circuit breaker + retry)
-
-**Enjoy your Asana assistant powered by Claude! 🚀**
-
----
-
-**Built with ❤️ for the Claude Desktop community**
-
-*Last Updated: October 10, 2025*
+Description-audit methodology validated in the sibling [MCP-Eval-Harness](https://github.com/Bananoman/MCP-Eval-Harness) repo (50-case NL benchmark, Sonnet 4.6 + prompt caching).

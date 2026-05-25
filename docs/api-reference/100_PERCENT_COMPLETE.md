@@ -287,7 +287,7 @@ src/mcp-standalone/
 
 ## 🔑 Configuration
 
-**ASANA_TOKEN**: `ASANA_TOKEN_REDACTED_ROTATED`
+**ASANA_TOKEN**: `<your_asana_personal_access_token>` — get one at https://app.asana.com/0/my-apps
 
 **Server Path**: `/Users/rubenmendoza/Documents/VSCode Tests/Deploy-A/src/mcp-standalone/server.js`
 
