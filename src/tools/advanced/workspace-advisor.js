@@ -146,6 +146,61 @@ const INDUSTRY_PLAYBOOKS = {
     ],
     rules: ['create milestone review before deadlines', 'route tasks by workstream', 'flag deliverables approaching due date without owner'],
     avoid: ['auto-generating client-facing deliverables without review', 'pricing or fee estimation']
+  },
+  insurance: {
+    name: 'Insurance / Brokerage',
+    // Multilingual keywords (ES + EN). Captures insurance brokerages, MGAs,
+    // carriers with broker-side ops, and agency back-office workflows.
+    keywords: [
+      'siniestro', 'siniestros', 'póliza', 'poliza', 'asegurado', 'aseguradora', 'aseguradoras',
+      'cobertura', 'coberturas', 'ramo', 'prima', 'cotización', 'cotizacion', 'cotizaciones',
+      'renovación', 'renovacion', 'renovaciones', 'endoso', 'modificación', 'indemnización',
+      'reclamación', 'reclamacion', 'cartera', 'corredor', 'suscripción', 'suscripcion',
+      'placa', 'desistimiento', 'reaseguradora',
+      'claim', 'claims', 'policy', 'insured', 'insurer', 'carrier', 'coverage', 'premium',
+      'quote', 'quoting', 'underwriting', 'underwriter', 'renewal', 'endorsement',
+      'deductible', 'broker', 'brokerage', 'claimant', 'peril', 'binder', 'binding',
+      'loss', 'subrogation', 'reinsurance'
+    ],
+    section_patterns: [
+      'aviso', 'validación', 'validacion', 'gestión documental', 'gestion documental',
+      'trámite', 'tramite', 'aseguradora', 'indemnización', 'indemnizacion', 'cierre',
+      'oferta comercial', 'expedición', 'expedicion', 'registro', 'entrega',
+      'intake', 'fnol', 'first notice', 'investigation', 'adjudication', 'settlement',
+      'subrogation', 'underwriting', 'binder', 'issued', 'in force'
+    ],
+    field_patterns: [
+      'aseguradora', 'ramo', 'producto', 'póliza', 'poliza', 'cobertura', 'prima',
+      'valor reclamado', 'valor pagado', 'valor ajustado', 'número del siniestro',
+      'numero del siniestro', 'fecha de ocurrencia', 'fecha de aviso', 'estado de siniestro',
+      'cobertura afectada', 'desistimiento', 'documentación completa', 'documentacion completa',
+      'placa', 'nit', 'cédula', 'cedula',
+      'carrier', 'policy number', 'claim number', 'claim status', 'loss date', 'report date',
+      'peril type', 'line of business', 'lob', 'sum insured', 'paid amount', 'reserved amount'
+    ],
+    teammates: [
+      { name: 'Claims Triage / Siniestros Tracker', trigger: 'new task in "Aviso de Siniestro" / FNOL section', output: 'document checklist by line of business + draft notice to insurer + flag if report date > 5 days after loss (objection risk)', impact: 'Saves 30-45 min per claim, reduces late-notice rejections' },
+      { name: 'Cotización Drafter / Quote Drafter', trigger: 'new task in Cotizaciones / Quoting with client data filled', output: 'structured commercial proposal draft with standard coverages by line + carrier comparison frame', impact: 'Saves 1-2 hours per quote, standardizes proposal format' },
+      { name: 'Renovación Nudge / Renewal Update Writer', trigger: 'recurring task 60/30/15 days before policy expiration', output: 'renewal communication draft + suggested coverage adjustments based on year activity (claims, endorsements)', impact: 'Saves 20-30 min per renewal, increases retention via timely outreach' },
+      { name: 'Endoso Builder / Endorsement Writer', trigger: 'task in Modificaciones / Endorsements section', output: 'draft endorsement letter + required-docs checklist for the change requested', impact: 'Saves 15-20 min per endorsement' },
+      { name: 'Cartera Health Reviewer / Book of Business Monitor', trigger: 'recurring monthly task', output: 'prioritized list of at-risk accounts (upcoming expiration, payment delinquency, claim frequency) with reason + next step', impact: 'Surfaces churn risk 60+ days earlier, protects renewals' },
+      { name: 'Solicitud Intake Classifier / New Business Router', trigger: 'new task in Seguimiento de Solicitudes / New Business pipeline', output: 'classification by line of business + assignment suggestion + missing-data list to request from prospect', impact: 'Reduces intake back-and-forth by 50%, faster time-to-quote' }
+    ],
+    rules: [
+      'alert when "fecha de aviso" - "fecha de ocurrencia" > 5 days (regulatory risk)',
+      'create renewal review task 60 days before policy expiration',
+      'escalate claims with "Documentación completa = No" after 7 days idle',
+      'route new business by ramo / line of business to dedicated underwriter',
+      'flag claims with valor_reclamado > threshold for technical review',
+      'create payment-follow-up task when factura issued and not paid in 30 days'
+    ],
+    avoid: [
+      'auto-binding / auto-emitting policies (regulated activity, must stay human-approved)',
+      'direct communication with insurer APIs (each carrier API differs — needs integration, not Teammate)',
+      'generating legal advice on coverage interpretation',
+      'auto-issuing payment authorizations on claims',
+      'AI-generated reasoning that becomes part of the regulatory file without human sign-off'
+    ]
   }
 };
 
@@ -181,7 +236,7 @@ module.exports = (client) => [
 
   {
     name: 'analyze_project_ai_readiness',
-    description: 'Analyze a project for AI automation readiness. Inspects sections, tasks, custom fields, rules, and task patterns to score the project across 4 dimensions: workflow structure, context quality, automation maturity, and repeatability. Returns a readiness report with scores, detected patterns, and prioritized recommendations for AI Teammates, AI Studio rules, or process fixes. Also auto-detects which industry playbook best matches the project. This tool reads data only — it makes no changes. Related: detect_team_industry for industry matching, validate_ai_capability to check specific ideas, generate_teammate_blueprint for full specs.',
+    description: 'AI advisor: project-level diagnostic — is this project ready for an AI Teammate, AI Studio rules, or automation? Use for "check if project Activaciones is ready for an AI Teammate", "should we automate this workflow", maturity assessment per project, prioritizing where AI investment pays off. Direct action — pass project by GID; do NOT call get_project, list_workspaces, workspace_typeahead, or get_current_user first. Reads sections, tasks, custom fields, rules, task patterns → scores 4 dimensions (workflow structure, context quality, automation maturity, repeatability). Returns readiness report, detected patterns, prioritized recommendations, and best-matching industry playbook. Read-only. Related: analyze_workspace_overview (workspace-wide), detect_team_industry, validate_ai_capability, generate_teammate_blueprint.',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -407,7 +462,7 @@ module.exports = (client) => [
 
   {
     name: 'analyze_workspace_overview',
-    description: 'Get a high-level overview of workspace structure for AI planning. Lists all teams, counts projects per team, and identifies the most active projects. Use this as the starting point when analyzing a workspace for AI Teammate and automation opportunities. Returns team structure, project counts, and suggestions for which projects to analyze deeper. This tool reads data only. Related: analyze_project_ai_readiness for deep project analysis, detect_team_industry for industry matching.',
+    description: 'AI advisor: workspace-wide audit of teams, projects, and automation opportunities — use for "analyze our Asana workspace and tell me where AI Studio could save time", "where should we start with AI Teammates", "workspace health check", maturity scoring at org level. Direct action — pass workspace by GID; do NOT call list_workspaces, get_current_user, or workspace_typeahead first. Returns team structure, project counts per team, most active projects, prioritized AI/automation recommendations. This is the recommended FIRST CALL when starting any AI readiness analysis (use analyze_project_ai_readiness afterward for per-project deep dives). Read-only. Related: analyze_project_ai_readiness, detect_team_industry, assess_asana_maturity, generate_teammate_blueprint.',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -466,7 +521,7 @@ module.exports = (client) => [
 
   {
     name: 'detect_team_industry',
-    description: 'Auto-detect which industry playbook best matches a project or team based on project names, section names, custom field names, and task name patterns. Returns ranked industry matches with confidence scores and recommended AI Teammates for the top match. Available industries: executive_search, marketing, operations, product, client_services, consulting. Use this to determine the best starting playbook before generating Teammate blueprints. Related: analyze_project_ai_readiness for full readiness analysis, generate_teammate_blueprint to create specs.',
+    description: 'AI advisor: auto-detect which industry playbook fits a project/team — use for "what playbook fits this team", "what kind of work do they do", picking the right Teammate template before customization. Direct action — pass project/team by GID; do NOT call get_project or list_projects first. Reads project/section/custom-field/task name patterns. Returns ranked industries with confidence scores + recommended AI Teammates for the top match. Industries: executive_search, marketing, operations, product, client_services, consulting, insurance. Read-only. Related: analyze_project_ai_readiness (full readiness analysis), generate_teammate_blueprint (build the spec).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -554,7 +609,7 @@ module.exports = (client) => [
 
   {
     name: 'validate_ai_capability',
-    description: 'Validate whether a proposed AI Teammate behavior is feasible given current Asana AI Teammate capabilities. Takes a plain-text description of what you want the Teammate to do and checks it against known capabilities and hard limitations. Returns green flags (supported), yellow flags (supported with caveats), and red flags (not possible today) with alternatives for each blocker. Use this BEFORE building or recommending any AI Teammate to avoid wasted effort. Related: generate_teammate_blueprint to create specs for validated ideas, analyze_project_ai_readiness for project assessment.',
+    description: 'AI advisor: feasibility check — is this AI Teammate behavior actually possible today? Use for "can a Teammate do X", "is this idea realistic", capability gap analysis, scoping calls with stakeholders BEFORE you build. Direct action — pass plain-text description of the desired behavior; no GIDs needed. Returns green flags (supported), yellow flags (supported with caveats), red flags (not possible today) with alternatives for each blocker. Use BEFORE generate_teammate_blueprint to avoid wasted effort. Read-only. Related: generate_teammate_blueprint (build the spec for validated ideas), analyze_project_ai_readiness (workspace context first).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -691,7 +746,7 @@ module.exports = (client) => [
 
   {
     name: 'generate_teammate_blueprint',
-    description: 'Generate a complete, copy-paste-ready AI Teammate specification for Asana AI Studio. Produces: teammate name, behavior instructions (ready to paste into Asana), trigger configuration, scope and access requirements, key resources to attach, human review boundary, build steps, test case, and expected impact. Can generate from: (1) an industry playbook + teammate index, (2) a custom description, or (3) project analysis. The behavior instructions are structured but include [CUSTOMIZE] markers where human judgment is needed. Related: validate_ai_capability to check feasibility first, detect_team_industry to find the right playbook, analyze_project_ai_readiness for project context.',
+    description: 'AI advisor: produce a complete copy-paste-ready AI Teammate spec for Asana AI Studio — use for "generate a teammate blueprint for our recruiting team", "draft me an AI Teammate spec for client onboarding", scoping deliverable for sales/CS conversations. Direct action — pass either an industry name OR a project GID OR a custom description; do NOT call analyze_workspace_overview or detect_team_industry first unless you actually need them. Produces: teammate name, behavior instructions (paste-ready into Asana), trigger config, scope + access requirements, key resources to attach, human review boundary, build steps, test case, expected impact. Includes [CUSTOMIZE] markers where human judgment is needed. Read-only. Related: validate_ai_capability (feasibility check first), detect_team_industry (find the playbook), analyze_project_ai_readiness (project context).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',

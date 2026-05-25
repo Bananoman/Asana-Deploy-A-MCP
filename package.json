@@ -1,7 +1,7 @@
 {
   "name": "asana-mcp-server",
-  "version": "2.0.0",
-  "description": "Complete Asana API integration for Claude Desktop via MCP - 220 tools in 8 categories",
+  "version": "2.1.0",
+  "description": "Complete Asana API integration for Claude Desktop via MCP - 247 tools in 10 categories",
   "main": "src/index.js",
   "bin": {
     "asana-mcp-server": "./src/index.js"

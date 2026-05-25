@@ -82,7 +82,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_goal',
-    description: 'Create a new goal in a workspace (Business+ plan required). Goals track strategic objectives and can have metrics (number/percentage/currency) for measurable progress, time periods (FY, H1, H2, Q1-Q4) for fiscal alignment, and supporting resources. Requires workspace and name. Set is_workspace_level=true for org-wide goals, or provide team GID for team-level goals. Use time_period to align with fiscal cadences. After creation, use create_goal_metric to add progress tracking. Status values: on_track, at_risk, off_track, achieved, partial, missed, dropped. Related: update_goal, create_goal_metric to add progress tracking, add_goal_followers, add_supporting_goal_relationship to link resources.',
+    description: 'Create an OKR / strategic goal / objective — use for "create the OKR Reach 50 paying customers by Q4", quarterly planning, fiscal targets. Direct action — pass workspace by GID; do NOT call list_workspaces or get_current_user first. Set is_workspace_level=true for org-wide goals OR team GID for team-level. Optional: time_period (FY/H1/H2/Q1-Q4 fiscal alignment). Status values: on_track, at_risk, off_track, achieved, partial, missed, dropped. After creation, use create_goal_metric for numeric progress (number/percentage/currency). Business+ plan. Related: update_goal, create_goal_metric (tracking), add_goal_followers, add_supporting_goal_relationship (parent/child).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -154,7 +154,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_goal_followers',
-    description: 'Add followers to a goal (Business+ plan required). Followers receive notifications about goal status updates, metric changes, and comment activity. Pass an array of user GIDs. Adding a user who is already a follower is a no-op (safe to retry). Related: remove_goal_followers, get_goal to see current followers, list_users to find user GIDs.',
+    description: 'Subscribe people to notifications on an OKR / goal — use for "subscribe me to updates on the company OKR 1234", "follow this goal for status changes", stakeholder visibility on strategic objectives. Direct action — pass goal and users by GID; do NOT call get_goal or get_current_user first. Followers get notifications on status updates, metric changes, comments. Idempotent — re-adding is no-op. Business+ plan. Related: remove_goal_followers, get_goal (current followers), add_supporting_goal_relationship (link sub-goals).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -253,7 +253,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_supporting_goal_relationship',
-    description: 'Add a supporting resource to a goal (Business+ plan required). Links a sub-goal, project, or portfolio as a contributor to the parent goal. This creates a hierarchical relationship showing what drives progress toward achieving the goal. Relationship types: subgoal (another goal), supporting_work (project or portfolio). Optionally set contribution_weight (0-1) to control how much this resource affects parent goal progress. IMPORTANT (SALS): Requires Editor or Admin access on the goal. If you previously called remove_goal_followers on yourself, you will get 403 — add relationships BEFORE removing yourself as follower. NOTE: contribution_weight requires both parent and child goals to have compatible metrics with subgoal-based progress tracking. Related: remove_supporting_goal_relationship, list_goal_relationships, create_goal_relationship for more options.',
+    description: 'Link a sub-goal, project, or portfolio as a contributor to a parent OKR / goal — use for "make goal Hit Series A the parent of goal Reach 50 customers", building OKR hierarchies, cascading objectives, parent/child goal trees. Direct action — pass goals/resource by GID; do NOT call get_goal or list_goal_relationships first. Relationship types: subgoal (another goal), supporting_work (project or portfolio). Optional contribution_weight (0-1) controls parent-progress impact. Requires Editor/Admin access on the goal — add relationships BEFORE removing yourself as follower (or you get 403). contribution_weight needs compatible parent/child metrics + subgoal-based tracking. Business+ plan. Related: remove_supporting_goal_relationship, list_goal_relationships, create_goal_relationship (more options).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

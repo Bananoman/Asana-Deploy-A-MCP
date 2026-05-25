@@ -115,7 +115,7 @@ module.exports = (client) => [
 
   {
     name: 'add_user_to_team',
-    description: 'Add a user to a team by user GID or email address. The user must already be a member of the organization — this cannot add external users. Behavior depends on team visibility: "public" teams accept immediately, "request_to_join" teams require admin approval, "secret" teams require the caller to be a team admin. Related: remove_user_from_team to revoke membership, get_team_users to see current members, list_team_memberships for role details.',
+    description: 'Add an existing org user to a team — use for "add Ricardo to the Implementations team", department/squad assignment, granting team-scoped access. Direct action — pass team by GID and user by email OR GID; do NOT call list_teams, list_team_users, or get_team first. User must already be in the organization (use add_user_to_workspace first for external invites). Behavior by team visibility: public (immediate), request_to_join (admin approval), secret (caller must be team admin). Related: remove_user_from_team, list_team_users, add_user_to_workspace (org-level invite first).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -163,7 +163,7 @@ module.exports = (client) => [
 
   {
     name: 'create_team',
-    description: 'Create a new team within an organization. Teams can only be created in organizations (is_organization=true), not personal workspaces — use get_workspace to verify first. The authenticated user is automatically added as a member. Visibility options: "public" (anyone in org can join), "request_to_join" (requires admin approval), "secret" (invite only). Default visibility depends on organization settings. Related: list_teams to see existing teams, add_user_to_team to add members after creation.',
+    description: 'Create a team within an organization — use for "create a new team for the implementations group", spinning up a department/squad/working group. Direct action — pass organization by GID; do NOT call list_workspaces or get_workspace first. Teams require an organization workspace (is_organization=true) — personal workspaces are NOT supported and the call will error. The caller is auto-added as member. Visibility: public (anyone in org can join), request_to_join (admin approval), secret (invite only). Default depends on org settings. Related: list_teams, add_user_to_team (members), create_project (with team).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

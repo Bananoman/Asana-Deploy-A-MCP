@@ -68,7 +68,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_portfolio_custom_field_setting',
-    description: 'Add a custom field to a portfolio for tracking across portfolio items. Set is_important=true for prominent display. The field must already exist in the workspace. Business+ feature. Related: remove_portfolio_custom_field_setting, list_portfolio_custom_field_settings.',
+    description: 'Attach a custom field to a portfolio for cross-project tracking (e.g., RAG status, owner, budget per project in the portfolio) — use for "add a Status custom field to LATAM portfolio", program-level dashboards. Direct action — pass portfolio and custom_field by GID; do NOT call list_custom_fields or get_portfolio first. Field must already exist in the workspace (use create_custom_field first). is_important=true for prominent display. Business+ feature. Related: remove_portfolio_custom_field_setting, list_portfolio_custom_field_settings, create_custom_field.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

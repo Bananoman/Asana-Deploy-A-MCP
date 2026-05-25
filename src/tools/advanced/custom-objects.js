@@ -55,7 +55,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_custom_object',
-    description: 'Create a new custom object type in a workspace. Defines a new record type with its own name and field configuration. Enterprise only (beta). Related: list_custom_objects, create_custom_object_record to add records.',
+    description: 'Define a new custom object type (CRM-style entity like Vendor, Account, Asset, Contract) in a workspace — use for "create a custom object Vendor with fields name, country, NDA status", building lightweight CRM in Asana, tracking non-task entities. Direct action — pass workspace by GID; do NOT call list_workspaces or list_custom_objects first. Defines name + field configuration. Enterprise only (beta). After creation, use create_custom_object_record to add instances. Related: list_custom_objects, create_custom_object_record, update_custom_object.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -127,7 +127,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_custom_object_record',
-    description: 'Create a new record for a custom object type. Provide field values through custom_fields map (GID → value). Enterprise only (beta). Related: list_custom_object_records, get_custom_object_record.',
+    description: 'Add a new record / instance to a custom object type — use for "add a new vendor record Acme SRL to our Vendor custom object", populating CRM-style lists, registering new accounts/contracts/assets. Direct action — pass custom object by GID; do NOT call list_custom_objects or get_custom_object first. Field values via custom_fields map (field GID → value). Enterprise only (beta). Related: list_custom_object_records, get_custom_object_record, create_custom_object (define the type first).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

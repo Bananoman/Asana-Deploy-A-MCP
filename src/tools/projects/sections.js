@@ -53,7 +53,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_section',
-    description: 'Create a new section in a project. New sections are added to the end of the project by default. In board view, this creates a new column. Use insert_section afterward to reorder if needed. Section names should be unique within the project. Related: list_sections, update_section, insert_section for reordering.',
+    description: 'Create a section (board column / list group) in a project — use for "add a Done column", "create In Review section". Direct action — pass project by GID; do NOT call get_project or get_project_sections first. Added to the end of the project; use insert_section to reorder. Names should be unique per project. Related: list_sections, update_section, insert_section (reorder), add_task_to_section (move tasks here).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -106,7 +106,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_task_to_section',
-    description: 'Move a task into a specific section within its project. The task must already belong to the project containing this section. A task can only be in one section per project — moving it here removes it from its current section. Use insert_before/insert_after to control position within the section (mutually exclusive). Related: create_section, list_sections, add_task_to_project to add task to project first.',
+    description: 'Move a task into a section (board column / list group) — use for "move task X to In Review", "drop into Done column", "put this in Sprint 24 section", kanban column transitions. Direct action — pass task and section by GID; do NOT call get_task or get_project_sections first. Task must already be in the section\'s project (use add_task_to_project first if not). One section per project — moving here removes from current. Use insert_before/insert_after for position. Related: bulk_move_tasks_to_section (many tasks), create_section, list_sections, add_task_to_project.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

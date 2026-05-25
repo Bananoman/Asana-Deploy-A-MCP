@@ -56,7 +56,7 @@ module.exports = (client) => [
   },
   {
     name: 'instantiate_project_template',
-    description: 'Create a new project from a template. Copies all template structure (sections, task templates, custom fields). Returns an async Job — use get_job to poll for completion (may take minutes for complex templates). IMPORTANT: Rules and forms are NOT applied during API instantiation. Use requested_dates to set template date variables and requested_roles to assign template roles to users — these must match the template configuration (inspect with get_project_template first). Max 5 concurrent instantiation jobs per user. Premium feature. Related: get_project_template to inspect first, get_job to track progress.',
+    description: 'Create a new project from a saved template — use for "create a project from the template Plantilla Sprint Xmarts", spinning up onboarding/sprint/playbook projects from a reusable skeleton. Direct action — pass template by GID; do NOT call list_workspace_project_templates or get_project_template first if you have the template GID. Copies sections, task templates, custom fields. Rules and forms are NOT applied via API. Pass requested_dates (template date variables) and requested_roles (template roles → user GIDs) — these must match the template config (inspect with get_project_template if unsure). Async — get_job to poll (may take minutes). Max 5 concurrent jobs/user. Premium. Related: get_project_template, list_workspace_project_templates, save_project_as_template, duplicate_project (clone existing project instead).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -113,7 +113,7 @@ module.exports = (client) => [
   },
   {
     name: 'save_project_as_template',
-    description: 'Save an existing project as a reusable template. Captures the project structure: sections, task templates, and custom field settings. Returns an async Job — use get_job to poll for completion. IMPORTANT: Rules and forms are NOT included in the saved template. The original project is not modified. Premium feature. Related: get_project for project details, instantiate_project_template to use the template.',
+    description: 'Capture an existing project as a reusable template for future use — use for "save project Demo Activaciones as a reusable template for future demos", building org-wide playbooks, freezing winning project structures. Direct action — pass source project by GID; do NOT call get_project first. Captures sections, task templates, custom field settings. Rules and forms are NOT included. Original project is unchanged. Async — get_job to poll. Premium feature. Related: instantiate_project_template (use the saved template), duplicate_project (one-off clone), clone_project_structure (sections-only copy).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

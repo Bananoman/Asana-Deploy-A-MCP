@@ -59,7 +59,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_custom_field',
-    description: 'Create a new custom field in a workspace. Types: text, enum, multi_enum, number, date, people. CONSTRAINTS: Cannot create formula or custom_id fields via API (UI only). Field type cannot be changed after creation. For enum fields, provide enum_options array. For number fields, set precision (0-6), currency_code (ISO 4217), and format (none/currency/percentage). The field must be added to projects separately via add_project_custom_field_setting. Premium feature. Related: create_enum_custom_field for enum shortcut, add_project_custom_field_setting to attach to project.',
+    description: 'Create a custom field (text, number, date, single-select dropdown, multi-select, people picker) at workspace level — use for "create a custom field Effort points", "add a Priority dropdown". Direct action — pass workspace by GID; do NOT call list_workspaces or list_custom_fields first. Types: text, enum (single dropdown), multi_enum (multi-select), number, date, people. Cannot create formula or custom_id fields via API (UI only). Field type CANNOT be changed after creation. For enum/multi_enum pass enum_options array. For number set precision (0-6), currency_code (ISO 4217), format (none/currency/percentage). Field must be attached to projects separately via add_project_custom_field_setting. Premium feature. Related: create_enum_custom_field (shortcut for enum), add_project_custom_field_setting (attach to project), set_custom_field_value (set on task).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -117,7 +117,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_enum_custom_field',
-    description: 'Create an enum (dropdown) custom field with initial options. Shortcut for create_custom_field with type=enum. Max 500 options per field. Each option can have a name and optional color. Premium feature. Related: create_enum_option to add options later, create_custom_field for other field types.',
+    description: 'Create a dropdown / single-select custom field with named options — use for "create a Priority field with Low/Medium/High/Critical options", status pickers, category fields, severity scales. Direct action — pass workspace by GID; do NOT call list_workspaces or list_custom_fields first. Each option has a name and optional color. Max 500 options per field. Shortcut for create_custom_field with type=enum. Premium feature. Related: create_enum_option (add options later), create_custom_field (other types: text/number/date/people/multi-select), add_project_custom_field_setting (attach to project), set_custom_field_value (set on a task).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -149,7 +149,7 @@ module.exports = (client) => [
   },
   {
     name: 'set_custom_field_value',
-    description: 'Set a custom field value on a task. Value type depends on the field type: enum → enum_option GID (string), multi_enum → array of enum_option GIDs, text → string (max 1024 chars), number → number, date → "YYYY-MM-DD" string, people → array of user GIDs. IMPORTANT: Formula and custom_id fields are read-only and cannot be set. Use get_custom_field first to find enum_option GIDs. Set value to null to clear the field. Premium feature. Related: get_custom_field to find option GIDs, update_task for setting multiple fields at once.',
+    description: 'Set a custom field value on a task — use for "set the Priority field on task 9999 to Critical", "mark task as In Review status", "tag task with effort=5". Direct action — pass task and field by GID; do NOT call get_task or get_custom_field first if you have the IDs. Value type matches field type: enum → enum_option GID, multi_enum → array of enum_option GIDs, text → string (max 1024), number, date → "YYYY-MM-DD", people → array of user GIDs. Formula and custom_id fields are read-only. Pass value=null to clear. For enum options, get_custom_field returns option GIDs (cache them). Premium feature. Related: get_custom_field, update_task (set many fields at once), list_custom_fields.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

@@ -26,7 +26,7 @@
 module.exports = (client) => [
   {
     name: 'list_workspaces',
-    description: 'List all workspaces and organizations the authenticated user has access to. Returns both personal workspaces and organization workspaces with paginated results (default 20, max 100). Each result includes the is_organization flag to distinguish workspace types — true means it is an organization (supports teams, org-level features). Use this as a starting point to discover available workspaces before performing other operations. Use opt_fields to request additional fields like email_domains. Related: get_workspace for full details on a specific workspace, get_current_user for the authenticated user profile.',
+    description: 'List all workspaces the authenticated user can access. Use ONLY when the user explicitly asks to see/choose a workspace, OR when an upstream tool fails with "workspace required" and you have no contextual workspace_gid. Do NOT call as a routine pre-step before create/update/bulk/search tools — those resolve workspace context automatically from project/team. Returns is_organization flag per result (true = supports teams/org features). Paginated (default 20, max 100). Related: get_workspace (full details), get_current_user (auth profile).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -105,7 +105,7 @@ module.exports = (client) => [
 
   {
     name: 'add_user_to_workspace',
-    description: 'Add an existing Asana user to a workspace or organization, or invite a new user by email. Specify the user by GID (existing user) or email address (sends invitation if not yet on Asana). This does NOT create a new Asana account — the user must accept the invitation and create their own. Requires admin permissions on the workspace. For organizations, the user gains access to org-level features. Related: remove_user_from_workspace to revoke access, list_users_workspace to see current members, add_user_to_team for team-level access.',
+    description: 'Invite a user to a workspace, or add an existing Asana user — use for "invite ruben@example.com to the Xmarts workspace", onboarding new team members, partner access. Direct action — pass workspace by GID and user by email OR GID; do NOT call list_workspaces, list_users_workspace, or get_current_user first. Email triggers an invitation; GID adds an existing Asana user. Does NOT create an Asana account — invitee accepts via email and creates their own. Requires workspace admin permissions. In organizations, user gains org-level access — prefer add_user_to_team for team-scoped access only. Related: remove_user_from_workspace, list_users_workspace, add_user_to_team.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

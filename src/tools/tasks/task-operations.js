@@ -35,7 +35,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_task_dependents',
-    description: 'Add tasks as dependents of this task (those tasks will be blocked until this task is completed). Max 30 combined dependencies + dependents per task. Dependencies can cross projects. Circular dependencies are rejected by the API. NOTE: Approval tasks have known bugs with dependency resolution. Related: remove_task_dependents, add_task_dependencies for reverse direction.',
+    description: 'Mark other tasks as blocked-by this task (downstream tasks waiting on this one) — use for "make tasks 200 and 250 depend on task 100", reverse direction of add_task_dependencies. Direct action — pass task and dependent GIDs; do NOT call get_task first. Max 30 combined dependencies + dependents per task. Cross-project allowed. Circular deps rejected. Approval tasks have known bugs. Related: add_task_dependencies (this task is blocked by others), remove_task_dependents.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -96,7 +96,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_task_tag',
-    description: 'Add a tag to a task. Tags provide cross-project categorization and are workspace-scoped. The tag must already exist — use create_tag first if needed. Adding a tag that is already on the task is a no-op (no error). Related: remove_task_tag, get_task_tags, create_tag, list_workspace_tags to find existing tags.',
+    description: 'Apply a tag / label to a task — use for "tag task X as urgent", "label this as blocker", workspace-wide categorization. Direct action — pass task and tag by GID; do NOT call get_task or list_workspace_tags first. Tag must already exist (use create_tag first if needed). Tags are workspace-scoped (cross-project). Idempotent — adding an existing tag is a no-op. Related: remove_task_tag, bulk_add_task_tags (many tasks), create_tag (new tag), get_task_tags.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -130,7 +130,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_task_followers',
-    description: 'Add followers to a task. Followers receive inbox notifications about task changes (comments, completion, assignee changes, due date changes, etc.). Adding a user who is already a follower is a no-op. Users can only be added as followers if they have access to the task workspace. Related: remove_task_followers, add_task_comment to post a comment that notifies followers.',
+    description: 'Subscribe people to notifications on a task — use for "add Carlos as follower on task 3001", "subscribe stakeholders to this task", broadcasting visibility. Direct action — pass task and users by GID; do NOT call get_task or get_current_user first. Followers get inbox notifications on comments, completion, assignee/due-date changes. Users must have access to the task workspace. Idempotent — re-adding is a no-op. Related: remove_task_followers, bulk_add_task_followers (many tasks), add_task_comment (post + notify).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

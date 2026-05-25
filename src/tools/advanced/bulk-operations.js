@@ -121,7 +121,7 @@ async function executeBulkOperation(items, operation, options = {}) {
 module.exports = (client) => [
   {
     name: 'bulk_create_tasks',
-    description: 'Create multiple tasks in batch with per-item error tracking. Tasks are created sequentially (not in parallel). Each creation counts toward rate limits. Returns aggregated success/failure counts and per-item details. Use stopOnError=true to abort on first failure. Related: create_task for single tasks, batch_api for parallel API calls.',
+    description: 'Create many tasks at once from a list — use for "create 25 onboarding tasks in project New Hires from this list", scaffolding multiple tasks from a brief/CSV/template, bulk task seeding. Direct action — pass project by GID and tasks array; do NOT call get_project or list_workspaces first. Sequential (each counts toward rate limit). Per-item error tracking; stopOnError=true to abort on first failure (default: continue). Returns aggregated counts + per-item details. Max 50 tasks per call. Related: create_task (single), bulk_update_tasks, batch_api (parallel arbitrary calls).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -160,7 +160,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_update_tasks',
-    description: 'Update multiple tasks in batch. Each update specifies a task_gid and data object with fields to change. Sequential execution with per-item error tracking. Related: update_task for single updates, bulk_assign_tasks, bulk_complete_tasks for specific update patterns.',
+    description: 'Update many tasks at once with arbitrary field changes — use for "rename these 20 tasks", "set all these tasks to high priority", batch arbitrary edits not covered by bulk_assign / bulk_complete / bulk_set_due_dates. Direct action — pass tasks array of {task_gid, data}; do NOT call get_task on each first. Sequential with per-item error tracking. Max 50 tasks. Related: update_task (single), bulk_assign_tasks (assignee), bulk_complete_tasks (completion), bulk_set_task_due_dates (dates).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -196,7 +196,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_add_task_followers',
-    description: 'Add the same set of followers to multiple tasks. Followers receive notifications about task changes. Sequential processing with per-task results. Related: add_task_followers for single task, bulk_add_task_tags.',
+    description: 'Subscribe the same people to notifications on many tasks at once — use for "add Carlos as follower to these 15 tasks", broadcasting visibility to stakeholders across a batch. Direct action — pass tasks array and users by GID. Followers get notifications on task changes. Sequential with per-task results. Max 50 tasks. Related: add_task_followers (single task), bulk_add_task_tags, remove_task_followers.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -226,7 +226,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_add_task_tags',
-    description: 'Add the same tag to multiple tasks. Useful for batch categorization or sprint labeling. The tag must already exist. Sequential processing with per-task results. Related: add_task_tag for single task, create_tag to create tags first, bulk_add_task_followers.',
+    description: 'Apply the same tag / label to many tasks at once — use for "tag all these tasks as urgent", batch categorization, sprint labeling, status tagging. Direct action — pass tasks and tag by GID. Tag must already exist (use create_tag first if needed). Sequential with per-task results. Max 50 tasks. Related: add_task_tag (single task), create_tag (new tag), remove_task_tag, list_workspace_tags.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -250,7 +250,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_move_tasks_to_section',
-    description: 'Move multiple tasks to the same section. Useful for batch board column changes (e.g., moving sprint tasks to "Done"). Tasks must already be in the project containing the section. Sequential processing. Related: add_task_to_section for single task, bulk_assign_tasks.',
+    description: 'Move many tasks into a single section (board column / list group) in one call — use for "move all backlog tasks of project 4040 into Sprint 24 section", "drop these tasks into Done column", board column shuffles, sprint-end cleanup. Direct action — pass tasks and section by GID; do NOT call get_project_sections or list_tasks first. Tasks must already be in the section\'s project. Sequential. Max 50 tasks. Related: add_task_to_section (single task), bulk_assign_tasks.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -276,7 +276,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_assign_tasks',
-    description: 'Assign multiple tasks to the same user. Useful for workload redistribution or sprint planning. Overwrites existing assignees. Sequential processing with per-task results. Related: update_task for single assignment, bulk_update_tasks for arbitrary updates.',
+    description: 'Bulk-reassign / batch-assign many tasks to one person at once — use for "assign these 12 tasks to Carlos", workload redistribution, sprint planning rebalance, handoff between teammates. Direct action — pass tasks and assignee by GID. Overwrites existing assignees (use update_task per-task if you need conditional logic). Sequential with per-task error tracking. Max 50 tasks. Related: update_task (single), bulk_update_tasks (arbitrary edits).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -300,7 +300,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_set_task_due_dates',
-    description: 'Set the same due date on multiple tasks. Useful for sprint deadline alignment or milestone coordination. Date format: YYYY-MM-DD. Overwrites existing due dates. Sequential processing. Related: update_task for single date change, bulk_update_tasks.',
+    description: 'Set / push / align the due date on many tasks in one call — use for "set the due date to next Friday for the 30 tasks I pasted", sprint deadline alignment, milestone coordination, deadline slip propagation, batch deferral. Direct action — pass tasks by GID and due_on (YYYY-MM-DD). Overwrites existing due dates. Sequential. Max 50 tasks. Related: update_task (single date change), bulk_update_tasks (arbitrary edits).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -324,7 +324,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_complete_tasks',
-    description: 'Mark multiple tasks as completed. Useful for closing out sprints, archiving done work, or batch status updates. Completion triggers notifications to task followers. Sequential processing with per-task results. Related: update_task for single completion, archive_completed_tasks to remove completed tasks from projects.',
+    description: 'Mark a batch of tasks complete in one call — use for "mark all tasks in section X complete", "close out the sprint", end-of-week task cleanup, finishing a milestone. Direct action — pass tasks by GID; do NOT call list_tasks or get_task first. Triggers follower notifications. Sequential with per-task results. Max 50 tasks. Related: update_task (single completion), archive_completed_tasks (remove from project view), bulk_delete_tasks (destructive).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -347,7 +347,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_delete_tasks',
-    description: 'Permanently delete multiple tasks. DESTRUCTIVE: Cannot be undone. Deleted tasks are removed from all projects; subtasks become top-level tasks. Use stopOnError=true for safety. Consider bulk_complete_tasks instead if tasks should be preserved. Sequential processing. Related: delete_task for single deletion, archive_completed_tasks for non-destructive cleanup.',
+    description: 'Permanently delete a batch of tasks — use for "delete these 50 stale tasks from the inbox cleanup", "purge the test data", removing obsolete work. DESTRUCTIVE: cannot be undone. Consider bulk_complete_tasks or archive_completed_tasks first if tasks should be preserved. Direct action — pass tasks by GID. Subtasks become top-level after deletion. stopOnError=true recommended for safety. Sequential. Max 50 tasks. Related: delete_task (single), bulk_complete_tasks (soft-close), archive_completed_tasks (non-destructive cleanup).',
     annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',
@@ -376,7 +376,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_add_project_members',
-    description: 'Add the same set of members to multiple projects. Members get edit access to each project. Useful for onboarding users to multiple projects at once. Sequential processing with per-project results. Related: add_project_members for single project, bulk_add_task_followers.',
+    description: 'Add the same people to many projects at once — use for "onboard these 3 new hires to all current sprint projects", granting team-wide visibility, batch project access. Direct action — pass projects and users by GID. Members get edit access per project. Sequential with per-project results. Max 50 projects. Related: add_project_members (single project), bulk_add_task_followers (task-level visibility).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

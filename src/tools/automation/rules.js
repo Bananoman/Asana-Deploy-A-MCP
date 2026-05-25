@@ -65,7 +65,7 @@ module.exports = (client) => [
 
   {
     name: 'create_rule',
-    description: 'Create a new automation rule in a project. Each rule has ONE trigger + ONE action (API limitation). Rules only fire on UI-initiated changes, not API changes. Cannot create AI-powered rules or conditional/branching logic via API. Trigger types: task_added_to_project, task_moved_to_section (requires section GID), task_completed, task_uncompleted, custom_field_changed (requires field GID), due_date_approaching, assignee_changed, attachment_added. Action types: assign_task (user GID), add_follower (user GID), set_custom_field (field GID + value), add_tag (tag GID), move_to_section (section GID), add_comment (text), complete_task, uncomplete_task, set_due_date, clear_due_date. Related: list_project_rules to see existing rules, setup_kanban_workflow or setup_sprint_workflow for pre-built templates.',
+    description: 'Create an automation rule in a project — use for "when a task is moved to Done auto-assign the QA lead", "auto-tag when added to project", due-date alerts. Direct action — pass project by GID; do NOT call list_project_rules or get_project first. ONE trigger + ONE action per rule (API limitation). Rules fire only on UI-initiated changes, NOT API changes. Cannot create AI-powered or branching/conditional rules via API. Triggers: task_added_to_project, task_moved_to_section (needs section GID), task_completed, task_uncompleted, custom_field_changed (needs field GID), due_date_approaching, assignee_changed, attachment_added. Actions: assign_task, add_follower, set_custom_field, add_tag, move_to_section, add_comment, complete_task, uncomplete_task, set_due_date, clear_due_date. Related: list_project_rules, trigger_rule (manual fire), setup_kanban_workflow / setup_sprint_workflow (pre-built templates), audit_project_rules.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -173,7 +173,7 @@ module.exports = (client) => [
 
   {
     name: 'trigger_rule',
-    description: 'Manually trigger a rule against a specific resource (typically a task). Executes the rule action immediately, regardless of whether the trigger condition is met. Useful for testing rules, applying rules retroactively to existing tasks, or one-off automation. The resource must be in the same project as the rule. This is the only way to make a rule fire from the API, since rules do not fire on API-initiated changes automatically. Related: get_rule to inspect what the rule does before triggering.',
+    description: 'Manually fire a rule against a task or resource — use for "fire rule 9090 manually for testing", retroactive rule application to existing tasks, one-off automation runs. Direct action — pass rule and resource by GID; do NOT call get_rule first. Executes the action immediately whether or not the trigger condition is met. Resource must be in the same project as the rule. This is the ONLY way to fire a rule from the API, since rules do not auto-fire on API-initiated changes. Related: get_rule (inspect action), create_rule, audit_project_rules.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

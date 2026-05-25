@@ -59,7 +59,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_status_update',
-    description: 'Create a new status update on a project, portfolio, or goal. Status updates communicate progress to stakeholders and appear in the parent resource timeline. Status types for projects: on_track, at_risk, off_track, on_hold, complete. Status types for goals: on_track, at_risk, off_track, achieved, partial, missed, dropped. CRITICAL: status updates CANNOT be modified after creation — double-check text and status_type before posting. Supports html_text for rich formatting (must be wrapped in <body> tags). If both text and html_text are provided, html_text takes precedence. Related: list_project_status_updates or list_portfolio_status_updates to see history, get_status_update for full details.',
+    description: 'Post a weekly / periodic status update on a project, portfolio, or OKR — use for "post the weekly status update for project Itaipú: on track, no blockers", stakeholder communication, exec reporting. Direct action — pass parent resource by GID; do NOT call get_project or list_project_status_updates first. Status types for projects: on_track, at_risk, off_track, on_hold, complete. For goals: on_track, at_risk, off_track, achieved, partial, missed, dropped. CRITICAL: status updates CANNOT be modified after creation — double-check text + status_type before posting. Supports html_text (wrapped in <body>); html_text wins over text if both provided. Related: list_project_status_updates / list_portfolio_status_updates (history), get_status_update.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

@@ -15,7 +15,7 @@
 module.exports = (client) => [
   {
     name: 'add_project_custom_field_setting',
-    description: 'Add a custom field to a project, making it available on all tasks in that project. Set is_important=true to display the field prominently in task list view. The custom field must already exist in the workspace — use create_custom_field first. Premium feature. Adding a field already on the project is a no-op. Related: remove_project_custom_field_setting, list_project_custom_field_settings, create_custom_field.',
+    description: 'Attach an existing custom field to a project (makes the field available on all tasks in that project) — use for "add my custom field Effort points to project Backlog 2026", exposing workspace fields on a specific project, configuring sprint metrics per project. Direct action — pass project and custom_field by GID; do NOT call list_custom_fields or workspace_typeahead first. Field must already exist in the workspace (use create_custom_field or create_enum_custom_field first). Set is_important=true to show prominently in task list view. Idempotent — re-adding is a no-op. Premium feature. Related: remove_project_custom_field_setting, list_project_custom_field_settings, set_custom_field_value (set on a task).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -50,7 +50,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_project_followers',
-    description: 'Add followers to a project. Followers receive inbox notifications about project status updates, milestones, and comments. Followers are different from members: followers get notifications but do not necessarily have edit access. Adding a user who is already a follower is a no-op. Related: remove_project_followers, add_project_members for edit access.',
+    description: 'Subscribe people to notifications on a project — use for "follow project X for status updates", "subscribe stakeholders to milestone alerts". Direct action — pass project and users by GID; do NOT call get_project or list_users first. Followers get inbox notifications on status updates, milestones, comments. Different from members: followers get notifications, members get edit access. Idempotent — re-adding is a no-op. Related: remove_project_followers, add_project_members (edit access), create_status_update.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -84,7 +84,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_project_members',
-    description: 'Add members to a project with edit access. Members can create, edit, and delete tasks in the project. Members are automatically added as followers too. Different from followers — members have full edit access while followers only receive notifications. The access level granted depends on the project default_access_level setting. Related: remove_project_members, add_project_followers for notification-only access, list_project_memberships.',
+    description: 'Give people edit access to a project — use for "add Ricardo and María as members of project 1234", onboarding teammates to a project, granting collaborators full task CRUD. Direct action — pass project and users by GID; do NOT call get_project, list_users, or get_current_user first. Members can create/edit/delete tasks; auto-added as followers too. Different from followers (notifications-only). Access level depends on project default_access_level. Related: remove_project_members, add_project_followers (notification-only), bulk_add_project_members (many projects).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',

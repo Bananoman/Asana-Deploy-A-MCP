@@ -26,7 +26,7 @@
 module.exports = (client) => [
   {
     name: 'get_current_user',
-    description: 'Get profile information for the currently authenticated user. Shortcut for get_user with user_gid="me". Returns name, email, workspaces list, and photo URLs. Useful as a first call to discover which workspaces are available and to get the current user GID for subsequent API calls. Photo URLs are returned in multiple sizes: 21x21, 27x27, 36x36, 60x60, 128x128. Related: get_user for other users\' profiles, list_workspaces for full workspace details.',
+    description: 'Get profile of the currently authenticated user. Returns name, email, workspaces, photo URLs. Use ONLY when the user explicitly asks "who am I", needs the current user GID/email, or you must report identity. Do NOT call before create/update/search/bulk tools — those resolve identity server-side automatically. Shortcut for get_user with user_gid="me". Related: get_user (other profiles), list_workspaces (workspace catalog).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',

@@ -47,7 +47,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_tag',
-    description: 'Create a new tag in a workspace. Tags are workspace-scoped labels that can be applied to tasks across any project in the workspace. Check list_workspace_tags first to avoid creating duplicates — there is no uniqueness constraint on tag names. Color options (18 + none): "dark-pink", "dark-green", "dark-blue", "dark-red", "dark-teal", "dark-brown", "dark-orange", "dark-purple", "dark-warm-gray", "light-pink", "light-green", "light-blue", "light-red", "light-teal", "light-brown", "light-orange", "light-purple", "light-warm-gray", "none". Related: add_task_tag to apply to tasks after creation, list_workspace_tags to see existing tags.',
+    description: 'Create a workspace-scoped tag / label that can be applied to tasks across any project — use for "create an urgent tag", "add a #blocker label". Direct action — pass workspace by GID; do NOT call list_workspaces or list_workspace_tags first (no uniqueness constraint on tag names, but check duplicates if you care). Color options (18 + none): dark-pink, dark-green, dark-blue, dark-red, dark-teal, dark-brown, dark-orange, dark-purple, dark-warm-gray, light-pink, light-green, light-blue, light-red, light-teal, light-brown, light-orange, light-purple, light-warm-gray, none. Related: add_task_tag (apply to tasks), list_workspace_tags (browse existing), bulk_add_task_tags.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

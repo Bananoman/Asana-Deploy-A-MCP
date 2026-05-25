@@ -15,7 +15,7 @@
 module.exports = (client) => [
   {
     name: 'workspace_typeahead',
-    description: 'Fast autocomplete search across workspace resources by name. Fuzzy-matched results for quick lookup by partial name. Supports: task, project, user, portfolio, tag, custom_field resource types. Returns ~20 results by default (max 100 via count parameter). IMPORTANT: Searches name only — does not search descriptions, custom fields, or task content. Much faster than search_tasks but with limited filtering. Use search_tasks for advanced filtering (by assignee, dates, custom fields, etc.). Related: search_tasks for advanced filtering, list_projects/list_tasks for full listings.',
+    description: 'Resolve a partial name → GID via fast fuzzy autocomplete. Use ONLY when (a) the user is interactively browsing/searching by partial name, or (b) an upstream tool errored with "not found" and you must disambiguate. Do NOT call as a pre-step before create/update/bulk/search tools — those accept names directly and resolve them server-side. Supports task/project/user/portfolio/tag/custom_field. Searches name only (not descriptions or custom fields). Returns ~20 (max 100). Related: search_tasks (advanced filters), list_projects/list_tasks (full listings).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',

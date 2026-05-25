@@ -71,7 +71,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_project',
-    description: 'Create a new project in a workspace or team. Either workspace or team is required — in organizations, team is recommended. CONSTRAINTS: Layout (list/board/timeline/calendar) is set at creation and CANNOT be changed afterward. start_on and due_on cannot be the same date. due_on must be set if setting start_on. Privacy options: public_to_workspace, private_to_team, private. 18 color options available (dark-pink through light-warm-gray, or none). html_notes must be wrapped in <body> tags. Cannot create forms, charts, or custom views via API — use Asana UI. Related: update_project, create_section to add sections, add_project_members to add team access.',
+    description: 'Create a project. Direct action — do NOT call get_current_user, list_workspaces, or list_teams first. Pass workspace OR team (team recommended in organizations). Layout (list/board/timeline/calendar) is set on creation and CANNOT be changed later — pick consciously. Use create_project_with_structure if you also want sections in one call. Constraints: start_on and due_on cannot be the same date; due_on required if start_on set; privacy = public_to_workspace / private_to_team / private; 18 colors (dark-pink…light-warm-gray, or none); html_notes wrapped in <body>; forms/charts/custom views are UI-only. Related: update_project (archive via archived=true), create_section, add_project_members.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -105,7 +105,7 @@ module.exports = (client) => [
   },
   {
     name: 'update_project',
-    description: 'Update an existing project. Only provided fields are changed — omitted fields remain unchanged. CONSTRAINTS: Layout cannot be changed after creation. start_on cannot be set without due_on. start_on and due_on cannot be the same date. Set archived=true to archive (hides from default views but preserves all data). Set owner to null to remove owner. Related: get_project to see current state, delete_project for permanent removal.',
+    description: 'Update or archive a project (rename, change dates, switch color, transfer owner, archive). Direct action — do NOT call get_project first; only the fields you pass change. Use for "archive project X" (pass archived=true — non-destructive, hides from default views, preserves data), rename, owner transfer (owner=null removes). Constraints: layout cannot change after creation; start_on requires due_on; start_on ≠ due_on. Related: get_project (current state), delete_project (permanent — prefer archive), bulk_update_tasks (project-scoped task edits).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -147,7 +147,7 @@ module.exports = (client) => [
   },
   {
     name: 'duplicate_project',
-    description: 'Create a copy of an existing project. Returns an async Job — use get_job to poll for completion (may take minutes for large projects). Select what to include via the include array: task_notes, task_assignee, task_subtasks, task_attachments, task_tags, task_followers, task_projects, task_dates, task_dependencies. IMPORTANT: Rules and forms are NOT duplicated. Use schedule_dates to shift all task dates relative to a new start/due date; set should_skip_weekends=true to avoid weekend dates. Max 5 concurrent duplication jobs per user. Related: create_project for blank projects, get_job to track progress, instantiate_project_template for template-based creation.',
+    description: 'Clone / duplicate an entire project (including tasks). Direct action — pass source project GID; do NOT call get_project first. Choose what to copy via include: task_notes, task_assignee, task_subtasks, task_attachments, task_tags, task_followers, task_projects, task_dates, task_dependencies. Use schedule_dates to shift all dates relative to a new start/due; should_skip_weekends=true skips weekends. Rules and forms are NOT duplicated. Async — get_job to poll (minutes for large projects). Max 5 concurrent duplication jobs/user. Related: create_project (blank), clone_project_structure (sections only, no tasks), instantiate_project_template (from template).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -182,7 +182,7 @@ module.exports = (client) => [
   },
   {
     name: 'get_project_sections',
-    description: 'List all sections in a project, in order. Sections organize tasks into groups — they appear as columns in board view or headers in list view. Every project has at least one default section ("Untitled section"). Returns max 100 per page. Related: create_section to add sections, get_section for details, list_tasks with section filter.',
+    description: 'List all sections (board columns / list groups) in a project, in order. Use ONLY when the user asks to see/list sections, OR when an upstream tool errored on an unknown section. Do NOT call as a pre-step before add_task_to_section, bulk_move_tasks_to_section, or create_section — those accept section names directly. Every project has at least one default section ("Untitled section"). Max 100 per page. Related: create_section, get_section, list_tasks (with section filter).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',

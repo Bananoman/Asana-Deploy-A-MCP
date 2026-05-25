@@ -20,7 +20,7 @@
 module.exports = (client) => [
   {
     name: 'create_project_with_structure',
-    description: 'Create a project with pre-defined sections in one operation. Creates the project first, then adds sections sequentially. More convenient than separate create_project + create_section calls. Each API call counts toward rate limits. In organizations, provide team GID. Related: create_project for project-only, create_section for individual sections, setup_project_workflow for predefined templates.',
+    description: 'Create a project AND its sections in one call — use when the user names a project plus sections/columns ("create project Edenred Onboarding as a board with sections Discovery, Build, UAT, Live"). Direct action — do NOT call get_current_user, list_workspaces, or list_teams first. Pass workspace by GID (team optional but recommended in organizations). Creates project then sections sequentially. Related: create_project (no sections), create_section (add to existing), setup_project_workflow (predefined templates: scrum/kanban/standard), clone_project_structure (copy sections from existing).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -62,7 +62,7 @@ module.exports = (client) => [
   },
   {
     name: 'clone_project_structure',
-    description: 'Clone a project structure (sections only) to a new project. Creates a new project and copies all section names from the source project. Does NOT clone tasks — use duplicate_project for full cloning including tasks. Optionally provide team GID or it inherits from source project. Related: duplicate_project for full clone with tasks, create_project_with_structure for custom sections.',
+    description: 'Reuse a project skeleton — clone sections (and optionally tasks) from a source project into a new project. Use for "clone the structure of project X into a fresh project for the next client", template-from-existing patterns. Direct action — pass source project GID; do NOT call get_project first. Team is inherited from source if omitted. clone_tasks=true also copies tasks. Related: duplicate_project (full async clone with all task details), create_project_with_structure (specify sections directly), instantiate_project_template (from saved template).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

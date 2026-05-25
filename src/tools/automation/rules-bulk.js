@@ -23,7 +23,7 @@
 module.exports = (client) => [
   {
     name: 'bulk_create_rules',
-    description: 'Create multiple automation rules in a project in one call. Each rule object needs name, trigger (object with type and optional config), and action (object with type and optional config). Rules are created sequentially — each counts as a separate API call toward rate limits. Partial failures are possible: use stop_on_error to halt on first failure or let remaining rules continue. Returns a summary with created rules and any errors. Each rule has ONE trigger + ONE action (API limitation). Related: create_rule for single rule creation with guided parameters, setup_kanban_workflow or setup_sprint_workflow for pre-built templates.',
+    description: 'Set up many automation rules in a project at once — use for "seed the standard rule pack on this project", scaffolding kanban/sprint automation, replicating rule sets across projects. Direct action — pass project and rules array; do NOT call list_project_rules or get_project first. Each rule: {name, trigger:{type,...}, action:{type,...}}. ONE trigger + ONE action per rule (API limitation). Sequential; stop_on_error=true to halt on first failure (default: continue). Related: create_rule (single rule, guided params), setup_kanban_workflow / setup_sprint_workflow (pre-built templates), audit_project_rules.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -69,7 +69,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_enable_rules',
-    description: 'Enable multiple rules at once by providing an array of rule GIDs. Enabled rules will start firing when their trigger conditions are met (UI-initiated changes only, not API changes). Rules are processed sequentially — each counts toward rate limits. Partial failures possible: failures do not stop remaining rules. Related: bulk_disable_rules to disable, enable_all_project_rules to enable every rule in a project.',
+    description: 'Re-enable / turn on many rules at once by passing rule GIDs — use for "re-enable the rules we paused last sprint", post-freeze restoration, restarting automations after maintenance. Direct action — pass rule_gids array; do NOT call list_project_rules first. Enabled rules start firing on UI-initiated changes (not API). Sequential; failures do NOT stop remaining. Related: bulk_disable_rules (pause), enable_all_project_rules (entire project at once), create_rule.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -103,7 +103,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_disable_rules',
-    description: 'Disable multiple rules at once by providing an array of rule GIDs. Disabled rules retain their configuration but stop firing. Rules are processed sequentially — each counts toward rate limits. Partial failures possible: failures do not stop remaining rules. Prefer this over bulk_delete_rules when you may need to re-enable later. Related: bulk_enable_rules to re-enable, disable_all_project_rules to disable every rule in a project.',
+    description: 'Pause / turn off many rules at once by passing rule GIDs — use for "freeze automation while we debug", pre-migration pause, temporarily silencing rules. Direct action — pass rule_gids array; do NOT call list_project_rules first. Disabled rules retain config but stop firing. Sequential; failures do NOT stop remaining. Prefer this over bulk_delete_rules when you may need to re-enable later. Related: bulk_enable_rules (resume), disable_all_project_rules (entire project at once — use that for "disable every rule in project X"), bulk_delete_rules (permanent).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -137,7 +137,7 @@ module.exports = (client) => [
 
   {
     name: 'bulk_delete_rules',
-    description: 'Permanently delete multiple rules at once. This action cannot be undone. Requires confirm=true as a safety check. Rules are deleted sequentially — each counts toward rate limits. Partial failures possible: failures do not stop remaining deletions. Consider using bulk_disable_rules first if you may need to restore rules later, since deletion is irreversible. Related: bulk_disable_rules to disable without deleting, audit_project_rules to review rules before deleting.',
+    description: 'Permanently delete many rules at once — use for "clean up the old test rules", removing obsolete automation. DESTRUCTIVE: cannot be undone. Consider bulk_disable_rules first if you may need to restore later. Direct action — pass rule_gids array; requires confirm=true safety check. Sequential; failures do NOT stop remaining. Related: bulk_disable_rules (reversible), audit_project_rules (review before deleting), delete_rule (single).',
     annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',

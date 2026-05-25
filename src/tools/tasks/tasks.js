@@ -78,7 +78,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_task',
-    description: 'Create a new task in a workspace/project. Supports full task configuration: assignee, dates, custom fields, subtypes (milestone, approval), rich text via html_notes, and more. Either workspace or at least one project GID is required. CONSTRAINTS: Milestones cannot have start_on/start_at. html_notes must be wrapped in <body> tags; supported tags: strong, em, u, s, code, ol, ul, li, a, blockquote. For enum custom fields, use the enum_option GID as value (not the option name). Formula and custom_id fields are read-only and cannot be set. Date formats: YYYY-MM-DD for due_on/start_on, ISO 8601 for due_at/start_at (due_on and due_at are mutually exclusive). For subtasks, use create_subtask instead. Related: update_task, add_task_to_project, add_task_to_section, set_custom_field_value.',
+    description: 'Create a task. Direct action — do NOT call get_current_user, list_workspaces, or workspace_typeahead first; this tool resolves project/workspace/assignee context from the args you pass. Supports assignee, due/start dates, custom fields, subtypes (milestone, approval), rich text html_notes. Pass either workspace GID OR at least one project GID. For subtasks use create_subtask. Constraints: milestones have no start_on/start_at; html_notes wrapped in <body>, allowed tags strong/em/u/s/code/ol/ul/li/a/blockquote; enum custom fields take enum_option GID (use set_custom_field_value if you only have the option label); formula/custom_id fields are read-only; due_on (YYYY-MM-DD) and due_at (ISO 8601) mutually exclusive. Related: update_task, add_task_to_project, add_task_to_section, set_custom_field_value, bulk_create_tasks (many at once).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -115,7 +115,7 @@ module.exports = (client) => [
   },
   {
     name: 'update_task',
-    description: 'Update an existing task. Only the provided fields are changed — omitted fields remain unchanged. Supports modifying any task field: name, assignee, dates, completion status, custom fields, rich text notes, and more. CONSTRAINTS: Cannot change resource_subtype to milestone if task has start_on set. Formula and custom_id custom fields are read-only. Setting assignee to null unassigns the task. Setting due_on/start_on to null clears the date. NOTE: modified_at timestamp does NOT update when tasks are moved between projects/sections or when comments are added. Related: get_task to see current state, create_task for new tasks, set_custom_field_value for custom field-only updates.',
+    description: 'Update an existing task (rename, reassign, change dates, mark complete, set notes, change custom fields). Direct action — do NOT call get_task or get_current_user first; only the fields you pass are changed, omitted fields stay. Use for "mark task X complete", "push due date to Friday", "reassign to Carlos", "archive this task" (pass completed=true or archived=true). Constraints: cannot change resource_subtype to milestone if start_on is set; formula/custom_id custom fields are read-only; assignee=null unassigns; due_on/start_on=null clears the date. modified_at does NOT update on project/section moves or comments. Related: get_task (current state), create_task (new), set_custom_field_value (custom-field-only edits), bulk_update_tasks (many).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -180,7 +180,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_subtask',
-    description: 'Create a subtask under a parent task. Supports all task fields (assignee, dates, custom fields, etc.). IMPORTANT: Subtasks do NOT automatically inherit the parent project — use add_task_to_project separately if needed. Max nesting depth: 5 levels. Subtask nesting beyond 5 levels will fail silently. Related: get_task_subtasks, set_task_parent to move existing tasks under a parent.',
+    description: 'Create a subtask under a parent task — use to break down work ("split task X into 4 subtasks: design, copy, dev, QA", "add a child task to Y"). Direct action — pass parent task by GID; do NOT call get_task first. Supports all task fields (assignee, dates, custom fields, notes). Subtasks do NOT auto-inherit parent project — call add_task_to_project separately if needed. Max 5 levels deep (beyond fails silently). Related: get_task_subtasks (list children), set_task_parent (move existing task under a parent), create_task (top-level).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -212,7 +212,7 @@ module.exports = (client) => [
   // ===== Task-Project Relationships =====
   {
     name: 'add_task_to_project',
-    description: 'Add a task to a project (multi-homing). A task can belong to multiple projects simultaneously. Optionally specify a section, or position relative to other tasks using insert_before/insert_after (mutually exclusive). If no section is specified, the task is added to the project default section. Related: remove_task_from_project, add_task_to_section for section-only moves within same project.',
+    description: 'Relate an existing task to an additional project (multi-homing) — use for "also add task X to the Marketing project", "share this task with the QA backlog". Direct action — pass task and project by GID; do NOT call get_task or get_project first. Tasks can belong to many projects at once. Optional: section, insert_before/insert_after (mutually exclusive). No section → goes to project default section. Use create_task to make a NEW task in a project. Related: remove_task_from_project, add_task_to_section (move within same project).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -270,7 +270,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_task_dependencies',
-    description: 'Set tasks that this task depends on (this task is blocked by them until they complete). Max 30 combined dependencies + dependents per task. Dependencies can span across projects. Circular dependencies are rejected. NOTE: Approval tasks have known bugs with dependency behavior. Related: remove_task_dependencies, add_task_dependents for reverse direction.',
+    description: 'Mark a task as blocked by / waiting on other tasks (this task cannot proceed until they complete) — use for "make task 200 blocked by tasks 100 and 150", building dependency chains, critical-path setup. Direct action — pass task and dependency GIDs; do NOT call get_task first. Max 30 combined dependencies + dependents per task. Dependencies can span projects. Circular dependencies are rejected. Approval tasks have known bugs with dependency behavior. Related: add_task_dependents (reverse: this task blocks others), remove_task_dependencies.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -306,7 +306,7 @@ module.exports = (client) => [
   // ===== Search =====
   {
     name: 'search_tasks',
-    description: 'Search tasks in a workspace with advanced filters. IMPORTANT: This endpoint has a stricter rate limit of 60 requests/minute (vs 1500 for other endpoints). Results are capped at ~1000 items even with pagination — for larger datasets, use more specific filters. Does not search subtask content. Supports text search, filtering by assignee, project, section, tags, completion status, date ranges, and custom field values. Use sort_by to order results (default: modified_at descending). Date filters use different formats: YYYY-MM-DD for due_on/start_on filters, ISO 8601 for completed_on/modified_on/created_on filters. Related: list_tasks for simple project listing without rate limit penalty, get_task for full task details.',
+    description: 'Find tasks across a workspace by text, tag, project, section, assignee, completion, due/start/modified/created date, or custom field value. Direct action — do NOT call list_workspaces, get_current_user, or workspace_typeahead first. Use for "find overdue tasks tagged urgent", "tasks due this week assigned to Carlos", "completed tasks in project X last sprint". Date filters: YYYY-MM-DD for due_on/start_on, ISO 8601 for completed_on/modified_on/created_on. Sort via sort_by (default modified_at desc). Note: 60 req/min rate limit (vs 1500 elsewhere); capped at ~1000 results — narrow filters for larger sets; does not search subtask content. Related: list_tasks (simple project listing, no rate cap), get_task (full details).',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -359,7 +359,7 @@ module.exports = (client) => [
   // ===== Duplicate =====
   {
     name: 'duplicate_task',
-    description: 'Create a copy of an existing task. Select what to include in the copy via the include array: notes, assignee, subtasks, attachments, tags, followers, projects, dates, dependencies, parent. Returns an async Job — use get_job to poll for completion and retrieve the new task GID. The job may take a few seconds for tasks with many subtasks or attachments. Related: create_task for new tasks, get_job to check duplication status.',
+    description: 'Clone / copy / duplicate an existing task — use for "duplicate task X so I can reuse it", "clone this kickoff template", reusable task patterns. Direct action — pass source task GID; do NOT call get_task first. Choose what to copy via include array: notes, assignee, subtasks, attachments, tags, followers, projects, dates, dependencies, parent. Async — returns a Job; poll with get_job for the new task GID (seconds for large tasks). Related: create_task (fresh task), instantiate_task_template (from template), get_job (status).',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',

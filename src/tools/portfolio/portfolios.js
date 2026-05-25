@@ -76,7 +76,7 @@ module.exports = (client) => [
   },
   {
     name: 'create_portfolio',
-    description: 'Create a new portfolio in a workspace (Business+ plan required). Portfolios group projects for high-level tracking and cross-initiative reporting. Requires workspace and name. Optionally set color (standard Asana palette: dark-*/light-* + "none"), owner (defaults to current user), initial members, and public visibility. After creation, use add_item_to_portfolio to add projects. start_on must be before due_on when both are set. Related: update_portfolio, add_members_to_portfolio, add_portfolio_custom_field_setting, add_item_to_portfolio.',
+    description: 'Create a portfolio to group projects for high-level / cross-initiative / program-level tracking — use for "create a LATAM Implementations 2026 portfolio to track all client projects", executive dashboards, multi-project reporting. Direct action — pass workspace by GID; do NOT call get_current_user or list_workspaces first. Optional: color (Asana palette dark-*/light-* + "none"), owner (defaults to caller), initial members, public visibility. start_on < due_on when both set. After creation, use add_item_to_portfolio to attach projects. Business+ plan. Related: update_portfolio, add_members_to_portfolio, add_item_to_portfolio, add_portfolio_custom_field_setting.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -158,7 +158,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_item_to_portfolio',
-    description: 'Add a project to a portfolio (Business+ plan required). The item must be a project GID — portfolios contain projects only, not tasks or goals. A project can belong to multiple portfolios simultaneously. Adding a project that is already in the portfolio is a no-op (safe to retry). Use list_projects or search_tasks to find project GIDs. Related: remove_item_from_portfolio, list_portfolio_items, get_portfolio.',
+    description: 'Attach an existing project to a portfolio for grouping / tracking — use for "add project Edenred Onboarding to LATAM Implementations portfolio", program-level rollup, exec dashboard composition. Direct action — pass portfolio and project by GID; do NOT call get_portfolio, list_portfolios, list_projects, or workspace_typeahead first. Portfolios contain projects only (not tasks/goals). A project can be in many portfolios simultaneously. Idempotent — re-adding is a no-op. Business+ plan. Related: remove_item_from_portfolio, list_portfolio_items, create_portfolio (make a new portfolio first).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -192,7 +192,7 @@ module.exports = (client) => [
   },
   {
     name: 'add_members_to_portfolio',
-    description: 'Add members to a portfolio (Business+ plan required). Members can view and edit the portfolio contents and settings. Members are distinct from the owner — the owner has full control including deletion. Pass an array of user GIDs. CRITICAL WARNING (SALS): Adding the authenticated user (yourself) when you are already the owner DOWNGRADES your access from admin to editor. This causes 403 on delete and other admin operations, and is IRREVERSIBLE via API. Only add OTHER users, not yourself. Related: remove_members_from_portfolio, get_portfolio to see current members, list_users to find user GIDs.',
+    description: 'Grant people view/edit access to a portfolio — use for "give Ximena view access to portfolio 5050", sharing program views with stakeholders, opening exec dashboards to leads. Direct action — pass portfolio and users by GID; do NOT call get_portfolio, list_users, or get_current_user first. Members can view/edit contents and settings; owner has full control (deletion etc). CRITICAL: Adding the authenticated user (yourself) when you ARE the owner DOWNGRADES your access from admin to editor — causes 403 on delete and other admin ops, IRREVERSIBLE via API. Only add OTHER users. Business+ plan. Related: remove_members_from_portfolio, get_portfolio (current members).',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
