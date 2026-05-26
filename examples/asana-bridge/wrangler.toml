@@ -1,0 +1,69 @@
+name = "asana-webhook-xmarts"
+main = "worker.ts"
+compatibility_date = "2026-05-01"
+
+# Route on xmarts.blog (same pattern as clickup-webhook-xmarts live worker)
+[[routes]]
+pattern = "xmarts.blog/asana-webhook-test*"
+zone_name = "xmarts.blog"
+
+# Phase 3: dedup via Durable Object; flows registry behind DRY_RUN + DISABLED_FLOWS guards
+# Phase 1 was capture-only on this same route — backwards-compatible.
+# Phase 4: cron triggers for polling fallback (*/5min) + self-heal (*/10min)
+
+[triggers]
+crons = ["*/5 * * * *", "*/10 * * * *"]
+
+# ── Public env vars ───────────────────────────────────────────────────────────
+
+[vars]
+ASANA_WORKSPACE_GID = "1201662232117346"  # Xmarts Group LLC
+TEST_PROJECT_GID    = "1215111495561363"  # 🤖 BRIDGE TEST [SANDBOX]
+ENABLE_IDO          = "false"
+# Phase 2 echo suppression Layer 1 — Ximena gid (= Eduardo = Rubén dev identity)
+# Phase 4 prod: replace with asana_bridge@xmarts.com gid
+BRIDGE_USER_GID     = "1210823662400036"
+# Phase 3 flow registry — default fully disabled
+DISABLED_FLOWS      = "ALL"
+DRY_RUN             = "true"
+ENABLE_AUTO_RECREATE = "false"
+# Phase 4 / Milestone D (coord plan §5b D.1-D.7): orchestrator ingest config
+ORCHESTRATOR_BASE_URL  = "https://beesmart.digital"
+ORCHESTRATOR_WORKSPACE_SLUG = "edenred"
+
+# ── KV namespaces (3 existing from Phase 1) ──────────────────────────────────
+
+[[kv_namespaces]]
+binding = "CAPTURE_LOG"
+id      = "81f2773e11bb43d392fd48142d6134bd"
+
+[[kv_namespaces]]
+binding = "HOOK_SECRETS"
+id      = "dbd04779040647b6a14f47c3901016ab"
+
+[[kv_namespaces]]
+binding = "STATE"
+id      = "1c02e2791bf84520b6260340f4963768"
+
+# ── Durable Object — Dedup ───────────────────────────────────────────────────
+
+[[durable_objects.bindings]]
+name       = "DEDUP_DO"
+class_name = "DedupDO"
+
+[[migrations]]
+tag                = "v1"
+new_sqlite_classes = ["DedupDO"]
+
+[observability]
+enabled = true
+
+# Secrets (wrangler secret put):
+#   ASANA_TOKEN                  — PAT for write-back
+#   IDO_SHARED_SECRET            — break-glass iDO (only if ENABLE_IDO=true)
+#   BRIDGE_WRITE_SECRET          — for /asana-webhook-test/* admin endpoints
+#   ORCHESTRATOR_INGEST_SECRET   — Worker → orchestrator (X-Orchestrator-Secret)
+#                                  mirror of beesmart ir.config_parameter
+#                                  'xma_team_orchestrator.ingest_secret'
+#                                  Mint: npx wrangler secret put ORCHESTRATOR_INGEST_SECRET
+#   BRIDGE_WRITE_SECRET — Phase 2 echo harness endpoint
