@@ -359,6 +359,39 @@ class AsanaClient {
     });
   }
 
+  shapeCustomFieldValue(fieldType, value) {
+    if (value === null || value === undefined) return value;
+    const t = typeof fieldType === 'string' ? fieldType.toLowerCase() : null;
+
+    if (t === 'date') {
+      if (typeof value === 'string') {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return { date: value, date_time: null };
+        const datePart = value.split('T')[0];
+        return { date: datePart, date_time: value };
+      }
+      return value;
+    }
+
+    if (t === 'people') {
+      if (Array.isArray(value)) {
+        return value.map(v => (typeof v === 'string' ? { gid: v } : v));
+      }
+      if (typeof value === 'string') return [{ gid: value }];
+      return value;
+    }
+
+    return value;
+  }
+
+  shapeCustomFieldsMap(customFields, fieldTypes = {}) {
+    if (!customFields || typeof customFields !== 'object') return customFields;
+    const out = {};
+    for (const [gid, value] of Object.entries(customFields)) {
+      out[gid] = this.shapeCustomFieldValue(fieldTypes[gid], value);
+    }
+    return out;
+  }
+
   /**
    * Get comprehensive client metrics
    * @returns {Object} Performance metrics including cache and circuit breaker

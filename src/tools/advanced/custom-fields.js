@@ -149,20 +149,25 @@ module.exports = (client) => [
   },
   {
     name: 'set_custom_field_value',
-    description: 'Set a custom field value on a task — use for "set the Priority field on task 9999 to Critical", "mark task as In Review status", "tag task with effort=5". Direct action — pass task and field by GID; do NOT call get_task or get_custom_field first if you have the IDs. Value type matches field type: enum → enum_option GID, multi_enum → array of enum_option GIDs, text → string (max 1024), number, date → "YYYY-MM-DD", people → array of user GIDs. Formula and custom_id fields are read-only. Pass value=null to clear. For enum options, get_custom_field returns option GIDs (cache them). Premium feature. Related: get_custom_field, update_task (set many fields at once), list_custom_fields.',
+    description: 'Set a custom field value on a task — use for "set the Priority field on task 9999 to Critical", "mark task as In Review status", "tag task with effort=5". Direct action — pass task and field by GID; do NOT call get_task or get_custom_field first if you have the IDs. Value shape per field type: enum → enum_option GID, multi_enum → array of enum_option GIDs, text → string (max 1024), number, date → "YYYY-MM-DD" string (auto-shaped to API object when field_type="date" is passed), people → array of user GIDs (auto-shaped to [{gid:...}] when field_type="people" is passed). Formula and custom_id fields are read-only. Pass value=null to clear. For enum options, get_custom_field returns option GIDs (cache them). Premium feature. Related: get_custom_field, update_task (set many fields at once), list_custom_fields.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
       properties: {
         task_gid: { type: 'string', description: 'Task GID' },
         custom_field_gid: { type: 'string', description: 'Custom field GID' },
-        value: { description: 'Value to set (type depends on field type)' }
+        value: { description: 'Value to set (shape depends on field type — see field_type). null to clear.' },
+        field_type: {
+          type: 'string',
+          enum: ['text', 'number', 'enum', 'multi_enum', 'date', 'people'],
+          description: 'Optional but REQUIRED for date and people fields — Asana expects shaped objects for those types. Pass "date" with a "YYYY-MM-DD" string value, or "people" with an array of user GIDs; handler will shape to {date,date_time} and [{gid}] respectively. Other types pass through.'
+        }
       },
       required: ['task_gid', 'custom_field_gid', 'value']
     },
     handler: async (args) => {
       const custom_fields = {};
-      custom_fields[args.custom_field_gid] = args.value;
+      custom_fields[args.custom_field_gid] = client.shapeCustomFieldValue(args.field_type, args.value);
       return await client.put(`/tasks/${args.task_gid}`, { custom_fields });
     }
   },

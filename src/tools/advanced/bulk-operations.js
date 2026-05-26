@@ -152,7 +152,13 @@ module.exports = (client) => [
     handler: async (args) => {
       return executeBulkOperation(
         args.tasks,
-        async (task) => await client.post('/tasks', task),
+        async (task) => {
+          const { custom_field_types, ...payload } = task;
+          if (payload.custom_fields) {
+            payload.custom_fields = client.shapeCustomFieldsMap(payload.custom_fields, custom_field_types);
+          }
+          return await client.post('/tasks', payload);
+        },
         { stopOnError: args.stopOnError || false }
       );
     }
@@ -188,7 +194,13 @@ module.exports = (client) => [
     handler: async (args) => {
       return executeBulkOperation(
         args.updates,
-        async (update) => await client.put(`/tasks/${update.task_gid}`, update.data),
+        async (update) => {
+          const { custom_field_types, ...payload } = update.data || {};
+          if (payload.custom_fields) {
+            payload.custom_fields = client.shapeCustomFieldsMap(payload.custom_fields, custom_field_types);
+          }
+          return await client.put(`/tasks/${update.task_gid}`, payload);
+        },
         { stopOnError: args.stopOnError || false }
       );
     }

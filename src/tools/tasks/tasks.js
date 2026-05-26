@@ -100,16 +100,18 @@ module.exports = (client) => [
         tags: { type: 'array', items: { type: 'string' }, description: 'Array of tag GIDs to attach' },
         followers: { type: 'array', items: { type: 'string' }, description: 'Array of user GIDs to add as followers (will receive notifications)' },
         parent: { type: 'string', description: 'Parent task GID to create this as a subtask' },
-        custom_fields: { type: 'object', description: 'Map of custom field GID to value. For enum fields, use the enum_option GID as value. Example: {"12345":"67890"}' },
+        custom_fields: { type: 'object', description: 'Map of custom field GID to value. For enum fields, use the enum_option GID as value. For date fields pass "YYYY-MM-DD" string and add the GID to custom_field_types as "date". For people fields pass array of user GIDs and mark as "people". Example: {"12345":"67890","99999":"2026-06-15"}' },
+        custom_field_types: { type: 'object', description: 'Optional map of custom field GID to Asana type ("text","number","enum","multi_enum","date","people"). REQUIRED for date and people fields so handler can shape the value into the API\'s expected object format. Example: {"99999":"date"}' },
         memberships: { type: 'array', items: { type: 'object' }, description: 'Array of {project, section} objects to place task in specific sections' },
         opt_fields: { type: 'string', description: 'Comma-separated fields to include in response' }
       },
       required: ['name']
     },
     handler: async (args) => {
-      const { opt_fields, ...data } = args;
+      const { opt_fields, custom_field_types, ...data } = args;
       const params = {};
       if (opt_fields) params.opt_fields = opt_fields;
+      if (data.custom_fields) data.custom_fields = client.shapeCustomFieldsMap(data.custom_fields, custom_field_types);
       return await client.post('/tasks', data, { params });
     }
   },
@@ -132,15 +134,17 @@ module.exports = (client) => [
         start_at: { type: 'string', description: 'Start datetime ISO 8601 or null to clear' },
         resource_subtype: { type: 'string', enum: ['default_task', 'milestone', 'approval'], description: 'Change task subtype' },
         approval_status: { type: 'string', enum: ['pending', 'approved', 'rejected', 'changes_requested'], description: 'Set approval status (only for approval tasks)' },
-        custom_fields: { type: 'object', description: 'Map of custom field GID to new value' },
+        custom_fields: { type: 'object', description: 'Map of custom field GID to new value. For date/people fields the value must be shaped — pass plain strings/arrays and provide custom_field_types so the handler shapes them automatically. Example: {"99999":"2026-06-15"} with custom_field_types:{"99999":"date"}' },
+        custom_field_types: { type: 'object', description: 'Optional map of custom field GID to Asana type ("text","number","enum","multi_enum","date","people"). REQUIRED for date and people fields so handler can shape the value into the API\'s expected object format.' },
         opt_fields: { type: 'string', description: 'Comma-separated fields to include in response' }
       },
       required: ['task_gid']
     },
     handler: async (args) => {
-      const { task_gid, opt_fields, ...data } = args;
+      const { task_gid, opt_fields, custom_field_types, ...data } = args;
       const params = {};
       if (opt_fields) params.opt_fields = opt_fields;
+      if (data.custom_fields) data.custom_fields = client.shapeCustomFieldsMap(data.custom_fields, custom_field_types);
       return await client.put(`/tasks/${task_gid}`, data, { params });
     }
   },
