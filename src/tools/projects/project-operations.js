@@ -12,6 +12,8 @@
  *
  * @module project-operations
  */
+const { coerceStringArray } = require('../../core/coerce');
+
 module.exports = (client) => [
   {
     name: 'add_project_custom_field_setting',
@@ -95,7 +97,8 @@ module.exports = (client) => [
       required: ['project_gid', 'members']
     },
     handler: async (args) => {
-      const { project_gid, members } = args;
+      const { project_gid } = args;
+      const members = coerceStringArray(args.members);
       return await client.post(`/projects/${project_gid}/addMembers`, { members });
     }
   },
@@ -112,7 +115,8 @@ module.exports = (client) => [
       required: ['project_gid', 'members']
     },
     handler: async (args) => {
-      const { project_gid, members } = args;
+      const { project_gid } = args;
+      const members = coerceStringArray(args.members);
       return await client.post(`/projects/${project_gid}/removeMembers`, { members });
     }
   },
