@@ -282,12 +282,13 @@ module.exports = (client) => [
         .sort((a, b) => new Date(b.modified_at) - new Date(a.modified_at))
         .slice(0, 5);
 
-      // Parallel fetch: sections + rules + task samples for top projects
+      // Parallel fetch: sections + task samples for top projects.
+      // NOTE: rules are intentionally NOT fetched — Asana exposes no endpoint to list a
+      // project's rules, so automation is scored as "not measurable" below (never a fake 0).
       const projectDetails = await Promise.all(
         sortedProjects.map(async (p) => {
-          const [sections, rules, tasks] = await Promise.all([
+          const [sections, tasks] = await Promise.all([
             client.get(`/projects/${p.gid}/sections`, { opt_fields: 'name' }).catch(() => ({ data: [] })),
-            client.get(`/projects/${p.gid}/rules`).catch(() => ({ data: [] })),
             client.get('/tasks', {
               project: p.gid, limit: 30,
               opt_fields: 'name,assignee,due_on,completed,custom_fields,custom_fields.display_value'
@@ -296,8 +297,6 @@ module.exports = (client) => [
           return {
             gid: p.gid, name: p.name,
             sections: (sections.data || []).map(s => s.name),
-            ruleCount: (rules.data || []).length,
-            enabledRules: (rules.data || []).filter(r => r.enabled !== false).length,
             tasks: tasks.data || []
           };
         })
@@ -357,26 +356,8 @@ module.exports = (client) => [
         quickWins.push(`Add due dates to ${totalTasks - withDueDate} tasks missing them`);
       }
 
-      // 3. Automation (0-20)
-      const totalRules = projectDetails.reduce((sum, p) => sum + p.ruleCount, 0);
-      const enabledRules = projectDetails.reduce((sum, p) => sum + p.enabledRules, 0);
-
-      let automationScore = 0;
-      if (totalRules >= 15) {
-        automationScore = 17;
-      } else if (totalRules >= 6) {
-        automationScore = 12;
-      } else if (totalRules >= 1) {
-        automationScore = 6;
-        findings.push({ dimension: 'automation', finding: `Only ${totalRules} rules across ${projectDetails.length} projects`, severity: 'medium' });
-      } else {
-        automationScore = 0;
-        findings.push({ dimension: 'automation', finding: 'No automation rules configured', severity: 'high' });
-        quickWins.push('Create basic rules for the 3 most active projects (auto-assign, move on complete)');
-      }
-      if (totalRules > 0 && enabledRules < totalRules) {
-        findings.push({ dimension: 'automation', finding: `${totalRules - enabledRules} rules disabled`, severity: 'low' });
-      }
+      // 3. Automation (0-20) — see note below. Scored after governance so it can be
+      //    imputed from the other measured dimensions (Asana exposes no rules endpoint).
 
       // 4. Integrations (0-20)
       const allCustomFields = projectList.flatMap(p =>
@@ -423,6 +404,19 @@ module.exports = (client) => [
         quickWins.push(`Assign owners to ${projectList.length - hasOwners} projects without them`);
       }
 
+      // 3. Automation (0-20) — NOT measurable via the Asana API.
+      // Asana exposes no endpoint to list a project's rules, so we cannot know how
+      // automated the workspace is. Rather than report a misleading 0 (which would
+      // both assert a false fact and drag down the overall), impute the dimension as
+      // the average of the four measured dimensions and flag it as unmeasured.
+      const automationMeasurable = false;
+      const automationScore = Math.round((structureScore + adoptionScore + integrationsScore + governanceScore) / 4);
+      findings.push({
+        dimension: 'automation',
+        finding: 'Automation is not measurable via the Asana API (no public endpoint lists rules). Score imputed from the other dimensions — verify rules directly in the Asana UI (Project ▸ Customize ▸ Rules).',
+        severity: 'info'
+      });
+
       // ─── Overall score & methodology ───
 
       const overall = structureScore + adoptionScore + automationScore + integrationsScore + governanceScore;
@@ -442,6 +436,7 @@ module.exports = (client) => [
           structure: structureScore,
           adoption: adoptionScore,
           automation: automationScore,
+          automation_measurable: automationMeasurable,
           integrations: integrationsScore,
           governance: governanceScore
         },
@@ -454,7 +449,8 @@ module.exports = (client) => [
           projects: projectList.length,
           goals: goalList.length,
           portfolios: portfolioList.length,
-          total_rules: totalRules,
+          total_rules: null,
+          rules_note: 'Not measurable — Asana exposes no API endpoint to list rules. Verify in the Asana UI.',
           custom_fields: fieldCount,
           tasks_sampled: totalTasks,
           assignee_coverage: `${assigneePct}%`,
@@ -520,12 +516,12 @@ module.exports = (client) => [
       // Parallel fetch project details
       const projectDetails = await Promise.all(
         projectGids.map(async (gid) => {
-          const [project, sections, rules, tasks] = await Promise.all([
+          // Rules are not fetched — Asana exposes no endpoint to list them.
+          const [project, sections, tasks] = await Promise.all([
             client.get(`/projects/${gid}`, {
               opt_fields: 'name,custom_field_settings,custom_field_settings.custom_field,custom_field_settings.custom_field.name,custom_field_settings.custom_field.type'
             }),
             client.get(`/projects/${gid}/sections`, { opt_fields: 'name' }).catch(() => ({ data: [] })),
-            client.get(`/projects/${gid}/rules`).catch(() => ({ data: [] })),
             client.get('/tasks', {
               project: gid, limit: 20,
               opt_fields: 'name,assignee,due_on,completed,tags,tags.name,custom_fields,custom_fields.name,custom_fields.display_value'
@@ -535,7 +531,6 @@ module.exports = (client) => [
             gid, name: project.data?.name,
             customFields: (project.data?.custom_field_settings || []).map(cfs => cfs.custom_field?.name).filter(Boolean),
             sections: (sections.data || []).map(s => s.name),
-            ruleCount: (rules.data || []).length,
             tasks: tasks.data || []
           };
         })
@@ -550,7 +545,6 @@ module.exports = (client) => [
         const allSections = projectDetails.flatMap(p => p.sections);
         const allFields = projectDetails.flatMap(p => p.customFields);
         const allTasks = projectDetails.flatMap(p => p.tasks);
-        const hasRules = projectDetails.some(p => p.ruleCount > 0);
         const hasAssignees = allTasks.filter(t => t.assignee).length > allTasks.length * 0.5;
 
         // Always infer these
@@ -561,10 +555,9 @@ module.exports = (client) => [
         if (allFields.length === 0) {
           requirements.push({ requirement: 'Custom fields for categorization and filtering', priority: 'should' });
         }
-        if (!hasRules) {
-          requirements.push({ requirement: 'Automation rules for repetitive actions', priority: 'should' });
-          requirements.push({ requirement: 'Auto-assign tasks by type or section', priority: 'could' });
-        }
+        // Rules can't be read via API, so automation needs are always inferred (verify in UI).
+        requirements.push({ requirement: 'Automation rules for repetitive actions', priority: 'should' });
+        requirements.push({ requirement: 'Auto-assign tasks by type or section', priority: 'could' });
         if (allSections.some(s => /review|approval/i.test(s))) {
           requirements.push({ requirement: 'Review/approval workflow automation', priority: 'should' });
         }
@@ -871,9 +864,9 @@ module.exports = (client) => [
         // Analyze top projects for patterns
         const projectAnalyses = await Promise.all(
           topProjects.map(async (p) => {
-            const [sections, rules, tasks] = await Promise.all([
+            // Rules are not fetched — Asana exposes no endpoint to list them.
+            const [sections, tasks] = await Promise.all([
               client.get(`/projects/${p.gid}/sections`, { opt_fields: 'name' }).catch(() => ({ data: [] })),
-              client.get(`/projects/${p.gid}/rules`).catch(() => ({ data: [] })),
               client.get('/tasks', {
                 project: p.gid, limit: 30,
                 opt_fields: 'name,assignee,due_on,completed,created_at,completed_at'
@@ -882,7 +875,6 @@ module.exports = (client) => [
 
             const taskList = tasks.data || [];
             const sectionNames = (sections.data || []).map(s => s.name);
-            const ruleCount = (rules.data || []).length;
             const completedTasks = taskList.filter(t => t.completed);
             const unassigned = taskList.filter(t => !t.assignee);
             const overdue = taskList.filter(t => t.due_on && !t.completed && new Date(t.due_on) < new Date());
@@ -894,7 +886,6 @@ module.exports = (client) => [
               unassignedCount: unassigned.length,
               overdueCount: overdue.length,
               sectionCount: sectionNames.length,
-              ruleCount,
               hasStages: sectionNames.some(s => /review|done|complete|in.?progress/i.test(s))
             };
           })
@@ -904,7 +895,6 @@ module.exports = (client) => [
         recommendations = [];
 
         const totalTasks = projectAnalyses.reduce((sum, p) => sum + p.taskCount, 0);
-        const totalRules = projectAnalyses.reduce((sum, p) => sum + p.ruleCount, 0);
         const hasStages = projectAnalyses.some(p => p.hasStages);
 
         if (totalTasks > 20) {
@@ -913,7 +903,8 @@ module.exports = (client) => [
         if (hasStages) {
           recommendations.push({ name: 'Auto-assign on section move', type: 'ai_studio_rule', category: 'routing', frequency_per_week: Math.round(totalTasks * 0.3) });
         }
-        if (totalRules === 0 && totalTasks > 10) {
+        if (totalTasks > 10) {
+          // Rules can't be read via API; recommend based on task volume (verify existing rules in UI).
           recommendations.push({ name: 'Auto-complete notification', type: 'ai_studio_rule', category: 'notification', frequency_per_week: Math.round(totalTasks * 0.2) });
         }
         if (projectAnalyses.some(p => p.unassignedCount > 5)) {

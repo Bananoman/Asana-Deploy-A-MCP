@@ -251,13 +251,14 @@ module.exports = (client) => [
       const includeTasks = args.include_task_sample !== false;
       const sampleSize = Math.min(args.sample_size || 20, 50);
 
-      // Parallel fetch: project, sections, rules, and tasks all at once
-      const [project, sections, rules, tasksResult] = await Promise.all([
+      // Parallel fetch: project, sections, and tasks. Rules are NOT fetched — Asana
+      // exposes no endpoint to list a project's rules, so automation is treated as
+      // not measurable below (never assumed to be 0).
+      const [project, sections, tasksResult] = await Promise.all([
         client.get(`/projects/${args.project_gid}`, {
           opt_fields: 'name,color,notes,public,archived,created_at,modified_at,owner,owner.name,team,team.name,custom_field_settings,custom_field_settings.custom_field,custom_field_settings.custom_field.name,custom_field_settings.custom_field.type,custom_field_settings.custom_field.enum_options'
         }),
         client.get(`/projects/${args.project_gid}/sections`, { opt_fields: 'name' }),
-        client.get(`/projects/${args.project_gid}/rules`).catch(() => ({ data: [] })),
         includeTasks
           ? client.get('/tasks', {
               project: args.project_gid, limit: sampleSize,
@@ -316,8 +317,8 @@ module.exports = (client) => [
         name: cfs.custom_field?.name, type: cfs.custom_field?.type,
         has_options: cfs.custom_field?.enum_options?.length > 0
       }));
-      const ruleCount = (rules.data || []).length;
-      const enabledRules = (rules.data || []).filter(r => r.enabled !== false).length;
+      // Rules can't be read via the Asana API — automation maturity is not measurable.
+      const automationMeasurable = false;
 
       const scores = {};
       const hasMultipleSections = sectionNames.length >= 3;
@@ -330,10 +331,15 @@ module.exports = (client) => [
       scores.context_quality = taskStats.assignee_coverage_pct != null
         ? Math.round((taskStats.assignee_coverage_pct + taskStats.due_date_coverage_pct + (taskStats.custom_field_usage_pct || 0)) / 3) : 0;
 
-      scores.automation_maturity = ruleCount >= 5 ? 80 : ruleCount >= 2 ? 50 : ruleCount >= 1 ? 30 : 0;
-
       const repetitiveCount = taskStats.repetitive_patterns?.length || 0;
       scores.repeatability = repetitiveCount >= 5 ? 90 : repetitiveCount >= 3 ? 70 : repetitiveCount >= 1 ? 40 : 10;
+
+      // Not measurable via API — impute from the other three dimensions so it neither
+      // inflates nor deflates the overall, and flag it for the caller.
+      scores.automation_maturity = Math.round(
+        (scores.workflow_structure + scores.context_quality + scores.repeatability) / 3
+      );
+      scores.automation_measurable = automationMeasurable;
 
       scores.overall = Math.round(
         (scores.workflow_structure * 0.3) + (scores.context_quality * 0.25) +
@@ -386,11 +392,11 @@ module.exports = (client) => [
           tool_to_use: 'create_custom_field'
         });
       }
-      if (scores.workflow_structure >= 50 && ruleCount === 0) {
+      if (scores.workflow_structure >= 50) {
         recommendations.push({
-          type: 'ai_studio_rule', priority: 'high', title: 'Add basic automation rules',
-          detail: 'Good structure but no automation. Start with: auto-assign on move, auto-complete on Done, notify on stage changes.',
-          tool_to_use: 'setup_kanban_workflow or create_rule'
+          type: 'ai_studio_rule', priority: 'medium', title: 'Review and add automation rules',
+          detail: 'Structure supports automation. Note: the Asana API cannot read existing rules, so verify current automation in the UI first. Candidates: auto-assign on move, auto-complete on Done, notify on stage changes.',
+          tool_to_use: 'Asana UI: Project ▸ Customize ▸ Rules (rules are not creatable via API)'
         });
       }
       if (repetitiveCount >= 3 && scores.context_quality >= 40) {
@@ -428,14 +434,15 @@ module.exports = (client) => [
         warnings.push('Project is PRIVATE — AI Teammate must be explicitly added as a member.');
       }
       warnings.push('AI Teammates cannot: browse web, call external APIs, create custom fields/dependencies, bulk-update, or generate images.');
-      warnings.push('API rules do NOT fire on API-initiated changes — only UI changes trigger them.');
+      warnings.push('Rules cannot be read or created via the Asana API — automation_maturity is imputed, not measured. Verify and configure rules in the Asana UI (Project ▸ Customize ▸ Rules).');
 
       return {
         project: {
           name: project.data?.name, gid: args.project_gid,
           owner: project.data?.owner?.name, team: project.data?.team?.name,
           is_public: project.data?.public, sections: sectionNames,
-          custom_fields: customFields, existing_rules: ruleCount, enabled_rules: enabledRules
+          custom_fields: customFields, existing_rules: null,
+          rules_note: 'Not measurable — Asana exposes no API endpoint to list rules.'
         },
         scores,
         task_statistics: taskStats,
