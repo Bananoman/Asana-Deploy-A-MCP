@@ -17,6 +17,8 @@
  *
  * @module composite-operations
  */
+const { coerceStringArray } = require('../../core/coerce');
+
 module.exports = (client) => [
   {
     name: 'create_project_with_structure',
@@ -45,13 +47,14 @@ module.exports = (client) => [
       });
 
       const sections = [];
-      if (args.sections && args.sections.length > 0) {
-        for (const sectionName of args.sections) {
-          const section = await client.post(`/projects/${project.data.gid}/sections`, {
-            name: sectionName
-          });
-          sections.push(section.data);
-        }
+      // Coerce sections in case the client serialized the array as a JSON/CSV string,
+      // otherwise iterating a string would create one section per character.
+      const sectionNames = coerceStringArray(args.sections);
+      for (const sectionName of sectionNames) {
+        const section = await client.post(`/projects/${project.data.gid}/sections`, {
+          name: sectionName
+        });
+        sections.push(section.data);
       }
 
       return {
