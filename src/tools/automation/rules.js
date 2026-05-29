@@ -22,10 +22,12 @@
  * @module rules
  */
 
+const { rulesApiUnsupported } = require('./_rules-api-support');
+
 module.exports = (client) => [
   {
     name: 'get_rule',
-    description: 'Get a rule by GID. Returns the rule definition including trigger configuration, action configuration, enabled status, and metadata. Use this to inspect what a rule does before updating or cloning it. Each rule has exactly one trigger and one action (API limitation). Rules do NOT fire on API-initiated changes, only UI changes. Related: list_project_rules to find rule GIDs, update_rule to modify, trigger_rule to run manually.',
+    description: 'NOT SUPPORTED by the Asana API — reading a rule by GID has no public endpoint and always errors. Rules can only be inspected in the Asana UI (Project ▸ Customize ▸ Rules). The only rule operation the API supports is trigger_rule (fires a rule with an incoming-web-request trigger). Do NOT call this to "check rules before X"; there is no programmatic rule visibility.',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -35,16 +37,12 @@ module.exports = (client) => [
       },
       required: ['rule_gid']
     },
-    handler: async (args) => {
-      const params = {};
-      if (args.opt_fields) params.opt_fields = args.opt_fields;
-      return await client.get(`/rules/${args.rule_gid}`, params);
-    }
+    handler: async () => { throw rulesApiUnsupported('Reading a rule by GID'); }
   },
 
   {
     name: 'list_project_rules',
-    description: 'List all automation rules configured in a project. Returns each rule with its trigger type, action type, and enabled status. Use this to audit existing automation, find rules to clone, or check for conflicts before adding new rules. Note: rules do NOT fire on API-initiated changes and are NOT copied when duplicating projects via API. Related: get_rule for full details, create_rule to add new automation, audit_project_rules for a summary report.',
+    description: 'NOT SUPPORTED by the Asana API — there is no public endpoint to list a project\'s rules, so this always errors. Rules are visible only in the Asana UI (Project ▸ Customize ▸ Rules). Because of this, the API cannot confirm whether a project has automation; do NOT rely on it to audit rules or to check "0 rules". The only rule operation available is trigger_rule.',
     annotations: { readOnlyHint: true },
     inputSchema: {
       type: 'object',
@@ -56,16 +54,12 @@ module.exports = (client) => [
       },
       required: ['project_gid']
     },
-    handler: async (args) => {
-      const { project_gid, ...params } = args;
-      if (!params.limit) params.limit = 20;
-      return await client.get(`/projects/${project_gid}/rules`, params);
-    }
+    handler: async () => { throw rulesApiUnsupported('Listing project rules'); }
   },
 
   {
     name: 'create_rule',
-    description: 'Create an automation rule in a project — use for "when a task is moved to Done auto-assign the QA lead", "auto-tag when added to project", due-date alerts. Direct action — pass project by GID; do NOT call list_project_rules or get_project first. ONE trigger + ONE action per rule (API limitation). Rules fire only on UI-initiated changes, NOT API changes. Cannot create AI-powered or branching/conditional rules via API. Triggers: task_added_to_project, task_moved_to_section (needs section GID), task_completed, task_uncompleted, custom_field_changed (needs field GID), due_date_approaching, assignee_changed, attachment_added. Actions: assign_task, add_follower, set_custom_field, add_tag, move_to_section, add_comment, complete_task, uncomplete_task, set_due_date, clear_due_date. Related: list_project_rules, trigger_rule (manual fire), setup_kanban_workflow / setup_sprint_workflow (pre-built templates), audit_project_rules.',
+    description: 'NOT SUPPORTED by the Asana API — creating rules has no public endpoint and always errors. Create rules in the Asana UI (Project ▸ Customize ▸ Rules) or script them with Script Actions (Enterprise+). The schema below documents the intended rule shape for UI reference only. Original intent: create an automation rule in a project — e.g. "when a task is moved to Done auto-assign the QA lead", "auto-tag when added to project", due-date alerts. Direct action — pass project by GID; do NOT call list_project_rules or get_project first. ONE trigger + ONE action per rule (API limitation). Rules fire only on UI-initiated changes, NOT API changes. Cannot create AI-powered or branching/conditional rules via API. Triggers: task_added_to_project, task_moved_to_section (needs section GID), task_completed, task_uncompleted, custom_field_changed (needs field GID), due_date_approaching, assignee_changed, attachment_added. Actions: assign_task, add_follower, set_custom_field, add_tag, move_to_section, add_comment, complete_task, uncomplete_task, set_due_date, clear_due_date. Related: list_project_rules, trigger_rule (manual fire), setup_kanban_workflow / setup_sprint_workflow (pre-built templates), audit_project_rules.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
@@ -114,33 +108,12 @@ module.exports = (client) => [
       },
       required: ['project_gid', 'name', 'trigger_type', 'action_type']
     },
-    handler: async (args) => {
-      const trigger = { type: args.trigger_type };
-      if (args.trigger_section_gid) trigger.section = args.trigger_section_gid;
-      if (args.trigger_custom_field_gid) trigger.custom_field = args.trigger_custom_field_gid;
-
-      const action = { type: args.action_type };
-      if (args.action_assignee_gid) action.assignee = args.action_assignee_gid;
-      if (args.action_follower_gid) action.follower = args.action_follower_gid;
-      if (args.action_section_gid) action.section = args.action_section_gid;
-      if (args.action_comment_text) action.text = args.action_comment_text;
-      if (args.action_tag_gid) action.tag = args.action_tag_gid;
-      if (args.action_custom_field_gid && args.action_custom_field_value) {
-        action.custom_field = args.action_custom_field_gid;
-        action.value = args.action_custom_field_value;
-      }
-
-      return await client.post(`/projects/${args.project_gid}/rules`, {
-        name: args.name,
-        trigger,
-        action
-      });
-    }
+    handler: async () => { throw rulesApiUnsupported('Creating a rule'); }
   },
 
   {
     name: 'update_rule',
-    description: 'Update an existing rule name or enabled status. Disabling a rule keeps its configuration but stops it from firing. IMPORTANT: you cannot change trigger or action types on an existing rule — you must delete and recreate the rule instead. Only name and enabled fields can be modified. Related: get_rule to see current config, delete_rule to remove, bulk_enable_rules or bulk_disable_rules for batch changes.',
+    description: 'NOT SUPPORTED by the Asana API — editing or enabling/disabling a rule has no public endpoint and always errors. Change rules in the Asana UI (Project ▸ Customize ▸ Rules). The only rule operation the API supports is trigger_rule.',
     annotations: { idempotentHint: true },
     inputSchema: {
       type: 'object',
@@ -151,15 +124,12 @@ module.exports = (client) => [
       },
       required: ['rule_gid']
     },
-    handler: async (args) => {
-      const { rule_gid, ...data } = args;
-      return await client.put(`/rules/${rule_gid}`, data);
-    }
+    handler: async () => { throw rulesApiUnsupported('Updating a rule'); }
   },
 
   {
     name: 'delete_rule',
-    description: 'Permanently delete a rule from a project. This action cannot be undone. The rule stops firing immediately. Consider using update_rule with enabled=false to disable without deleting if you may need the rule again. Related: update_rule with enabled=false to disable without deleting, bulk_delete_rules for batch deletion.',
+    description: 'NOT SUPPORTED by the Asana API — deleting a rule has no public endpoint and always errors. Delete rules in the Asana UI (Project ▸ Customize ▸ Rules). The only rule operation the API supports is trigger_rule.',
     annotations: { destructiveHint: true },
     inputSchema: {
       type: 'object',
@@ -168,24 +138,26 @@ module.exports = (client) => [
       },
       required: ['rule_gid']
     },
-    handler: async (args) => await client.delete(`/rules/${args.rule_gid}`)
+    handler: async () => { throw rulesApiUnsupported('Deleting a rule'); }
   },
 
   {
     name: 'trigger_rule',
-    description: 'Manually fire a rule against a task or resource — use for "fire rule 9090 manually for testing", retroactive rule application to existing tasks, one-off automation runs. Direct action — pass rule and resource by GID; do NOT call get_rule first. Executes the action immediately whether or not the trigger condition is met. Resource must be in the same project as the rule. This is the ONLY way to fire a rule from the API, since rules do not auto-fire on API-initiated changes. Related: get_rule (inspect action), create_rule, audit_project_rules.',
+    description: 'Fire a rule that has an "incoming web request" (API) trigger — the ONLY rules operation the Asana API supports. Use for "run my incoming-request rule 9090 against task X", webhook-style automation, one-off runs. The rule MUST already be configured in the UI with an incoming-web-request trigger; you pass that trigger\'s GID (the rule_trigger_gid shown in the rule\'s trigger setup), NOT a generic rule GID. Rules with other trigger types (task added, moved, completed, etc.) cannot be fired via API. Asana exposes no list/get for rules, so the rule_trigger_gid comes from the UI. Endpoint: POST /rule_triggers/{rule_trigger_gid}/run.',
     annotations: { idempotentHint: false },
     inputSchema: {
       type: 'object',
       properties: {
-        rule_gid: { type: 'string', description: 'The rule GID to trigger' },
-        resource: { type: 'string', description: 'The resource GID (usually a task GID) to run the rule action against' }
+        rule_trigger_gid: { type: 'string', description: 'The GID of the rule\'s "incoming web request" trigger (from the rule\'s trigger configuration in the Asana UI). NOT a generic rule GID.' },
+        data: { type: 'object', description: 'Optional JSON payload passed to the rule\'s action variables (key/value pairs the rule can reference)' },
+        resource: { type: 'string', description: 'Optional task/resource GID to run the rule against, sent as data.resource if no explicit data object is provided' }
       },
-      required: ['rule_gid', 'resource']
+      required: ['rule_trigger_gid']
     },
     handler: async (args) => {
-      const { rule_gid, resource } = args;
-      return await client.post(`/rules/${rule_gid}/trigger`, { resource });
+      const { rule_trigger_gid, data, resource } = args;
+      const payload = data || (resource ? { resource } : {});
+      return await client.post(`/rule_triggers/${rule_trigger_gid}/run`, { data: payload });
     }
   }
 ];
