@@ -110,6 +110,19 @@ module.exports = (client) => [
       const { opt_fields, ...data } = args;
       const params = {};
       if (opt_fields) params.opt_fields = opt_fields;
+      // Tolerance: Asana requires a container (workspace, parent, or projects).
+      // If the caller passed none, default to the authenticated user's first
+      // workspace instead of failing with a 400.
+      const hasProjects = Array.isArray(data.projects) && data.projects.length > 0;
+      if (!data.workspace && !data.parent && !hasProjects) {
+        try {
+          const me = await client.get('/users/me', { opt_fields: 'workspaces' });
+          const ws = me?.data?.workspaces?.[0]?.gid;
+          if (ws) data.workspace = ws;
+        } catch (_) {
+          // fall through — let the API surface its own error if lookup fails
+        }
+      }
       return await client.post('/tasks', data, { params });
     }
   },
