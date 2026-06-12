@@ -1,10 +1,23 @@
 {
-  "name": "asana-mcp-server",
+  "name": "@xmarts/asana-mcp",
   "version": "2.1.0",
   "description": "Complete Asana API integration for Claude Desktop via MCP - 247 tools in 10 categories",
   "main": "src/index.js",
   "bin": {
+    "asana-mcp": "./src/index.js",
     "asana-mcp-server": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bananoman/Asana-Deploy-A-MCP.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "start": "node src/index.js",
